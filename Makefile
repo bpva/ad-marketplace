@@ -1,4 +1,4 @@
-.PHONY: up down dev-logs lint
+.PHONY: up down dev-logs lint deploy
 
 up:
 	docker-compose up --build
@@ -12,3 +12,6 @@ dev-logs:
 lint:
 	golangci-lint run ./...
 	cd frontend && npm run lint
+
+deploy:
+	./deploy.sh
