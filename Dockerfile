@@ -15,6 +15,6 @@ WORKDIR /app
 COPY --from=builder /app/server .
 COPY config/config.yaml ./config/
 
-EXPOSE 8080
+EXPOSE 8090
 
 CMD ["./server"]

@@ -11,7 +11,7 @@ type Config struct {
 }
 
 type HTTP struct {
-	Port        string `yaml:"port" env:"HTTP_PORT" env-default:"8080"`
+	Port        string `yaml:"port" env:"HTTP_PORT" env-default:"8090"`
 	FrontendURL string `env:"FRONTEND_URL" env-default:"http://localhost:1313"`
 }
 
