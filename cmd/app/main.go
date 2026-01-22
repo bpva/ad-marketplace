@@ -2,14 +2,12 @@ package main
 
 import (
 	"log/slog"
-	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/http/app"
+	"github.com/bpva/ad-marketplace/internal/http/dbg_server"
+	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 )
 
 func main() {
@@ -21,24 +19,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.HTTP.FrontendURL},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
 
-	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
+	bot, err := bot_service.New(cfg.Telegram, log)
+	if err != nil {
+		log.Error("failed to create bot", "error", err)
+		os.Exit(1)
+	}
 
-	log.Info("starting server", "port", cfg.HTTP.Port)
-	if err := http.ListenAndServe(":"+cfg.HTTP.Port, r); err != nil {
+	if cfg.Env == "prod" {
+		if err := bot.SetWebhook(); err != nil {
+			log.Error("failed to set webhook", "error", err)
+			os.Exit(1)
+		}
+	} else {
+		// TODO: implement polling for local development
+		log.Warn("bot will not receive updates")
+	}
+
+	a := app.New(cfg.HTTP, log, bot)
+
+	if err := a.Serve(); err != nil {
 		log.Error("server error", "error", err)
 		os.Exit(1)
 	}
