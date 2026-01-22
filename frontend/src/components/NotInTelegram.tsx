@@ -9,8 +9,7 @@ export function NotInTelegram() {
       </div>
       <h1 className="text-2xl font-bold mb-3">Open in Telegram</h1>
       <p className="text-muted-foreground max-w-sm mb-6">
-        This app is designed to work as a Telegram Mini App. Please open it
-        through Telegram to continue.
+        This app can only be used within Telegram.. yet
       </p>
       <Button asChild>
         <a href="https://t.me/adxchange_bot">Open Telegram</a>
