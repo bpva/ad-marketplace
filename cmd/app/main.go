@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/http/app"
@@ -12,6 +15,9 @@ import (
 
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -39,8 +45,22 @@ func main() {
 
 	a := app.New(cfg.HTTP, log, bot)
 
-	if err := a.Serve(); err != nil {
-		log.Error("server error", "error", err)
-		os.Exit(1)
+	go func() {
+		if err := a.Serve(); err != nil {
+			log.Error("server error", "error", err)
+			stop()
+		}
+	}()
+
+	<-ctx.Done()
+	log.Info("shutdown signal received")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.HTTP.ShutdownTimeout)
+	defer cancel()
+
+	if err := a.Shutdown(shutdownCtx); err != nil {
+		log.Error("server shutdown error", "error", err)
 	}
+
+	log.Info("server stopped")
 }

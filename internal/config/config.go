@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -12,9 +14,10 @@ type Config struct {
 }
 
 type HTTP struct {
-	Port        string `yaml:"port" env:"HTTP_PORT" env-default:"8090"`
-	PrivatePort string `yaml:"private_port" env:"HTTP_PRIVATE_PORT" env-default:"8091"`
-	FrontendURL string `env:"FRONTEND_URL" env-default:"http://localhost:1313"`
+	Port            string        `yaml:"port" env:"HTTP_PORT" env-default:"8090"`
+	PrivatePort     string        `yaml:"private_port" env:"HTTP_PRIVATE_PORT" env-default:"8091"`
+	FrontendURL     string        `env:"FRONTEND_URL" env-default:"http://localhost:1313"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout" env-default:"30s"`
 }
 
 type Postgres struct {
