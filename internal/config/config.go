@@ -5,6 +5,7 @@ import (
 )
 
 type Config struct {
+	Env      string `env:"ENV" env-default:"local"`
 	HTTP     HTTP
 	Postgres Postgres
 	Telegram Telegram
@@ -26,6 +27,7 @@ type Postgres struct {
 
 type Telegram struct {
 	BotToken string `env:"BOT_TOKEN" env-required:"true"`
+	BaseURL  string `env:"BOT_WEBHOOK_BASE_URL" env-default:"https://example.com"`
 }
 
 func Load() (*Config, error) {

@@ -21,10 +21,20 @@ func main() {
 
 	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
 
-	bot, err := bot_service.New(cfg.Telegram.BotToken, log)
+	bot, err := bot_service.New(cfg.Telegram, log)
 	if err != nil {
 		log.Error("failed to create bot", "error", err)
 		os.Exit(1)
+	}
+
+	if cfg.Env == "prod" {
+		if err := bot.SetWebhook(); err != nil {
+			log.Error("failed to set webhook", "error", err)
+			os.Exit(1)
+		}
+	} else {
+		// TODO: implement polling for local development
+		log.Warn("bot will not receive updates")
 	}
 
 	a := app.New(cfg.HTTP, log, bot)
