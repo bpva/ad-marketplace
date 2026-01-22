@@ -21,9 +21,9 @@ type noopPoller struct{}
 
 func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
 
-func New(tgCfg config.Telegram, log *slog.Logger) (*Bot, error) {
+func New(cfg config.Telegram, log *slog.Logger) (*Bot, error) {
 	b, err := tele.NewBot(tele.Settings{
-		Token:   tgCfg.BotToken,
+		Token:   cfg.BotToken,
 		Poller:  &noopPoller{},
 		Offline: true,
 	})
@@ -34,7 +34,7 @@ func New(tgCfg config.Telegram, log *slog.Logger) (*Bot, error) {
 	bot := &Bot{
 		bot:     b,
 		log:     log,
-		baseURL: tgCfg.BaseURL,
+		baseURL: cfg.BaseURL,
 	}
 	bot.registerHandlers()
 
