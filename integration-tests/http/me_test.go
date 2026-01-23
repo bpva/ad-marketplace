@@ -67,7 +67,11 @@ func TestHandleMe(t *testing.T) {
 			setup: func(t *testing.T) string {
 				user, err := testTools.CreateUser(ctx, 444555666, "Deleted")
 				require.NoError(t, err)
-				_, err = testPool.Exec(ctx, "UPDATE users SET deleted_at = NOW() WHERE id = $1", user.ID)
+				_, err = testPool.Exec(
+					ctx,
+					"UPDATE users SET deleted_at = NOW() WHERE id = $1",
+					user.ID,
+				)
 				require.NoError(t, err)
 				token, err := testTools.GenerateToken(user)
 				require.NoError(t, err)
