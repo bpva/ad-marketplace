@@ -26,7 +26,12 @@ func New(db db) *repo {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, telegramChannelID int64, title string, username *string) (*entity.Channel, error) {
+func (r *repo) Create(
+	ctx context.Context,
+	telegramChannelID int64,
+	title string,
+	username *string,
+) (*entity.Channel, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
@@ -53,7 +58,10 @@ func (r *repo) Create(ctx context.Context, telegramChannelID int64, title string
 	return &ch, nil
 }
 
-func (r *repo) GetByTelegramChannelID(ctx context.Context, telegramChannelID int64) (*entity.Channel, error) {
+func (r *repo) GetByTelegramChannelID(
+	ctx context.Context,
+	telegramChannelID int64,
+) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
 		FROM channels
@@ -112,7 +120,11 @@ func (r *repo) SoftDelete(ctx context.Context, telegramChannelID int64) error {
 	return nil
 }
 
-func (r *repo) CreateRole(ctx context.Context, channelID, userID uuid.UUID, role string) (*entity.ChannelRole, error) {
+func (r *repo) CreateRole(
+	ctx context.Context,
+	channelID, userID uuid.UUID,
+	role string,
+) (*entity.ChannelRole, error) {
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO channel_roles (channel_id, user_id, role)
 		VALUES ($1, $2, $3)
@@ -131,7 +143,10 @@ func (r *repo) CreateRole(ctx context.Context, channelID, userID uuid.UUID, role
 	return &cr, nil
 }
 
-func (r *repo) GetRolesByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.ChannelRole, error) {
+func (r *repo) GetRolesByChannelID(
+	ctx context.Context,
+	channelID uuid.UUID,
+) ([]entity.ChannelRole, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT channel_id, user_id, role, created_at
 		FROM channel_roles
@@ -149,7 +164,10 @@ func (r *repo) GetRolesByChannelID(ctx context.Context, channelID uuid.UUID) ([]
 	return roles, nil
 }
 
-func (r *repo) GetChannelsByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Channel, error) {
+func (r *repo) GetChannelsByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT c.id, c.telegram_channel_id, c.title, c.username, c.created_at, c.deleted_at
 		FROM channels c
@@ -168,7 +186,10 @@ func (r *repo) GetChannelsByUserID(ctx context.Context, userID uuid.UUID) ([]ent
 	return channels, nil
 }
 
-func (r *repo) GetRole(ctx context.Context, channelID, userID uuid.UUID) (*entity.ChannelRole, error) {
+func (r *repo) GetRole(
+	ctx context.Context,
+	channelID, userID uuid.UUID,
+) (*entity.ChannelRole, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT channel_id, user_id, role, created_at
 		FROM channel_roles

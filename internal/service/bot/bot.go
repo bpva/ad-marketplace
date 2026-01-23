@@ -2,27 +2,61 @@ package bot_service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
+	"github.com/bpva/ad-marketplace/internal/storage"
 	tele "gopkg.in/telebot.v4"
 )
 
+type ChannelRepository interface {
+	Create(
+		ctx context.Context,
+		telegramChannelID int64,
+		title string,
+		username *string,
+	) (*entity.Channel, error)
+	CreateRole(
+		ctx context.Context,
+		channelID, userID uuid.UUID,
+		role string,
+	) (*entity.ChannelRole, error)
+	SoftDelete(ctx context.Context, telegramChannelID int64) error
+}
+
+type UserRepository interface {
+	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
+	Create(ctx context.Context, telegramID int64, name string) (*entity.User, error)
+}
+
 type svc struct {
-	bot     *tele.Bot
-	log     *slog.Logger
-	baseURL string
+	bot         *tele.Bot
+	log         *slog.Logger
+	baseURL     string
+	tx          storage.Transactor
+	channelRepo ChannelRepository
+	userRepo    UserRepository
 }
 
 type noopPoller struct{}
 
 func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
 
-func New(cfg config.Telegram, log *slog.Logger) (*svc, error) {
+func New(
+	cfg config.Telegram,
+	log *slog.Logger,
+	tx storage.Transactor,
+	channels ChannelRepository,
+	users UserRepository,
+) (*svc, error) {
 	log = log.With(logx.Service("BotService"))
 
 	b, err := tele.NewBot(tele.Settings{
@@ -35,9 +69,12 @@ func New(cfg config.Telegram, log *slog.Logger) (*svc, error) {
 	}
 
 	bot := &svc{
-		bot:     b,
-		log:     log,
-		baseURL: cfg.BaseURL,
+		bot:         b,
+		log:         log,
+		baseURL:     cfg.BaseURL,
+		tx:          tx,
+		channelRepo: channels,
+		userRepo:    users,
 	}
 	bot.registerHandlers()
 
@@ -52,6 +89,8 @@ func (b *svc) registerHandlers() {
 	b.bot.Handle(tele.OnText, func(c tele.Context) error {
 		return c.Send("confusing...")
 	})
+
+	b.bot.Handle(tele.OnMyChatMember, b.handleMyChatMember)
 }
 
 func (b *svc) ProcessUpdate(data []byte) error {
@@ -71,7 +110,10 @@ func (b *svc) SetWebhook() error {
 	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.bot.Token)
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.bot.Token)
 
-	body, err := json.Marshal(map[string]string{"url": webhookURL})
+	body, err := json.Marshal(map[string]any{
+		"url":             webhookURL,
+		"allowed_updates": []string{"message", "my_chat_member"},
+	})
 	if err != nil {
 		return fmt.Errorf("marshal request: %w", err)
 	}
