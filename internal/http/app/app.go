@@ -6,10 +6,14 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
 
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/entity"
+	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
 type BotService interface {
@@ -17,18 +21,25 @@ type BotService interface {
 	Token() string
 }
 
-type App struct {
-	log *slog.Logger
-	bot BotService
-	srv *http.Server
+type AuthService interface {
+	Authenticate(ctx context.Context, initData string) (string, *entity.User, error)
+	ValidateToken(tokenString string) (*dto.Claims, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
 }
 
-func New(httpCfg config.HTTP, log *slog.Logger, bot BotService) *App {
-	a := &App{log: log, bot: bot}
+type App struct {
+	log  *slog.Logger
+	bot  BotService
+	auth AuthService
+	srv  *http.Server
+}
+
+func New(httpCfg config.HTTP, log *slog.Logger, bot BotService, authSvc AuthService) *App {
+	a := &App{log: log, bot: bot, auth: authSvc}
 
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	r.Use(chimw.Logger)
+	r.Use(chimw.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{httpCfg.FrontendURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -39,6 +50,12 @@ func New(httpCfg config.HTTP, log *slog.Logger, bot BotService) *App {
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/bot/{token}/webhook", a.HandleBotWebhook())
+		r.Post("/auth", a.HandleAuth())
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Auth(authSvc))
+			r.Get("/me", a.HandleMe())
+		})
 	})
 
 	a.srv = &http.Server{

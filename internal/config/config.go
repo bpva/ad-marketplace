@@ -11,6 +11,7 @@ type Config struct {
 	HTTP     HTTP
 	Postgres Postgres
 	Telegram Telegram
+	JWT      JWT
 }
 
 type HTTP struct {
@@ -31,6 +32,10 @@ type Postgres struct {
 type Telegram struct {
 	BotToken string `env:"BOT_TOKEN" env-required:"true"`
 	BaseURL  string `env:"VITE_API_URL"`
+}
+
+type JWT struct {
+	Secret string `env:"JWT_SECRET" env-required:"true"`
 }
 
 func Load() (*Config, error) {
