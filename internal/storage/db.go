@@ -11,11 +11,11 @@ import (
 	"github.com/bpva/ad-marketplace/internal/config"
 )
 
-type DB interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+type Transactor interface {
+	WithTx(ctx context.Context, f func(ctx context.Context) error) error
 }
+
+type txCtxKey struct{}
 
 type db struct {
 	pool *pgxpool.Pool
@@ -39,16 +39,33 @@ func New(ctx context.Context, cfg config.Postgres) (*db, error) {
 	return &db{pool: pool}, nil
 }
 
-func (d *db) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	return d.pool.QueryRow(ctx, sql, args...)
-}
-
 func (d *db) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	if tx, ok := ctx.Value(txCtxKey{}).(pgx.Tx); ok {
+		return tx.Query(ctx, sql, args...)
+	}
 	return d.pool.Query(ctx, sql, args...)
 }
 
 func (d *db) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+	if tx, ok := ctx.Value(txCtxKey{}).(pgx.Tx); ok {
+		return tx.Exec(ctx, sql, args...)
+	}
 	return d.pool.Exec(ctx, sql, args...)
+}
+
+func (d *db) WithTx(ctx context.Context, f func(ctx context.Context) error) error {
+	tx, err := d.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	txCtx := context.WithValue(ctx, txCtxKey{}, tx)
+	if err := f(txCtx); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (d *db) Close() {
