@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/logx"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -22,6 +23,8 @@ type noopPoller struct{}
 func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
 
 func New(cfg config.Telegram, log *slog.Logger) (*Bot, error) {
+	log = log.With(logx.Service("BotService"))
+
 	b, err := tele.NewBot(tele.Settings{
 		Token:   cfg.BotToken,
 		Poller:  &noopPoller{},
