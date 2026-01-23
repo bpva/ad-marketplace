@@ -16,6 +16,8 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
+//go:generate mockgen -destination=mocks.go -package=app . BotService
+
 type BotService interface {
 	ProcessUpdate(data []byte) error
 	Token() string
@@ -77,4 +79,8 @@ func (a *App) Serve() error {
 func (a *App) Shutdown(ctx context.Context) error {
 	a.log.Info("shutting down server")
 	return a.srv.Shutdown(ctx)
+}
+
+func (a *App) Handler() http.Handler {
+	return a.srv.Handler
 }

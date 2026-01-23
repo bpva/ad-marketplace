@@ -1,4 +1,4 @@
-.PHONY: up down dev-logs lint deploy
+.PHONY: up down dev-logs lint deploy generate test-integration
 
 up:
 	docker compose up --build
@@ -15,3 +15,10 @@ lint:
 
 deploy:
 	./deploy.sh
+
+generate:
+	go generate ./...
+	go fmt ./...
+
+test-integration:
+	go test -v -tags integration ./integration-tests/...
