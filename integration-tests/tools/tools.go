@@ -21,7 +21,11 @@ func New(pool *pgxpool.Pool, jwtSecret string) *Tools {
 	return &Tools{pool: pool, jwtSecret: []byte(jwtSecret)}
 }
 
-func (t *Tools) CreateUser(ctx context.Context, telegramID int64, name string) (*entity.User, error) {
+func (t *Tools) CreateUser(
+	ctx context.Context,
+	telegramID int64,
+	name string,
+) (*entity.User, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
@@ -32,7 +36,13 @@ func (t *Tools) CreateUser(ctx context.Context, telegramID int64, name string) (
 		INSERT INTO users (id, telegram_id, name)
 		VALUES ($1, $2, $3)
 		RETURNING id, telegram_id, name, created_at, deleted_at
-	`, id, telegramID, name).Scan(&user.ID, &user.TelegramID, &user.Name, &user.CreatedAt, &user.DeletedAt)
+	`, id, telegramID, name).Scan(
+		&user.ID,
+		&user.TelegramID,
+		&user.Name,
+		&user.CreatedAt,
+		&user.DeletedAt,
+	)
 	if err != nil {
 		return nil, err
 	}

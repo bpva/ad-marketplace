@@ -44,3 +44,6 @@ bower_components
 
 # Deploy script
 deploy.sh
+
+# Local tools
+tools/bin/

@@ -80,13 +80,16 @@ func (s *service) Authenticate(ctx context.Context, initData string) (string, *e
 }
 
 func (s *service) ValidateToken(tokenString string) (*dto.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &dto.Claims{}, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return s.jwtSecret, nil
-	})
-
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&dto.Claims{},
+		func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return s.jwtSecret, nil
+		},
+	)
 	if err != nil {
 		return nil, ErrInvalidToken
 	}

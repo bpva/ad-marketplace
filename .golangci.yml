@@ -1,15 +1,51 @@
+version: "2"
+
 linters:
   enable:
-    - unused
     - govet
     - errcheck
     - staticcheck
-    - gosimple
     - ineffassign
+    - lll
+    - misspell
+    - unconvert
+    - bodyclose
+    - noctx
+    - gocritic
+    - revive
 
-linters-settings:
-  unused:
-    check-exported: false
+  settings:
+    lll:
+      line-length: 100
+      tab-width: 4
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: blank-imports
+          disabled: true
+        - name: unexported-return
+          disabled: true
+
+  exclusions:
+    rules:
+      - path: "mocks\\.go"
+        linters:
+          - lll
+          - gocritic
+          - revive
+      - path: "config\\.go"
+        linters:
+          - lll
+      - source: "^//go:generate "
+        linters:
+          - lll
+
+formatters:
+  enable:
+    - gofumpt
 
 run:
   timeout: 5m
