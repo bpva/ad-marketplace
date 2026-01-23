@@ -6,10 +6,32 @@ linters:
     - staticcheck
     - gosimple
     - ineffassign
+    - lll
+    - gofumpt
+    - misspell
+    - unconvert
+    - bodyclose
+    - noctx
+    - gocritic
+    - revive
 
 linters-settings:
   unused:
     check-exported: false
+  lll:
+    line-length: 100
+    tab-width: 4
+
+issues:
+  exclude-rules:
+    - path: mocks\.go
+      linters:
+        - lll
+        - gocritic
+        - revive
+    - source: "^//go:generate "
+      linters:
+        - lll
 
 run:
   timeout: 5m
