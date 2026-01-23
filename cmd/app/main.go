@@ -10,7 +10,11 @@ import (
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/http/dbg_server"
+	"github.com/bpva/ad-marketplace/internal/migrations"
+	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
+	"github.com/bpva/ad-marketplace/internal/service/auth"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
 func main() {
@@ -26,6 +30,22 @@ func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	log = log.With("env", cfg.Env)
 
+	if err := migrations.Run(storage.URL(cfg.Postgres)); err != nil {
+		log.Error("failed to run migrations", "error", err)
+		os.Exit(1)
+	}
+	log.Info("migrations completed")
+
+	db, err := storage.New(ctx, cfg.Postgres)
+	if err != nil {
+		log.Error("failed to create storage", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	userRepo := user_repo.New(db)
+	authSvc := auth.New(userRepo, cfg.Telegram.BotToken, cfg.JWT.Secret, log)
+
 	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
 
 	bot, err := bot_service.New(cfg.Telegram, log)
@@ -40,11 +60,10 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		// TODO: implement polling for local development
 		log.Warn("bot will not receive updates")
 	}
 
-	a := app.New(cfg.HTTP, log, bot)
+	a := app.New(cfg.HTTP, log, bot, authSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {
