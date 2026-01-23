@@ -12,7 +12,7 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
-type Bot struct {
+type svc struct {
 	bot     *tele.Bot
 	log     *slog.Logger
 	baseURL string
@@ -22,7 +22,7 @@ type noopPoller struct{}
 
 func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
 
-func New(cfg config.Telegram, log *slog.Logger) (*Bot, error) {
+func New(cfg config.Telegram, log *slog.Logger) (*svc, error) {
 	log = log.With(logx.Service("BotService"))
 
 	b, err := tele.NewBot(tele.Settings{
@@ -34,7 +34,7 @@ func New(cfg config.Telegram, log *slog.Logger) (*Bot, error) {
 		return nil, fmt.Errorf("create telebot: %w", err)
 	}
 
-	bot := &Bot{
+	bot := &svc{
 		bot:     b,
 		log:     log,
 		baseURL: cfg.BaseURL,
@@ -44,7 +44,7 @@ func New(cfg config.Telegram, log *slog.Logger) (*Bot, error) {
 	return bot, nil
 }
 
-func (b *Bot) registerHandlers() {
+func (b *svc) registerHandlers() {
 	b.bot.Handle("/start", func(c tele.Context) error {
 		return c.Send("hey")
 	})
@@ -54,7 +54,7 @@ func (b *Bot) registerHandlers() {
 	})
 }
 
-func (b *Bot) ProcessUpdate(data []byte) error {
+func (b *svc) ProcessUpdate(data []byte) error {
 	var update tele.Update
 	if err := json.Unmarshal(data, &update); err != nil {
 		return fmt.Errorf("unmarshal update: %w", err)
@@ -63,11 +63,11 @@ func (b *Bot) ProcessUpdate(data []byte) error {
 	return nil
 }
 
-func (b *Bot) Token() string {
+func (b *svc) Token() string {
 	return b.bot.Token
 }
 
-func (b *Bot) SetWebhook() error {
+func (b *svc) SetWebhook() error {
 	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.bot.Token)
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.bot.Token)
 
