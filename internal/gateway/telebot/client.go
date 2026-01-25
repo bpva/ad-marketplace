@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	tele "gopkg.in/telebot.v4"
+
+	"github.com/bpva/ad-marketplace/internal/dto"
 )
 
 type Client struct {
@@ -39,6 +41,25 @@ func (c *Client) Token() string {
 	return c.bot.Token
 }
 
-func (c *Client) AdminsOf(chat *tele.Chat) ([]tele.ChatMember, error) {
-	return c.bot.AdminsOf(chat)
+func (c *Client) AdminsOf(channelID int64) ([]dto.ChannelAdmin, error) {
+	members, err := c.bot.AdminsOf(&tele.Chat{ID: channelID})
+	if err != nil {
+		return nil, err
+	}
+
+	admins := make([]dto.ChannelAdmin, 0, len(members))
+	for _, m := range members {
+		if m.User == nil {
+			continue
+		}
+		admins = append(admins, dto.ChannelAdmin{
+			TelegramID: m.User.ID,
+			FirstName:  m.User.FirstName,
+			LastName:   m.User.LastName,
+			Username:   m.User.Username,
+			Role:       string(m.Role),
+		})
+	}
+
+	return admins, nil
 }

@@ -14,6 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 )
@@ -31,14 +32,12 @@ func TestHandleBotAdded(t *testing.T) {
 		{
 			name: "bot added with post permission, new user",
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        111222333,
-							FirstName: "Channel",
-							LastName:  "Owner",
-						},
-						Role: tele.Creator,
+						TelegramID: 111222333,
+						FirstName:  "Channel",
+						LastName:   "Owner",
+						Role:       dto.RoleCreator,
 					},
 				}, nil)
 			},
@@ -70,14 +69,12 @@ func TestHandleBotAdded(t *testing.T) {
 				_, err := testTools.CreateUser(ctx, 111222333, "Existing User")
 				require.NoError(t, err)
 
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        111222333,
-							FirstName: "Existing",
-							LastName:  "User",
-						},
-						Role: tele.Creator,
+						TelegramID: 111222333,
+						FirstName:  "Existing",
+						LastName:   "User",
+						Role:       dto.RoleCreator,
 					},
 				}, nil)
 			},
@@ -130,13 +127,11 @@ func TestHandleBotAdded(t *testing.T) {
 		{
 			name: "bot added but no creator in admins",
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        999,
-							FirstName: "Admin",
-						},
-						Role: tele.Administrator,
+						TelegramID: 999,
+						FirstName:  "Admin",
+						Role:       dto.RoleAdministrator,
 					},
 				}, nil)
 			},
@@ -153,7 +148,9 @@ func TestHandleBotAdded(t *testing.T) {
 		{
 			name: "bot added but AdminsOf API fails",
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
-				mock.EXPECT().AdminsOf(gomock.Any()).Return(nil, errors.New("telegram api error"))
+				mock.EXPECT().
+					AdminsOf(int64(-1001234567890)).
+					Return(nil, errors.New("telegram api error"))
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -185,13 +182,11 @@ func TestHandleBotAdded(t *testing.T) {
 				err = testTools.SoftDeleteChannel(ctx, -1001234567890)
 				require.NoError(t, err)
 
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        111222333,
-							FirstName: "Owner",
-						},
-						Role: tele.Creator,
+						TelegramID: 111222333,
+						FirstName:  "Owner",
+						Role:       dto.RoleCreator,
 					},
 				}, nil)
 			},
@@ -213,13 +208,11 @@ func TestHandleBotAdded(t *testing.T) {
 		{
 			name: "channel without username",
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        111222333,
-							FirstName: "Owner",
-						},
-						Role: tele.Creator,
+						TelegramID: 111222333,
+						FirstName:  "Owner",
+						Role:       dto.RoleCreator,
 					},
 				}, nil)
 			},
@@ -239,13 +232,11 @@ func TestHandleBotAdded(t *testing.T) {
 		{
 			name: "creator with first name only",
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
-				mock.EXPECT().AdminsOf(gomock.Any()).Return([]tele.ChatMember{
+				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						User: &tele.User{
-							ID:        111222333,
-							FirstName: "SingleName",
-						},
-						Role: tele.Creator,
+						TelegramID: 111222333,
+						FirstName:  "SingleName",
+						Role:       dto.RoleCreator,
 					},
 				}, nil)
 			},

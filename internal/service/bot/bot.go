@@ -9,11 +9,12 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
 	"github.com/bpva/ad-marketplace/internal/storage"
-	tele "gopkg.in/telebot.v4"
 )
 
 //go:generate mockgen -destination=mocks.go -package=bot_service . TelebotClient
@@ -21,7 +22,7 @@ type TelebotClient interface {
 	Handle(endpoint any, h tele.HandlerFunc)
 	ProcessUpdate(upd tele.Update)
 	Token() string
-	AdminsOf(chat *tele.Chat) ([]tele.ChatMember, error)
+	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
 }
 
 type ChannelRepository interface {
