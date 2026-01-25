@@ -10,12 +10,19 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	tele "gopkg.in/telebot.v4"
 )
+
+//go:generate mockgen -destination=mocks.go -package=bot_service . TelebotClient
+type TelebotClient interface {
+	Handle(endpoint any, h tele.HandlerFunc)
+	ProcessUpdate(upd tele.Update)
+	Token() string
+	AdminsOf(chat *tele.Chat) ([]tele.ChatMember, error)
+}
 
 type ChannelRepository interface {
 	Create(
@@ -38,7 +45,7 @@ type UserRepository interface {
 }
 
 type svc struct {
-	bot         *tele.Bot
+	client      TelebotClient
 	log         *slog.Logger
 	baseURL     string
 	tx          storage.Transactor
@@ -46,51 +53,40 @@ type svc struct {
 	userRepo    UserRepository
 }
 
-type noopPoller struct{}
-
-func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
-
 func New(
-	cfg config.Telegram,
+	client TelebotClient,
+	baseURL string,
 	log *slog.Logger,
 	tx storage.Transactor,
 	channels ChannelRepository,
 	users UserRepository,
-) (*svc, error) {
+) *svc {
 	log = log.With(logx.Service("BotService"))
 
-	b, err := tele.NewBot(tele.Settings{
-		Token:   cfg.BotToken,
-		Poller:  &noopPoller{},
-		Offline: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create telebot: %w", err)
-	}
-
-	bot := &svc{
-		bot:         b,
+	s := &svc{
+		client:      client,
 		log:         log,
-		baseURL:     cfg.BaseURL,
+		baseURL:     baseURL,
 		tx:          tx,
 		channelRepo: channels,
 		userRepo:    users,
 	}
-	bot.registerHandlers()
 
-	return bot, nil
+	s.registerHandlers()
+
+	return s
 }
 
 func (b *svc) registerHandlers() {
-	b.bot.Handle("/start", func(c tele.Context) error {
+	b.client.Handle("/start", func(c tele.Context) error {
 		return c.Send("hey")
 	})
 
-	b.bot.Handle(tele.OnText, func(c tele.Context) error {
+	b.client.Handle(tele.OnText, func(c tele.Context) error {
 		return c.Send("confusing...")
 	})
 
-	b.bot.Handle(tele.OnMyChatMember, b.handleMyChatMember)
+	b.client.Handle(tele.OnMyChatMember, b.handleMyChatMember)
 }
 
 func (b *svc) ProcessUpdate(data []byte) error {
@@ -98,17 +94,17 @@ func (b *svc) ProcessUpdate(data []byte) error {
 	if err := json.Unmarshal(data, &update); err != nil {
 		return fmt.Errorf("unmarshal update: %w", err)
 	}
-	b.bot.ProcessUpdate(update)
+	b.client.ProcessUpdate(update)
 	return nil
 }
 
 func (b *svc) Token() string {
-	return b.bot.Token
+	return b.client.Token()
 }
 
 func (b *svc) SetWebhook() error {
-	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.bot.Token)
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.bot.Token)
+	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.client.Token())
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.client.Token())
 
 	body, err := json.Marshal(map[string]any{
 		"url":             webhookURL,

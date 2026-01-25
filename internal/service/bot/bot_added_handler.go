@@ -13,7 +13,10 @@ func (b *svc) handleMyChatMember(c tele.Context) error {
 	if update == nil {
 		return nil
 	}
+	return b.HandleChatMemberUpdate(update)
+}
 
+func (b *svc) HandleChatMemberUpdate(update *tele.ChatMemberUpdate) error {
 	chat := update.Chat
 	if chat.Type != tele.ChatChannel {
 		return nil
@@ -27,7 +30,7 @@ func (b *svc) handleMyChatMember(c tele.Context) error {
 	}
 
 	if newStatus == tele.Administrator {
-		return b.handleBotAdded(ctx, c, chat, update.NewChatMember)
+		return b.handleBotAdded(ctx, chat, update.NewChatMember)
 	}
 
 	return nil
@@ -35,7 +38,6 @@ func (b *svc) handleMyChatMember(c tele.Context) error {
 
 func (b *svc) handleBotAdded(
 	ctx context.Context,
-	c tele.Context,
 	chat *tele.Chat,
 	member *tele.ChatMember,
 ) error {
@@ -46,7 +48,7 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	admins, err := c.Bot().AdminsOf(chat)
+	admins, err := b.client.AdminsOf(chat)
 	if err != nil {
 		b.log.Error("failed to get channel admins",
 			"channel_id", chat.ID,

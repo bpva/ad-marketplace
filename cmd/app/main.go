@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/gateway/telebot"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/http/dbg_server"
 	"github.com/bpva/ad-marketplace/internal/migrations"
@@ -50,11 +51,13 @@ func main() {
 
 	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
 
-	bot, err := bot_service.New(cfg.Telegram, log, db, channelRepo, userRepo)
+	telebotClient, err := telebot.New(cfg.Telegram.BotToken)
 	if err != nil {
-		log.Error("failed to create bot", "error", err)
+		log.Error("failed to create telebot client", "error", err)
 		os.Exit(1)
 	}
+
+	bot := bot_service.New(telebotClient, cfg.Telegram.BaseURL, log, db, channelRepo, userRepo)
 
 	if cfg.Env == "prod" {
 		if err := bot.SetWebhook(); err != nil {
