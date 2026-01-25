@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 TOOLS_BIN := $(PWD)/tools/bin
 export PATH := $(TOOLS_BIN):$(PATH)
 export GOBIN := $(TOOLS_BIN)
