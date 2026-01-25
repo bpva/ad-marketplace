@@ -16,7 +16,7 @@ import (
 
 type ChannelRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error)
-	GetByTgChannelID(ctx context.Context, TgChannelID int64) (*entity.Channel, error)
+	GetByTgChannelID(ctx context.Context, tgChannelID int64) (*entity.Channel, error)
 	GetChannelsByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Channel, error)
 	GetRole(ctx context.Context, channelID, userID uuid.UUID) (*entity.ChannelRole, error)
 	GetRolesByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.ChannelRole, error)
@@ -92,9 +92,9 @@ func (s *svc) GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleRespons
 }
 
 func (s *svc) GetChannel(
-	ctx context.Context, TgChannelID int64,
+	ctx context.Context, tgChannelID int64,
 ) (*dto.ChannelResponse, error) {
-	channel, err := s.getChannelEntity(ctx, TgChannelID)
+	channel, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,14 +104,14 @@ func (s *svc) GetChannel(
 }
 
 func (s *svc) GetChannelAdmins(
-	ctx context.Context, TgChannelID int64,
+	ctx context.Context, tgChannelID int64,
 ) ([]dto.ChannelAdmin, error) {
-	_, err := s.getChannelEntity(ctx, TgChannelID)
+	_, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
 	}
 
-	admins, err := s.bot.AdminsOf(TgChannelID)
+	admins, err := s.bot.AdminsOf(tgChannelID)
 	if err != nil {
 		return nil, fmt.Errorf("get admins: %w", err)
 	}
@@ -120,9 +120,9 @@ func (s *svc) GetChannelAdmins(
 }
 
 func (s *svc) GetChannelManagers(
-	ctx context.Context, TgChannelID int64,
+	ctx context.Context, tgChannelID int64,
 ) ([]dto.ManagerResponse, error) {
-	channel, err := s.getChannelEntity(ctx, TgChannelID)
+	channel, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
 	}
@@ -151,14 +151,14 @@ func (s *svc) GetChannelManagers(
 }
 
 func (s *svc) AddManager(
-	ctx context.Context, TgChannelID int64, tgID int64,
+	ctx context.Context, tgChannelID int64, tgID int64,
 ) error {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return fmt.Errorf("add manager: %w", dto.ErrForbidden)
 	}
 
-	channel, err := s.channelRepo.GetByTgChannelID(ctx, TgChannelID)
+	channel, err := s.channelRepo.GetByTgChannelID(ctx, tgChannelID)
 	if err != nil {
 		return fmt.Errorf("get channel: %w", err)
 	}
@@ -198,13 +198,13 @@ func (s *svc) AddManager(
 	})
 }
 
-func (s *svc) RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error {
+func (s *svc) RemoveManager(ctx context.Context, tgChannelID int64, tgID int64) error {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return fmt.Errorf("remove manager: %w", dto.ErrForbidden)
 	}
 
-	channel, err := s.channelRepo.GetByTgChannelID(ctx, TgChannelID)
+	channel, err := s.channelRepo.GetByTgChannelID(ctx, tgChannelID)
 	if err != nil {
 		return fmt.Errorf("get channel: %w", err)
 	}
@@ -246,14 +246,14 @@ func (s *svc) RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) 
 }
 
 func (s *svc) getChannelEntity(
-	ctx context.Context, TgChannelID int64,
+	ctx context.Context, tgChannelID int64,
 ) (*entity.Channel, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("get channel: %w", dto.ErrForbidden)
 	}
 
-	channel, err := s.channelRepo.GetByTgChannelID(ctx, TgChannelID)
+	channel, err := s.channelRepo.GetByTgChannelID(ctx, tgChannelID)
 	if err != nil {
 		return nil, fmt.Errorf("get channel: %w", err)
 	}

@@ -77,7 +77,7 @@ func (t *Tools) GenerateExpiredToken(user *entity.User) (string, error) {
 
 func (t *Tools) CreateChannel(
 	ctx context.Context,
-	TgChannelID int64,
+	tgChannelID int64,
 	title string,
 	username *string,
 ) (*entity.Channel, error) {
@@ -91,7 +91,7 @@ func (t *Tools) CreateChannel(
 		INSERT INTO channels (id, telegram_channel_id, title, username)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, telegram_channel_id, title, username, created_at, deleted_at
-	`, id, TgChannelID, title, username).Scan(
+	`, id, tgChannelID, title, username).Scan(
 		&channel.ID,
 		&channel.TgChannelID,
 		&channel.Title,
@@ -129,14 +129,14 @@ func (t *Tools) CreateChannelRole(
 
 func (t *Tools) GetChannelByTgID(
 	ctx context.Context,
-	TgChannelID int64,
+	tgChannelID int64,
 ) (*entity.Channel, error) {
 	var channel entity.Channel
 	err := t.pool.QueryRow(ctx, `
 		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
 		FROM channels
 		WHERE telegram_channel_id = $1
-	`, TgChannelID).Scan(
+	`, tgChannelID).Scan(
 		&channel.ID,
 		&channel.TgChannelID,
 		&channel.Title,
@@ -175,10 +175,10 @@ func (t *Tools) GetChannelRolesByChannelID(
 	return roles, rows.Err()
 }
 
-func (t *Tools) SoftDeleteChannel(ctx context.Context, TgChannelID int64) error {
+func (t *Tools) SoftDeleteChannel(ctx context.Context, tgChannelID int64) error {
 	_, err := t.pool.Exec(ctx, `
 		UPDATE channels SET deleted_at = NOW() WHERE telegram_channel_id = $1
-	`, TgChannelID)
+	`, tgChannelID)
 	return err
 }
 
