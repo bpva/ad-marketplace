@@ -2,13 +2,13 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/http/respond"
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
 
@@ -18,15 +18,11 @@ func (a *App) HandleListChannels() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		channels, err := a.channel.GetUserChannels(r.Context())
 		if err != nil {
-			log.Error("failed to get channels", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(channels); err != nil {
-			log.Error("failed to encode response", "error", err)
-		}
+		respond.OK(w, channels)
 	}
 }
 
@@ -36,29 +32,17 @@ func (a *App) HandleGetChannel() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid channel id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidChannelID)
 			return
 		}
 
 		channel, err := a.channel.GetChannel(r.Context(), TgChannelID)
-		if errors.Is(err, dto.ErrNotFound) {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, dto.ErrForbidden) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
 		if err != nil {
-			log.Error("failed to get channel", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(channel); err != nil {
-			log.Error("failed to encode response", "error", err)
-		}
+		respond.OK(w, channel)
 	}
 }
 
@@ -68,29 +52,17 @@ func (a *App) HandleGetChannelAdmins() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid channel id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidChannelID)
 			return
 		}
 
 		admins, err := a.channel.GetChannelAdmins(r.Context(), TgChannelID)
-		if errors.Is(err, dto.ErrNotFound) {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, dto.ErrForbidden) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
 		if err != nil {
-			log.Error("failed to get channel admins", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(admins); err != nil {
-			log.Error("failed to encode response", "error", err)
-		}
+		respond.OK(w, admins)
 	}
 }
 
@@ -100,29 +72,17 @@ func (a *App) HandleGetChannelManagers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid channel id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidChannelID)
 			return
 		}
 
 		managers, err := a.channel.GetChannelManagers(r.Context(), TgChannelID)
-		if errors.Is(err, dto.ErrNotFound) {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, dto.ErrForbidden) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
 		if err != nil {
-			log.Error("failed to get channel managers", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(managers); err != nil {
-			log.Error("failed to encode response", "error", err)
-		}
+		respond.OK(w, managers)
 	}
 }
 
@@ -132,37 +92,28 @@ func (a *App) HandleAddManager() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid channel id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidChannelID)
 			return
 		}
 
 		var req dto.AddManagerRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "bad request", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrBadRequest)
 			return
 		}
 
 		if req.TgID == 0 {
-			http.Error(w, "telegram_id required", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrTelegramIDRequired)
 			return
 		}
 
 		err = a.channel.AddManager(r.Context(), TgChannelID, req.TgID)
-		if errors.Is(err, dto.ErrNotFound) {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, dto.ErrForbidden) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
 		if err != nil {
-			log.Error("failed to add manager", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		respond.NoContent(w)
 	}
 }
 
@@ -172,35 +123,22 @@ func (a *App) HandleRemoveManager() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid channel id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidChannelID)
 			return
 		}
 
 		tgID, err := strconv.ParseInt(chi.URLParam(r, "tgID"), 10, 64)
 		if err != nil {
-			http.Error(w, "invalid telegram id", http.StatusBadRequest)
+			respond.Err(w, log, dto.ErrInvalidTelegramID)
 			return
 		}
 
 		err = a.channel.RemoveManager(r.Context(), TgChannelID, tgID)
-		if errors.Is(err, dto.ErrNotFound) {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if errors.Is(err, dto.ErrForbidden) {
-			http.Error(w, "forbidden", http.StatusForbidden)
-			return
-		}
-		if errors.Is(err, dto.ErrCannotRemoveOwner) {
-			http.Error(w, "cannot remove owner", http.StatusBadRequest)
-			return
-		}
 		if err != nil {
-			log.Error("failed to remove manager", "error", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			respond.Err(w, log, err)
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		respond.NoContent(w)
 	}
 }

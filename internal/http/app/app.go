@@ -70,7 +70,7 @@ func New(
 		r.Post("/auth", a.HandleAuth())
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.Auth(authSvc))
+			r.Use(middleware.Auth(authSvc, log))
 			r.Get("/me", a.HandleMe())
 
 			r.Route("/channels", func(r chi.Router) {
