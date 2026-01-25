@@ -9,11 +9,12 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
 	"github.com/bpva/ad-marketplace/internal/storage"
-	tele "gopkg.in/telebot.v4"
 )
 
 //go:generate mockgen -destination=mocks.go -package=bot_service . TelebotClient
@@ -21,27 +22,27 @@ type TelebotClient interface {
 	Handle(endpoint any, h tele.HandlerFunc)
 	ProcessUpdate(upd tele.Update)
 	Token() string
-	AdminsOf(chat *tele.Chat) ([]tele.ChatMember, error)
+	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
 }
 
 type ChannelRepository interface {
 	Create(
 		ctx context.Context,
-		telegramChannelID int64,
+		TgChannelID int64,
 		title string,
 		username *string,
 	) (*entity.Channel, error)
 	CreateRole(
 		ctx context.Context,
 		channelID, userID uuid.UUID,
-		role string,
+		role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
-	SoftDelete(ctx context.Context, telegramChannelID int64) error
+	SoftDelete(ctx context.Context, TgChannelID int64) error
 }
 
 type UserRepository interface {
-	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
-	Create(ctx context.Context, telegramID int64, name string) (*entity.User, error)
+	GetByTgID(ctx context.Context, tgID int64) (*entity.User, error)
+	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
 }
 
 type svc struct {

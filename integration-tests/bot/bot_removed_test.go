@@ -13,6 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/entity"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 )
 
@@ -34,12 +35,17 @@ func TestHandleBotRemoved(t *testing.T) {
 				channel, err := testTools.CreateChannel(ctx, -1001234567890, "Test Channel", nil)
 				require.NoError(t, err)
 
-				_, err = testTools.CreateChannelRole(ctx, channel.ID, user.ID, "owner")
+				_, err = testTools.CreateChannelRole(
+					ctx,
+					channel.ID,
+					user.ID,
+					entity.ChannelRoleTypeOwner,
+				)
 				require.NoError(t, err)
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Left),
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.NotNil(t, channel.DeletedAt)
 			},
@@ -53,12 +59,17 @@ func TestHandleBotRemoved(t *testing.T) {
 				channel, err := testTools.CreateChannel(ctx, -1001234567890, "Test Channel", nil)
 				require.NoError(t, err)
 
-				_, err = testTools.CreateChannelRole(ctx, channel.ID, user.ID, "owner")
+				_, err = testTools.CreateChannelRole(
+					ctx,
+					channel.ID,
+					user.ID,
+					entity.ChannelRoleTypeOwner,
+				)
 				require.NoError(t, err)
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Kicked),
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.NotNil(t, channel.DeletedAt)
 			},
@@ -68,7 +79,7 @@ func TestHandleBotRemoved(t *testing.T) {
 			setup:  func(t *testing.T) {},
 			update: createBotRemovedUpdate(-1001234567890, "Unknown Channel", tele.Left),
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},
@@ -77,7 +88,7 @@ func TestHandleBotRemoved(t *testing.T) {
 			setup:  func(t *testing.T) {},
 			update: createBotRemovedFromGroupUpdate(-1001234567890, "Test Group", tele.Left),
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},

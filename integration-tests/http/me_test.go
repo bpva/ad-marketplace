@@ -37,7 +37,7 @@ func TestHandleMe(t *testing.T) {
 			check: func(t *testing.T, body []byte) {
 				var resp dto.UserResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Equal(t, int64(123456789), resp.TelegramID)
+				assert.Equal(t, int64(123456789), resp.TgID)
 				assert.Equal(t, "John Doe", resp.Name)
 			},
 		},

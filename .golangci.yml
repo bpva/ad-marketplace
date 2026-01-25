@@ -28,6 +28,7 @@ linters:
           disabled: true
         - name: unexported-return
           disabled: true
+        - name: var-naming
 
   exclusions:
     rules:

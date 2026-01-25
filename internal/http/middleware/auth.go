@@ -41,8 +41,8 @@ func Auth(validator TokenValidator) func(http.Handler) http.Handler {
 			}
 
 			userCtx := dto.UserContext{
-				ID:         userID,
-				TelegramID: claims.TelegramID,
+				ID:   userID,
+				TgID: claims.TgID,
 			}
 
 			ctx := dto.ContextWithUser(r.Context(), userCtx)

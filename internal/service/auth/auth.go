@@ -28,9 +28,9 @@ var (
 )
 
 type UserRepository interface {
-	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
+	GetByTgID(ctx context.Context, tgID int64) (*entity.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
-	Create(ctx context.Context, telegramID int64, name string) (*entity.User, error)
+	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
 }
 
 type service struct {
@@ -56,7 +56,7 @@ func (s *service) Authenticate(ctx context.Context, initData string) (string, *e
 		return "", nil, fmt.Errorf("validate init data: %w", err)
 	}
 
-	user, err := s.users.GetByTelegramID(ctx, tgUser.ID)
+	user, err := s.users.GetByTgID(ctx, tgUser.ID)
 	if errors.Is(err, dto.ErrNotFound) {
 		name := tgUser.FirstName
 		if tgUser.LastName != "" {
@@ -102,7 +102,7 @@ func (s *service) ValidateToken(tokenString string) (*dto.Claims, error) {
 	return claims, nil
 }
 
-func (s *service) validateInitData(initData string) (*dto.TelegramUser, error) {
+func (s *service) validateInitData(initData string) (*dto.TgUser, error) {
 	values, err := url.ParseQuery(initData)
 	if err != nil {
 		return nil, ErrInvalidInitData
@@ -143,7 +143,7 @@ func (s *service) validateInitData(initData string) (*dto.TelegramUser, error) {
 		return nil, ErrInvalidInitData
 	}
 
-	var tgUser dto.TelegramUser
+	var tgUser dto.TgUser
 	if err := json.Unmarshal([]byte(userJSON), &tgUser); err != nil {
 		return nil, ErrInvalidInitData
 	}
@@ -158,7 +158,7 @@ func (s *service) generateToken(user *entity.User) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
-		TelegramID: user.TelegramID,
+		TgID: user.TgID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
@@ -14,6 +15,7 @@ import (
 
 type db interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
 type repo struct {
@@ -24,12 +26,12 @@ func New(db db) *repo {
 	return &repo{db: db}
 }
 
-func (r *repo) GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error) {
+func (r *repo) GetByTgID(ctx context.Context, tgID int64) (*entity.User, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, telegram_id, name, created_at, deleted_at
 		FROM users
 		WHERE telegram_id = $1 AND deleted_at IS NULL
-	`, telegramID)
+	`, tgID)
 	if err != nil {
 		return nil, fmt.Errorf("getting user by telegram id: %w", err)
 	}
@@ -45,7 +47,7 @@ func (r *repo) GetByTelegramID(ctx context.Context, telegramID int64) (*entity.U
 	return &u, nil
 }
 
-func (r *repo) Create(ctx context.Context, telegramID int64, name string) (*entity.User, error) {
+func (r *repo) Create(ctx context.Context, tgID int64, name string) (*entity.User, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, fmt.Errorf("creating user: %w", err)
@@ -55,7 +57,7 @@ func (r *repo) Create(ctx context.Context, telegramID int64, name string) (*enti
 		INSERT INTO users (id, telegram_id, name)
 		VALUES ($1, $2, $3)
 		RETURNING id, telegram_id, name, created_at, deleted_at
-	`, id, telegramID, name)
+	`, id, tgID, name)
 	if err != nil {
 		return nil, fmt.Errorf("creating user: %w", err)
 	}
@@ -87,4 +89,12 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) 
 	}
 
 	return &u, nil
+}
+
+func (r *repo) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET name = $1 WHERE id = $2`, name, id)
+	if err != nil {
+		return fmt.Errorf("updating user name: %w", err)
+	}
+	return nil
 }

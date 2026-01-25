@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -18,15 +19,21 @@ import (
 
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/migrations"
+	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
+	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
 type db interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	storage.Transactor
 }
 
 var (
@@ -116,6 +123,7 @@ func TestMain(m *testing.M) {
 func setupTestServer(testDB db) *httptest.Server {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	userRepo := user_repo.New(testDB)
+	channelRepo := channel_repo.New(testDB)
 	authSvc := auth.New(userRepo, testBotToken, testJWTSecret, log)
 
 	httpCfg := config.HTTP{
@@ -124,10 +132,14 @@ func setupTestServer(testDB db) *httptest.Server {
 	}
 
 	ctrl := gomock.NewController(&testing.T{})
-	botMock := app.NewMockBotService(ctrl)
-	botMock.EXPECT().Token().Return(testBotToken).AnyTimes()
-	botMock.EXPECT().ProcessUpdate(gomock.Any()).Return(nil).AnyTimes()
+	telebotMock := bot_service.NewMockTelebotClient(ctrl)
+	telebotMock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
+	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
+	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
 
-	a := app.New(httpCfg, log, botMock, authSvc)
+	botSvc := bot_service.New(telebotMock, "http://localhost", log, testDB, channelRepo, userRepo)
+	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
+
+	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc)
 	return httptest.NewServer(a.Handler())
 }

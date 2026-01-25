@@ -11,9 +11,9 @@ import (
 
 func userToResponse(u *entity.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:         u.ID.String(),
-		TelegramID: u.TelegramID,
-		Name:       u.Name,
+		ID:   u.ID.String(),
+		TgID: u.TgID,
+		Name: u.Name,
 	}
 }
 

@@ -16,8 +16,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
-//go:generate mockgen -destination=mocks.go -package=app . BotService
-
+//go:generate mockgen -destination=mocks.go -package=app . BotService,ChannelService
 type BotService interface {
 	ProcessUpdate(data []byte) error
 	Token() string
@@ -29,15 +28,31 @@ type AuthService interface {
 	GetUserByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
 }
 
-type App struct {
-	log  *slog.Logger
-	bot  BotService
-	auth AuthService
-	srv  *http.Server
+type ChannelService interface {
+	GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleResponse, error)
+	GetChannel(ctx context.Context, TgChannelID int64) (*dto.ChannelResponse, error)
+	GetChannelAdmins(ctx context.Context, TgChannelID int64) ([]dto.ChannelAdmin, error)
+	GetChannelManagers(ctx context.Context, TgChannelID int64) ([]dto.ManagerResponse, error)
+	AddManager(ctx context.Context, TgChannelID int64, tgID int64) error
+	RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error
 }
 
-func New(httpCfg config.HTTP, log *slog.Logger, bot BotService, authSvc AuthService) *App {
-	a := &App{log: log, bot: bot, auth: authSvc}
+type App struct {
+	log     *slog.Logger
+	bot     BotService
+	auth    AuthService
+	channel ChannelService
+	srv     *http.Server
+}
+
+func New(
+	httpCfg config.HTTP,
+	log *slog.Logger,
+	bot BotService,
+	authSvc AuthService,
+	channelSvc ChannelService,
+) *App {
+	a := &App{log: log, bot: bot, auth: authSvc, channel: channelSvc}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
@@ -57,6 +72,15 @@ func New(httpCfg config.HTTP, log *slog.Logger, bot BotService, authSvc AuthServ
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc))
 			r.Get("/me", a.HandleMe())
+
+			r.Route("/channels", func(r chi.Router) {
+				r.Get("/", a.HandleListChannels())
+				r.Get("/{TgChannelID}", a.HandleGetChannel())
+				r.Get("/{TgChannelID}/admins", a.HandleGetChannelAdmins())
+				r.Get("/{TgChannelID}/managers", a.HandleGetChannelManagers())
+				r.Post("/{TgChannelID}/managers", a.HandleAddManager())
+				r.Delete("/{TgChannelID}/managers/{tgID}", a.HandleRemoveManager())
+			})
 		})
 	})
 

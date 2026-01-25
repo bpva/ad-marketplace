@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/entity"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -48,7 +49,7 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	admins, err := b.client.AdminsOf(chat)
+	admins, err := b.client.AdminsOf(chat.ID)
 	if err != nil {
 		b.log.Error("failed to get channel admins",
 			"channel_id", chat.ID,
@@ -56,10 +57,10 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	var creator *tele.User
-	for _, admin := range admins {
-		if admin.Role == tele.Creator {
-			creator = admin.User
+	var creator *dto.ChannelAdmin
+	for i := range admins {
+		if admins[i].Role == dto.RoleCreator {
+			creator = &admins[i]
 			break
 		}
 	}
@@ -71,25 +72,25 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	user, err := b.userRepo.GetByTelegramID(ctx, creator.ID)
+	user, err := b.userRepo.GetByTgID(ctx, creator.TgID)
 	if errors.Is(err, dto.ErrNotFound) {
 		name := creator.FirstName
 		if creator.LastName != "" {
 			name += " " + creator.LastName
 		}
-		user, err = b.userRepo.Create(ctx, creator.ID, name)
+		user, err = b.userRepo.Create(ctx, creator.TgID, name)
 		if err != nil {
 			b.log.Error("failed to create user",
-				"telegram_id", creator.ID,
+				"telegram_id", creator.TgID,
 				"error", err)
 			return nil
 		}
 		b.log.Info("user created from channel admin",
 			"user_id", user.ID,
-			"telegram_id", creator.ID)
+			"telegram_id", creator.TgID)
 	} else if err != nil {
 		b.log.Error("failed to get user",
-			"telegram_id", creator.ID,
+			"telegram_id", creator.TgID,
 			"error", err)
 		return nil
 	}
@@ -107,7 +108,7 @@ func (b *svc) handleBotAdded(
 		}
 		channelID = channel.ID.String()
 
-		_, err = b.channelRepo.CreateRole(ctx, channel.ID, user.ID, "owner")
+		_, err = b.channelRepo.CreateRole(ctx, channel.ID, user.ID, entity.ChannelRoleTypeOwner)
 		return err
 	})
 	if err != nil {

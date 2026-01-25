@@ -28,7 +28,7 @@ func New(db db) *repo {
 
 func (r *repo) Create(
 	ctx context.Context,
-	telegramChannelID int64,
+	TgChannelID int64,
 	title string,
 	username *string,
 ) (*entity.Channel, error) {
@@ -45,7 +45,7 @@ func (r *repo) Create(
 			username = EXCLUDED.username,
 			deleted_at = NULL
 		RETURNING id, telegram_channel_id, title, username, created_at, deleted_at
-	`, id, telegramChannelID, title, username)
+	`, id, TgChannelID, title, username)
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
 	}
@@ -58,15 +58,15 @@ func (r *repo) Create(
 	return &ch, nil
 }
 
-func (r *repo) GetByTelegramChannelID(
+func (r *repo) GetByTgChannelID(
 	ctx context.Context,
-	telegramChannelID int64,
+	TgChannelID int64,
 ) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
 		FROM channels
 		WHERE telegram_channel_id = $1 AND deleted_at IS NULL
-	`, telegramChannelID)
+	`, TgChannelID)
 	if err != nil {
 		return nil, fmt.Errorf("getting channel by telegram channel id: %w", err)
 	}
@@ -103,12 +103,12 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, erro
 	return &ch, nil
 }
 
-func (r *repo) SoftDelete(ctx context.Context, telegramChannelID int64) error {
+func (r *repo) SoftDelete(ctx context.Context, TgChannelID int64) error {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE channels
 		SET deleted_at = NOW()
 		WHERE telegram_channel_id = $1 AND deleted_at IS NULL
-	`, telegramChannelID)
+	`, TgChannelID)
 	if err != nil {
 		return fmt.Errorf("soft deleting channel: %w", err)
 	}
@@ -123,7 +123,7 @@ func (r *repo) SoftDelete(ctx context.Context, telegramChannelID int64) error {
 func (r *repo) CreateRole(
 	ctx context.Context,
 	channelID, userID uuid.UUID,
-	role string,
+	role entity.ChannelRoleType,
 ) (*entity.ChannelRole, error) {
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO channel_roles (channel_id, user_id, role)
