@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -21,7 +22,12 @@ import (
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
+	"github.com/bpva/ad-marketplace/internal/storage"
 )
+
+type db interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
 
 var (
 	testPool   *pgxpool.Pool
@@ -52,14 +58,40 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+	host, err := pgContainer.Host(ctx)
 	if err != nil {
-		slog.Error("failed to get connection string", "error", err)
+		slog.Error("failed to get host", "error", err)
 		os.Exit(1)
 	}
 
-	if err := migrations.Run(connStr); err != nil {
+	port, err := pgContainer.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		slog.Error("failed to get port", "error", err)
+		os.Exit(1)
+	}
+
+	pgCfg := config.Postgres{
+		Host:     host,
+		Port:     port.Port(),
+		User:     "test",
+		Password: "test",
+		DB:       "test_db",
+	}
+
+	if err := migrations.Run(storage.URL(pgCfg)); err != nil {
 		slog.Error("failed to run migrations", "error", err)
+		os.Exit(1)
+	}
+
+	testDB, err := storage.New(ctx, pgCfg)
+	if err != nil {
+		slog.Error("failed to create storage", "error", err)
+		os.Exit(1)
+	}
+
+	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		slog.Error("failed to get connection string", "error", err)
 		os.Exit(1)
 	}
 
@@ -70,7 +102,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testTools = tools.New(testPool, testJWTSecret)
-	testServer = setupTestServer()
+	testServer = setupTestServer(testDB)
 
 	code := m.Run()
 
@@ -81,10 +113,9 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setupTestServer() *httptest.Server {
+func setupTestServer(testDB db) *httptest.Server {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-
-	userRepo := user_repo.New(testPool)
+	userRepo := user_repo.New(testDB)
 	authSvc := auth.New(userRepo, testBotToken, testJWTSecret, log)
 
 	httpCfg := config.HTTP{
