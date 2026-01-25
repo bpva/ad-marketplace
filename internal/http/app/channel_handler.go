@@ -156,10 +156,6 @@ func (a *App) HandleAddManager() http.HandlerFunc {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}
-		if errors.Is(err, dto.ErrUserNotRegistered) {
-			http.Error(w, "user not registered", http.StatusBadRequest)
-			return
-		}
 		if err != nil {
 			log.Error("failed to add manager", "error", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)

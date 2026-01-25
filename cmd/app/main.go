@@ -69,7 +69,7 @@ func main() {
 		log.Warn("bot will not receive updates")
 	}
 
-	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, log)
+	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, db, log)
 
 	a := app.New(cfg.HTTP, log, bot, authSvc, channelSvc)
 

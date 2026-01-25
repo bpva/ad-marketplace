@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
@@ -28,27 +29,38 @@ type ChannelRepository interface {
 type UserRepository interface {
 	GetByTgID(ctx context.Context, tgID int64) (*entity.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
 }
 
 type TelebotClient interface {
 	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
 }
 
+type Transactor interface {
+	WithTx(ctx context.Context, f func(ctx context.Context) error) error
+}
+
 type svc struct {
 	channelRepo ChannelRepository
 	userRepo    UserRepository
 	bot         TelebotClient
+	tx          Transactor
 	log         *slog.Logger
 }
 
 func New(
-	channelRepo ChannelRepository, userRepo UserRepository, bot TelebotClient, log *slog.Logger,
+	channelRepo ChannelRepository,
+	userRepo UserRepository,
+	bot TelebotClient,
+	tx Transactor,
+	log *slog.Logger,
 ) *svc {
 	log = log.With(logx.Service("ChannelService"))
 	return &svc{
 		channelRepo: channelRepo,
 		userRepo:    userRepo,
 		bot:         bot,
+		tx:          tx,
 		log:         log,
 	}
 }
@@ -162,22 +174,28 @@ func (s *svc) AddManager(
 		return fmt.Errorf("add manager: %w", dto.ErrForbidden)
 	}
 
-	target, err := s.userRepo.GetByTgID(ctx, tgID)
-	if errors.Is(err, dto.ErrNotFound) {
-		return fmt.Errorf("add manager: %w", dto.ErrUserNotRegistered)
-	}
-	if err != nil {
-		return fmt.Errorf("get user: %w", err)
-	}
+	return s.tx.WithTx(ctx, func(ctx context.Context) error {
+		target, err := s.userRepo.GetByTgID(ctx, tgID)
+		if errors.Is(err, dto.ErrNotFound) {
+			name := petname.Generate(2, " ")
+			target, err = s.userRepo.Create(ctx, tgID, name)
+			if err != nil {
+				return fmt.Errorf("create user: %w", err)
+			}
+			s.log.Info("user created for manager role", "telegram_id", tgID, "name", name)
+		} else if err != nil {
+			return fmt.Errorf("get user: %w", err)
+		}
 
-	_, err = s.channelRepo.CreateRole(ctx, channel.ID, target.ID, entity.ChannelRoleTypeManager)
-	if err != nil {
-		return fmt.Errorf("create role: %w", err)
-	}
+		_, err = s.channelRepo.CreateRole(ctx, channel.ID, target.ID, entity.ChannelRoleTypeManager)
+		if err != nil {
+			return fmt.Errorf("create role: %w", err)
+		}
 
-	s.log.Info("manager added",
-		"channel_id", channel.ID, "user_id", target.ID, "added_by", user.ID)
-	return nil
+		s.log.Info("manager added",
+			"channel_id", channel.ID, "user_id", target.ID, "added_by", user.ID)
+		return nil
+	})
 }
 
 func (s *svc) RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error {

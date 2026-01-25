@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
@@ -14,6 +15,7 @@ import (
 
 type db interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
 type repo struct {
@@ -87,4 +89,12 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) 
 	}
 
 	return &u, nil
+}
+
+func (r *repo) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET name = $1 WHERE id = $2`, name, id)
+	if err != nil {
+		return fmt.Errorf("updating user name: %w", err)
+	}
+	return nil
 }
