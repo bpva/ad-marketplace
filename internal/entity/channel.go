@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,9 +16,36 @@ type Channel struct {
 	DeletedAt         *time.Time `db:"deleted_at"`
 }
 
+type ChannelRoleType string
+
+const (
+	ChannelRoleTypeUndefined ChannelRoleType = "undefined"
+	ChannelRoleTypeOwner     ChannelRoleType = "owner"
+	ChannelRoleTypeManager   ChannelRoleType = "manager"
+)
+
+func (r *ChannelRoleType) Scan(src any) error {
+	switch v := src.(type) {
+	case string:
+		switch v {
+		case "owner":
+			*r = ChannelRoleTypeOwner
+		case "manager":
+			*r = ChannelRoleTypeManager
+		default:
+			*r = ChannelRoleTypeUndefined
+		}
+	case []byte:
+		return r.Scan(string(v))
+	default:
+		return fmt.Errorf("cannot scan %T into ChannelRoleType", src)
+	}
+	return nil
+}
+
 type ChannelRole struct {
-	ChannelID uuid.UUID `db:"channel_id"`
-	UserID    uuid.UUID `db:"user_id"`
-	Role      string    `db:"role"`
-	CreatedAt time.Time `db:"created_at"`
+	ChannelID uuid.UUID       `db:"channel_id"`
+	UserID    uuid.UUID       `db:"user_id"`
+	Role      ChannelRoleType `db:"role"`
+	CreatedAt time.Time       `db:"created_at"`
 }
