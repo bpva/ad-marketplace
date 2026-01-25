@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/entity"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -107,7 +108,7 @@ func (b *svc) handleBotAdded(
 		}
 		channelID = channel.ID.String()
 
-		_, err = b.channelRepo.CreateRole(ctx, channel.ID, user.ID, "owner")
+		_, err = b.channelRepo.CreateRole(ctx, channel.ID, user.ID, entity.ChannelRoleTypeOwner)
 		return err
 	})
 	if err != nil {

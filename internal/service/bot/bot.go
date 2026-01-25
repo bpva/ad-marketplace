@@ -34,7 +34,7 @@ type ChannelRepository interface {
 	CreateRole(
 		ctx context.Context,
 		channelID, userID uuid.UUID,
-		role string,
+		role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
 	SoftDelete(ctx context.Context, telegramChannelID int64) error
 }

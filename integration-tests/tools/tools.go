@@ -108,7 +108,7 @@ func (t *Tools) CreateChannel(
 func (t *Tools) CreateChannelRole(
 	ctx context.Context,
 	channelID, userID uuid.UUID,
-	role string,
+	role entity.ChannelRoleType,
 ) (*entity.ChannelRole, error) {
 	var cr entity.ChannelRole
 	err := t.pool.QueryRow(ctx, `

@@ -13,6 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/entity"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 )
 
@@ -34,7 +35,12 @@ func TestHandleBotRemoved(t *testing.T) {
 				channel, err := testTools.CreateChannel(ctx, -1001234567890, "Test Channel", nil)
 				require.NoError(t, err)
 
-				_, err = testTools.CreateChannelRole(ctx, channel.ID, user.ID, "owner")
+				_, err = testTools.CreateChannelRole(
+					ctx,
+					channel.ID,
+					user.ID,
+					entity.ChannelRoleTypeOwner,
+				)
 				require.NoError(t, err)
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Left),
@@ -53,7 +59,12 @@ func TestHandleBotRemoved(t *testing.T) {
 				channel, err := testTools.CreateChannel(ctx, -1001234567890, "Test Channel", nil)
 				require.NoError(t, err)
 
-				_, err = testTools.CreateChannelRole(ctx, channel.ID, user.ID, "owner")
+				_, err = testTools.CreateChannelRole(
+					ctx,
+					channel.ID,
+					user.ID,
+					entity.ChannelRoleTypeOwner,
+				)
 				require.NoError(t, err)
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Kicked),

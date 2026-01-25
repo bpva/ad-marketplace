@@ -123,7 +123,7 @@ func (r *repo) SoftDelete(ctx context.Context, telegramChannelID int64) error {
 func (r *repo) CreateRole(
 	ctx context.Context,
 	channelID, userID uuid.UUID,
-	role string,
+	role entity.ChannelRoleType,
 ) (*entity.ChannelRole, error) {
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO channel_roles (channel_id, user_id, role)
