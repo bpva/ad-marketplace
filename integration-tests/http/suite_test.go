@@ -19,6 +19,7 @@ import (
 
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
@@ -134,7 +135,7 @@ func setupTestServer(testDB db) *httptest.Server {
 	telebotMock := bot_service.NewMockTelebotClient(ctrl)
 	telebotMock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
-	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return(nil, nil).AnyTimes()
+	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
 
 	botSvc := bot_service.New(telebotMock, "http://localhost", log, testDB, channelRepo, userRepo)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
