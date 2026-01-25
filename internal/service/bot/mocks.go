@@ -12,6 +12,7 @@ package bot_service
 import (
 	reflect "reflect"
 
+	dto "github.com/bpva/ad-marketplace/internal/dto"
 	gomock "go.uber.org/mock/gomock"
 	telebot "gopkg.in/telebot.v4"
 )
@@ -41,18 +42,18 @@ func (m *MockTelebotClient) EXPECT() *MockTelebotClientMockRecorder {
 }
 
 // AdminsOf mocks base method.
-func (m *MockTelebotClient) AdminsOf(chat *telebot.Chat) ([]telebot.ChatMember, error) {
+func (m *MockTelebotClient) AdminsOf(channelID int64) ([]dto.ChannelAdmin, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AdminsOf", chat)
-	ret0, _ := ret[0].([]telebot.ChatMember)
+	ret := m.ctrl.Call(m, "AdminsOf", channelID)
+	ret0, _ := ret[0].([]dto.ChannelAdmin)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AdminsOf indicates an expected call of AdminsOf.
-func (mr *MockTelebotClientMockRecorder) AdminsOf(chat any) *gomock.Call {
+func (mr *MockTelebotClientMockRecorder) AdminsOf(channelID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminsOf", reflect.TypeOf((*MockTelebotClient)(nil).AdminsOf), chat)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminsOf", reflect.TypeOf((*MockTelebotClient)(nil).AdminsOf), channelID)
 }
 
 // Handle mocks base method.
