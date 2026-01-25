@@ -11,8 +11,8 @@ type ctxKey string
 const userCtxKey ctxKey = "user"
 
 type UserContext struct {
-	ID         uuid.UUID
-	TelegramID int64
+	ID   uuid.UUID
+	TgID int64
 }
 
 func ContextWithUser(ctx context.Context, u UserContext) context.Context {

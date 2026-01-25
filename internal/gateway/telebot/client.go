@@ -53,11 +53,11 @@ func (c *Client) AdminsOf(channelID int64) ([]dto.ChannelAdmin, error) {
 			continue
 		}
 		admins = append(admins, dto.ChannelAdmin{
-			TelegramID: m.User.ID,
-			FirstName:  m.User.FirstName,
-			LastName:   m.User.LastName,
-			Username:   m.User.Username,
-			Role:       string(m.Role),
+			TgID:      m.User.ID,
+			FirstName: m.User.FirstName,
+			LastName:  m.User.LastName,
+			Username:  m.User.Username,
+			Role:      string(m.Role),
 		})
 	}
 

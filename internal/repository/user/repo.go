@@ -24,12 +24,12 @@ func New(db db) *repo {
 	return &repo{db: db}
 }
 
-func (r *repo) GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error) {
+func (r *repo) GetByTgID(ctx context.Context, tgID int64) (*entity.User, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, telegram_id, name, created_at, deleted_at
 		FROM users
 		WHERE telegram_id = $1 AND deleted_at IS NULL
-	`, telegramID)
+	`, tgID)
 	if err != nil {
 		return nil, fmt.Errorf("getting user by telegram id: %w", err)
 	}
@@ -45,7 +45,7 @@ func (r *repo) GetByTelegramID(ctx context.Context, telegramID int64) (*entity.U
 	return &u, nil
 }
 
-func (r *repo) Create(ctx context.Context, telegramID int64, name string) (*entity.User, error) {
+func (r *repo) Create(ctx context.Context, tgID int64, name string) (*entity.User, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, fmt.Errorf("creating user: %w", err)
@@ -55,7 +55,7 @@ func (r *repo) Create(ctx context.Context, telegramID int64, name string) (*enti
 		INSERT INTO users (id, telegram_id, name)
 		VALUES ($1, $2, $3)
 		RETURNING id, telegram_id, name, created_at, deleted_at
-	`, id, telegramID, name)
+	`, id, tgID, name)
 	if err != nil {
 		return nil, fmt.Errorf("creating user: %w", err)
 	}

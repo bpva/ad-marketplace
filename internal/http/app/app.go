@@ -30,11 +30,11 @@ type AuthService interface {
 
 type ChannelService interface {
 	GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleResponse, error)
-	GetChannel(ctx context.Context, telegramChannelID int64) (*dto.ChannelResponse, error)
-	GetChannelAdmins(ctx context.Context, telegramChannelID int64) ([]dto.ChannelAdmin, error)
-	GetChannelManagers(ctx context.Context, telegramChannelID int64) ([]dto.ManagerResponse, error)
-	AddManager(ctx context.Context, telegramChannelID int64, telegramID int64) error
-	RemoveManager(ctx context.Context, telegramChannelID int64, telegramID int64) error
+	GetChannel(ctx context.Context, TgChannelID int64) (*dto.ChannelResponse, error)
+	GetChannelAdmins(ctx context.Context, TgChannelID int64) ([]dto.ChannelAdmin, error)
+	GetChannelManagers(ctx context.Context, TgChannelID int64) ([]dto.ManagerResponse, error)
+	AddManager(ctx context.Context, TgChannelID int64, tgID int64) error
+	RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error
 }
 
 type App struct {
@@ -75,11 +75,11 @@ func New(
 
 			r.Route("/channels", func(r chi.Router) {
 				r.Get("/", a.HandleListChannels())
-				r.Get("/{telegramChannelId}", a.HandleGetChannel())
-				r.Get("/{telegramChannelId}/admins", a.HandleGetChannelAdmins())
-				r.Get("/{telegramChannelId}/managers", a.HandleGetChannelManagers())
-				r.Post("/{telegramChannelId}/managers", a.HandleAddManager())
-				r.Delete("/{telegramChannelId}/managers/{telegramId}", a.HandleRemoveManager())
+				r.Get("/{TgChannelID}", a.HandleGetChannel())
+				r.Get("/{TgChannelID}/admins", a.HandleGetChannelAdmins())
+				r.Get("/{TgChannelID}/managers", a.HandleGetChannelManagers())
+				r.Post("/{TgChannelID}/managers", a.HandleAddManager())
+				r.Delete("/{TgChannelID}/managers/{tgID}", a.HandleRemoveManager())
 			})
 		})
 	})

@@ -72,25 +72,25 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	user, err := b.userRepo.GetByTelegramID(ctx, creator.TelegramID)
+	user, err := b.userRepo.GetByTgID(ctx, creator.TgID)
 	if errors.Is(err, dto.ErrNotFound) {
 		name := creator.FirstName
 		if creator.LastName != "" {
 			name += " " + creator.LastName
 		}
-		user, err = b.userRepo.Create(ctx, creator.TelegramID, name)
+		user, err = b.userRepo.Create(ctx, creator.TgID, name)
 		if err != nil {
 			b.log.Error("failed to create user",
-				"telegram_id", creator.TelegramID,
+				"telegram_id", creator.TgID,
 				"error", err)
 			return nil
 		}
 		b.log.Info("user created from channel admin",
 			"user_id", user.ID,
-			"telegram_id", creator.TelegramID)
+			"telegram_id", creator.TgID)
 	} else if err != nil {
 		b.log.Error("failed to get user",
-			"telegram_id", creator.TelegramID,
+			"telegram_id", creator.TgID,
 			"error", err)
 		return nil
 	}

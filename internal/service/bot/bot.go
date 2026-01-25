@@ -28,7 +28,7 @@ type TelebotClient interface {
 type ChannelRepository interface {
 	Create(
 		ctx context.Context,
-		telegramChannelID int64,
+		TgChannelID int64,
 		title string,
 		username *string,
 	) (*entity.Channel, error)
@@ -37,12 +37,12 @@ type ChannelRepository interface {
 		channelID, userID uuid.UUID,
 		role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
-	SoftDelete(ctx context.Context, telegramChannelID int64) error
+	SoftDelete(ctx context.Context, TgChannelID int64) error
 }
 
 type UserRepository interface {
-	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
-	Create(ctx context.Context, telegramID int64, name string) (*entity.User, error)
+	GetByTgID(ctx context.Context, tgID int64) (*entity.User, error)
+	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
 }
 
 type svc struct {

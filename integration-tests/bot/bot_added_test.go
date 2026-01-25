@@ -34,24 +34,24 @@ func TestHandleBotAdded(t *testing.T) {
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 111222333,
-						FirstName:  "Channel",
-						LastName:   "Owner",
-						Role:       dto.RoleCreator,
+						TgID:      111222333,
+						FirstName: "Channel",
+						LastName:  "Owner",
+						Role:      dto.RoleCreator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
-				assert.Equal(t, int64(111222333), user.TelegramID)
+				assert.Equal(t, int64(111222333), user.TgID)
 				assert.Equal(t, "Channel Owner", user.Name)
 			},
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
-				assert.Equal(t, int64(-1001234567890), channel.TelegramChannelID)
+				assert.Equal(t, int64(-1001234567890), channel.TgChannelID)
 				assert.Equal(t, "Test Channel", channel.Title)
 				assert.NotNil(t, channel.Username)
 				assert.Equal(t, "testchannel", *channel.Username)
@@ -71,25 +71,25 @@ func TestHandleBotAdded(t *testing.T) {
 
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 111222333,
-						FirstName:  "Existing",
-						LastName:   "User",
-						Role:       dto.RoleCreator,
+						TgID:      111222333,
+						FirstName: "Existing",
+						LastName:  "User",
+						Role:      dto.RoleCreator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 				assert.Equal(t, "Existing User", user.Name)
 			},
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.Equal(t, "Test Channel", channel.Title)
 
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
 				roles, err := testTools.GetChannelRolesByChannelID(ctx, channel.ID)
@@ -103,11 +103,11 @@ func TestHandleBotAdded(t *testing.T) {
 			setup:  func(t *testing.T, mock *bot_service.MockTelebotClient) {},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", false),
 			checkUser: func(t *testing.T) {
-				_, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				_, err := testTools.GetUserByTgID(ctx, 111222333)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},
@@ -116,11 +116,11 @@ func TestHandleBotAdded(t *testing.T) {
 			setup:  func(t *testing.T, mock *bot_service.MockTelebotClient) {},
 			update: createBotAddedToGroupUpdate(-1001234567890, "Test Group", true),
 			checkUser: func(t *testing.T) {
-				_, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				_, err := testTools.GetUserByTgID(ctx, 111222333)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},
@@ -129,19 +129,19 @@ func TestHandleBotAdded(t *testing.T) {
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 999,
-						FirstName:  "Admin",
-						Role:       dto.RoleAdministrator,
+						TgID:      999,
+						FirstName: "Admin",
+						Role:      dto.RoleAdministrator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
-				_, err := testTools.GetUserByTelegramID(ctx, 999)
+				_, err := testTools.GetUserByTgID(ctx, 999)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},
@@ -154,11 +154,11 @@ func TestHandleBotAdded(t *testing.T) {
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
-				_, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				_, err := testTools.GetUserByTgID(ctx, 111222333)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 			checkChannel: func(t *testing.T) {
-				_, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				_, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				assert.ErrorIs(t, err, pgx.ErrNoRows)
 			},
 		},
@@ -184,20 +184,20 @@ func TestHandleBotAdded(t *testing.T) {
 
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 111222333,
-						FirstName:  "Owner",
-						Role:       dto.RoleCreator,
+						TgID:      111222333,
+						FirstName: "Owner",
+						Role:      dto.RoleCreator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Updated Title", "newusername", true),
 			checkUser: func(t *testing.T) {
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 				assert.Equal(t, "Owner", user.Name)
 			},
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.Equal(t, "Updated Title", channel.Title)
 				assert.NotNil(t, channel.Username)
@@ -210,20 +210,20 @@ func TestHandleBotAdded(t *testing.T) {
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 111222333,
-						FirstName:  "Owner",
-						Role:       dto.RoleCreator,
+						TgID:      111222333,
+						FirstName: "Owner",
+						Role:      dto.RoleCreator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Private Channel", "", true),
 			checkUser: func(t *testing.T) {
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 				assert.Equal(t, "Owner", user.Name)
 			},
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.Equal(t, "Private Channel", channel.Title)
 				assert.Nil(t, channel.Username)
@@ -234,20 +234,20 @@ func TestHandleBotAdded(t *testing.T) {
 			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
-						TelegramID: 111222333,
-						FirstName:  "SingleName",
-						Role:       dto.RoleCreator,
+						TgID:      111222333,
+						FirstName: "SingleName",
+						Role:      dto.RoleCreator,
 					},
 				}, nil)
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
-				user, err := testTools.GetUserByTelegramID(ctx, 111222333)
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 				assert.Equal(t, "SingleName", user.Name)
 			},
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTelegramID(ctx, -1001234567890)
+				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
 				require.NoError(t, err)
 				assert.NotNil(t, channel)
 			},
