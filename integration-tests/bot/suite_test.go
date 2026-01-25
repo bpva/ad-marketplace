@@ -1,44 +1,45 @@
 //go:build integration
 
-package http_test
+package bot_test
 
 import (
 	"context"
 	"log/slog"
-	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.uber.org/mock/gomock"
 
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
-	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/migrations"
+	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
-	"github.com/bpva/ad-marketplace/internal/service/auth"
+	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
 type db interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	storage.Transactor
 }
 
 var (
-	testPool   *pgxpool.Pool
-	testServer *httptest.Server
-	testTools  *tools.Tools
+	testPool    *pgxpool.Pool
+	testDB      db
+	testTools   *tools.Tools
+	channelRepo bot_service.ChannelRepository
+	userRepo    bot_service.UserRepository
+	log         *slog.Logger
 )
 
-const (
-	testJWTSecret = "test-jwt-secret-32-bytes-long!!"
-	testBotToken  = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-)
+const testBotToken = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
@@ -83,11 +84,15 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	testDB, err := storage.New(ctx, pgCfg)
+	testDB, err = storage.New(ctx, pgCfg)
 	if err != nil {
 		slog.Error("failed to create storage", "error", err)
 		os.Exit(1)
 	}
+
+	channelRepo = channel_repo.New(testDB)
+	userRepo = user_repo.New(testDB)
+	log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 
 	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
@@ -101,33 +106,12 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	testTools = tools.New(testPool, testJWTSecret)
-	testServer = setupTestServer(testDB)
+	testTools = tools.New(testPool, "unused-jwt-secret")
 
 	code := m.Run()
 
-	testServer.Close()
 	testPool.Close()
 	_ = pgContainer.Terminate(ctx)
 
 	os.Exit(code)
-}
-
-func setupTestServer(testDB db) *httptest.Server {
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	userRepo := user_repo.New(testDB)
-	authSvc := auth.New(userRepo, testBotToken, testJWTSecret, log)
-
-	httpCfg := config.HTTP{
-		Port:        "0",
-		FrontendURL: "*",
-	}
-
-	ctrl := gomock.NewController(&testing.T{})
-	botMock := app.NewMockBotService(ctrl)
-	botMock.EXPECT().Token().Return(testBotToken).AnyTimes()
-	botMock.EXPECT().ProcessUpdate(gomock.Any()).Return(nil).AnyTimes()
-
-	a := app.New(httpCfg, log, botMock, authSvc)
-	return httptest.NewServer(a.Handler())
 }

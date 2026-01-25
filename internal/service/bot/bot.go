@@ -2,56 +2,91 @@ package bot_service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/google/uuid"
+
+	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
+	"github.com/bpva/ad-marketplace/internal/storage"
 	tele "gopkg.in/telebot.v4"
 )
 
-type svc struct {
-	bot     *tele.Bot
-	log     *slog.Logger
-	baseURL string
+//go:generate mockgen -destination=mocks.go -package=bot_service . TelebotClient
+type TelebotClient interface {
+	Handle(endpoint any, h tele.HandlerFunc)
+	ProcessUpdate(upd tele.Update)
+	Token() string
+	AdminsOf(chat *tele.Chat) ([]tele.ChatMember, error)
 }
 
-type noopPoller struct{}
+type ChannelRepository interface {
+	Create(
+		ctx context.Context,
+		telegramChannelID int64,
+		title string,
+		username *string,
+	) (*entity.Channel, error)
+	CreateRole(
+		ctx context.Context,
+		channelID, userID uuid.UUID,
+		role string,
+	) (*entity.ChannelRole, error)
+	SoftDelete(ctx context.Context, telegramChannelID int64) error
+}
 
-func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
+type UserRepository interface {
+	GetByTelegramID(ctx context.Context, telegramID int64) (*entity.User, error)
+	Create(ctx context.Context, telegramID int64, name string) (*entity.User, error)
+}
 
-func New(cfg config.Telegram, log *slog.Logger) (*svc, error) {
+type svc struct {
+	client      TelebotClient
+	log         *slog.Logger
+	baseURL     string
+	tx          storage.Transactor
+	channelRepo ChannelRepository
+	userRepo    UserRepository
+}
+
+func New(
+	client TelebotClient,
+	baseURL string,
+	log *slog.Logger,
+	tx storage.Transactor,
+	channels ChannelRepository,
+	users UserRepository,
+) *svc {
 	log = log.With(logx.Service("BotService"))
 
-	b, err := tele.NewBot(tele.Settings{
-		Token:   cfg.BotToken,
-		Poller:  &noopPoller{},
-		Offline: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create telebot: %w", err)
+	s := &svc{
+		client:      client,
+		log:         log,
+		baseURL:     baseURL,
+		tx:          tx,
+		channelRepo: channels,
+		userRepo:    users,
 	}
 
-	bot := &svc{
-		bot:     b,
-		log:     log,
-		baseURL: cfg.BaseURL,
-	}
-	bot.registerHandlers()
+	s.registerHandlers()
 
-	return bot, nil
+	return s
 }
 
 func (b *svc) registerHandlers() {
-	b.bot.Handle("/start", func(c tele.Context) error {
+	b.client.Handle("/start", func(c tele.Context) error {
 		return c.Send("hey")
 	})
 
-	b.bot.Handle(tele.OnText, func(c tele.Context) error {
+	b.client.Handle(tele.OnText, func(c tele.Context) error {
 		return c.Send("confusing...")
 	})
+
+	b.client.Handle(tele.OnMyChatMember, b.handleMyChatMember)
 }
 
 func (b *svc) ProcessUpdate(data []byte) error {
@@ -59,19 +94,22 @@ func (b *svc) ProcessUpdate(data []byte) error {
 	if err := json.Unmarshal(data, &update); err != nil {
 		return fmt.Errorf("unmarshal update: %w", err)
 	}
-	b.bot.ProcessUpdate(update)
+	b.client.ProcessUpdate(update)
 	return nil
 }
 
 func (b *svc) Token() string {
-	return b.bot.Token
+	return b.client.Token()
 }
 
 func (b *svc) SetWebhook() error {
-	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.bot.Token)
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.bot.Token)
+	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.client.Token())
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.client.Token())
 
-	body, err := json.Marshal(map[string]string{"url": webhookURL})
+	body, err := json.Marshal(map[string]any{
+		"url":             webhookURL,
+		"allowed_updates": []string{"message", "my_chat_member"},
+	})
 	if err != nil {
 		return fmt.Errorf("marshal request: %w", err)
 	}

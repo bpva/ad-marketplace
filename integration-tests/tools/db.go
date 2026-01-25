@@ -12,5 +12,5 @@ func (t *Tools) Truncate(ctx context.Context, tables ...string) error {
 }
 
 func (t *Tools) TruncateAll(ctx context.Context) error {
-	return t.Truncate(ctx, "users")
+	return t.Truncate(ctx, "channel_roles", "channels", "users")
 }

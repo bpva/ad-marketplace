@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS channel_roles;
+DROP TABLE IF EXISTS channels;
