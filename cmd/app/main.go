@@ -16,6 +16,7 @@ import (
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
@@ -68,7 +69,9 @@ func main() {
 		log.Warn("bot will not receive updates")
 	}
 
-	a := app.New(cfg.HTTP, log, bot, authSvc)
+	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, log)
+
+	a := app.New(cfg.HTTP, log, bot, authSvc, channelSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {
