@@ -94,62 +94,62 @@ func (m *MockChannelService) EXPECT() *MockChannelServiceMockRecorder {
 }
 
 // AddManager mocks base method.
-func (m *MockChannelService) AddManager(ctx context.Context, telegramChannelID, telegramID int64) error {
+func (m *MockChannelService) AddManager(ctx context.Context, TgChannelID, tgID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddManager", ctx, telegramChannelID, telegramID)
+	ret := m.ctrl.Call(m, "AddManager", ctx, TgChannelID, tgID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddManager indicates an expected call of AddManager.
-func (mr *MockChannelServiceMockRecorder) AddManager(ctx, telegramChannelID, telegramID any) *gomock.Call {
+func (mr *MockChannelServiceMockRecorder) AddManager(ctx, TgChannelID, tgID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddManager", reflect.TypeOf((*MockChannelService)(nil).AddManager), ctx, telegramChannelID, telegramID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddManager", reflect.TypeOf((*MockChannelService)(nil).AddManager), ctx, TgChannelID, tgID)
 }
 
 // GetChannel mocks base method.
-func (m *MockChannelService) GetChannel(ctx context.Context, telegramChannelID int64) (*dto.ChannelResponse, error) {
+func (m *MockChannelService) GetChannel(ctx context.Context, TgChannelID int64) (*dto.ChannelResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChannel", ctx, telegramChannelID)
+	ret := m.ctrl.Call(m, "GetChannel", ctx, TgChannelID)
 	ret0, _ := ret[0].(*dto.ChannelResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChannel indicates an expected call of GetChannel.
-func (mr *MockChannelServiceMockRecorder) GetChannel(ctx, telegramChannelID any) *gomock.Call {
+func (mr *MockChannelServiceMockRecorder) GetChannel(ctx, TgChannelID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockChannelService)(nil).GetChannel), ctx, telegramChannelID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockChannelService)(nil).GetChannel), ctx, TgChannelID)
 }
 
 // GetChannelAdmins mocks base method.
-func (m *MockChannelService) GetChannelAdmins(ctx context.Context, telegramChannelID int64) ([]dto.ChannelAdmin, error) {
+func (m *MockChannelService) GetChannelAdmins(ctx context.Context, TgChannelID int64) ([]dto.ChannelAdmin, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChannelAdmins", ctx, telegramChannelID)
+	ret := m.ctrl.Call(m, "GetChannelAdmins", ctx, TgChannelID)
 	ret0, _ := ret[0].([]dto.ChannelAdmin)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChannelAdmins indicates an expected call of GetChannelAdmins.
-func (mr *MockChannelServiceMockRecorder) GetChannelAdmins(ctx, telegramChannelID any) *gomock.Call {
+func (mr *MockChannelServiceMockRecorder) GetChannelAdmins(ctx, TgChannelID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelAdmins", reflect.TypeOf((*MockChannelService)(nil).GetChannelAdmins), ctx, telegramChannelID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelAdmins", reflect.TypeOf((*MockChannelService)(nil).GetChannelAdmins), ctx, TgChannelID)
 }
 
 // GetChannelManagers mocks base method.
-func (m *MockChannelService) GetChannelManagers(ctx context.Context, telegramChannelID int64) ([]dto.ManagerResponse, error) {
+func (m *MockChannelService) GetChannelManagers(ctx context.Context, TgChannelID int64) ([]dto.ManagerResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChannelManagers", ctx, telegramChannelID)
+	ret := m.ctrl.Call(m, "GetChannelManagers", ctx, TgChannelID)
 	ret0, _ := ret[0].([]dto.ManagerResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChannelManagers indicates an expected call of GetChannelManagers.
-func (mr *MockChannelServiceMockRecorder) GetChannelManagers(ctx, telegramChannelID any) *gomock.Call {
+func (mr *MockChannelServiceMockRecorder) GetChannelManagers(ctx, TgChannelID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelManagers", reflect.TypeOf((*MockChannelService)(nil).GetChannelManagers), ctx, telegramChannelID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelManagers", reflect.TypeOf((*MockChannelService)(nil).GetChannelManagers), ctx, TgChannelID)
 }
 
 // GetUserChannels mocks base method.
@@ -168,15 +168,15 @@ func (mr *MockChannelServiceMockRecorder) GetUserChannels(ctx any) *gomock.Call 
 }
 
 // RemoveManager mocks base method.
-func (m *MockChannelService) RemoveManager(ctx context.Context, telegramChannelID, telegramID int64) error {
+func (m *MockChannelService) RemoveManager(ctx context.Context, TgChannelID, tgID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveManager", ctx, telegramChannelID, telegramID)
+	ret := m.ctrl.Call(m, "RemoveManager", ctx, TgChannelID, tgID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveManager indicates an expected call of RemoveManager.
-func (mr *MockChannelServiceMockRecorder) RemoveManager(ctx, telegramChannelID, telegramID any) *gomock.Call {
+func (mr *MockChannelServiceMockRecorder) RemoveManager(ctx, TgChannelID, tgID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveManager", reflect.TypeOf((*MockChannelService)(nil).RemoveManager), ctx, telegramChannelID, telegramID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveManager", reflect.TypeOf((*MockChannelService)(nil).RemoveManager), ctx, TgChannelID, tgID)
 }
