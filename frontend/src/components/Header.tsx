@@ -1,14 +1,13 @@
-import WebApp from '@twa-dev/sdk'
 import { Avatar } from '@/components/ui/avatar'
 
 interface HeaderProps {
   userId?: string
+  userName?: string
   onSettingsClick?: () => void
 }
 
-export function Header({ userId, onSettingsClick }: HeaderProps) {
-  const user = WebApp.initDataUnsafe.user
-  const name = user?.first_name || 'Guest'
+export function Header({ userId, userName, onSettingsClick }: HeaderProps) {
+  const name = userName || 'Guest'
   const initials = name.charAt(0).toUpperCase()
 
   return (
@@ -27,7 +26,6 @@ export function Header({ userId, onSettingsClick }: HeaderProps) {
       >
         <span className="text-sm font-medium text-foreground">{name}</span>
         <Avatar
-          src={user?.photo_url}
           fallback={initials}
           className="w-8 h-8 text-sm"
         />

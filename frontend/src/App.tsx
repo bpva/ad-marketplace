@@ -12,7 +12,7 @@ function App() {
   const { user, loading } = useAuth()
   const [page, setPage] = useState<'main' | 'settings'>('main')
 
-  const isInTelegram = WebApp.initData !== ''
+  const isInTelegram = WebApp.initData !== '' || import.meta.env.VITE_ENV === 'local'
 
   if (!isInTelegram) {
     return <NotInTelegram />
@@ -32,7 +32,7 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header userId={user?.id} onSettingsClick={() => setPage('settings')} />
+      <Header userId={user?.id} userName={user?.name} onSettingsClick={() => setPage('settings')} />
       <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
         <div className="p-8 rounded-xl bg-card text-card-foreground border border-border">
           <h1 className="text-2xl font-bold">
