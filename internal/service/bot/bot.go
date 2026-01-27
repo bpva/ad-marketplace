@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/logx"
@@ -48,7 +49,7 @@ type UserRepository interface {
 type svc struct {
 	client      TelebotClient
 	log         *slog.Logger
-	baseURL     string
+	cfg         config.Telegram
 	tx          storage.Transactor
 	channelRepo ChannelRepository
 	userRepo    UserRepository
@@ -56,7 +57,7 @@ type svc struct {
 
 func New(
 	client TelebotClient,
-	baseURL string,
+	cfg config.Telegram,
 	log *slog.Logger,
 	tx storage.Transactor,
 	channels ChannelRepository,
@@ -67,7 +68,7 @@ func New(
 	s := &svc{
 		client:      client,
 		log:         log,
-		baseURL:     baseURL,
+		cfg:         cfg,
 		tx:          tx,
 		channelRepo: channels,
 		userRepo:    users,
@@ -80,7 +81,10 @@ func New(
 
 func (b *svc) registerHandlers() {
 	b.client.Handle("/start", func(c tele.Context) error {
-		return c.Send("hey")
+		menu := &tele.ReplyMarkup{}
+		btn := menu.WebApp("Launch Marketplace", &tele.WebApp{URL: b.cfg.MiniAppURL})
+		menu.Inline(menu.Row(btn))
+		return c.Send("Welcome to ADxCHANGE!", menu)
 	})
 
 	b.client.Handle(tele.OnText, func(c tele.Context) error {
@@ -104,7 +108,7 @@ func (b *svc) Token() string {
 }
 
 func (b *svc) SetWebhook() error {
-	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.baseURL, b.client.Token())
+	webhookURL := fmt.Sprintf("%s/api/v1/bot/%s/webhook", b.cfg.BaseURL, b.client.Token())
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/setWebhook", b.client.Token())
 
 	body, err := json.Marshal(map[string]any{

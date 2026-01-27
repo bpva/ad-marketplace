@@ -58,7 +58,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	bot := bot_service.New(telebotClient, cfg.Telegram.BaseURL, log, db, channelRepo, userRepo)
+	bot := bot_service.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo)
 
 	if cfg.Env == "prod" {
 		if err := bot.SetWebhook(); err != nil {

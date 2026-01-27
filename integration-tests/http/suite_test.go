@@ -137,7 +137,7 @@ func setupTestServer(testDB db) *httptest.Server {
 	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
 	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
 
-	botSvc := bot_service.New(telebotMock, "http://localhost", log, testDB, channelRepo, userRepo)
+	botSvc := bot_service.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 
 	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc)
