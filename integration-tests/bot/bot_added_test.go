@@ -14,6 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 	tele "gopkg.in/telebot.v4"
 
+	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
@@ -264,7 +265,7 @@ func TestHandleBotAdded(t *testing.T) {
 			mock := bot_service.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot_service.New(mock, "http://localhost", log, testDB, channelRepo, userRepo)
+			botSvc := bot_service.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 
 			tt.setup(t, mock)
 
