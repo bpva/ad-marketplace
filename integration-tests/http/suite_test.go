@@ -23,10 +23,12 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
@@ -124,6 +126,7 @@ func setupTestServer(testDB db) *httptest.Server {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	userRepo := user_repo.New(testDB)
 	channelRepo := channel_repo.New(testDB)
+	settingsRepo := settings_repo.New(testDB)
 	authSvc := auth.New(userRepo, testBotToken, testJWTSecret, log)
 
 	httpCfg := config.HTTP{
@@ -139,7 +142,8 @@ func setupTestServer(testDB db) *httptest.Server {
 
 	botSvc := bot_service.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
+	userSvc := user_service.New(userRepo, settingsRepo, log)
 
-	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc)
+	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc)
 	return httptest.NewServer(a.Handler())
 }

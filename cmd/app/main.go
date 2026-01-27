@@ -13,10 +13,12 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/dbg_server"
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
@@ -48,6 +50,7 @@ func main() {
 
 	userRepo := user_repo.New(db)
 	channelRepo := channel_repo.New(db)
+	settingsRepo := settings_repo.New(db)
 	authSvc := auth.New(userRepo, cfg.Telegram.BotToken, cfg.JWT.Secret, log)
 
 	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
@@ -70,8 +73,9 @@ func main() {
 	}
 
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, db, log)
+	userSvc := user_service.New(userRepo, settingsRepo, log)
 
-	a := app.New(cfg.HTTP, log, bot, authSvc, channelSvc)
+	a := app.New(cfg.HTTP, log, bot, authSvc, channelSvc, userSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {
