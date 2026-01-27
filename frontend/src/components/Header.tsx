@@ -3,9 +3,10 @@ import { Avatar } from '@/components/ui/avatar'
 
 interface HeaderProps {
   userId?: string
+  onSettingsClick?: () => void
 }
 
-export function Header({ userId }: HeaderProps) {
+export function Header({ userId, onSettingsClick }: HeaderProps) {
   const user = WebApp.initDataUnsafe.user
   const name = user?.first_name || 'Guest'
   const initials = name.charAt(0).toUpperCase()
@@ -20,14 +21,17 @@ export function Header({ userId }: HeaderProps) {
           {userId}
         </span>
       )}
-      <div className="flex items-center gap-2 ml-auto">
+      <button
+        className="flex items-center gap-2 ml-auto"
+        onClick={onSettingsClick}
+      >
         <span className="text-sm font-medium text-foreground">{name}</span>
         <Avatar
           src={user?.photo_url}
           fallback={initials}
           className="w-8 h-8 text-sm"
         />
-      </div>
+      </button>
     </header>
   )
 }
