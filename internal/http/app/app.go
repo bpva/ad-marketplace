@@ -16,7 +16,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
-//go:generate mockgen -destination=mocks.go -package=app . BotService,ChannelService
+//go:generate mockgen -destination=mocks.go -package=app . BotService,ChannelService,UserService
 type BotService interface {
 	ProcessUpdate(data []byte) error
 	Token() string
@@ -37,11 +37,18 @@ type ChannelService interface {
 	RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error
 }
 
+type UserService interface {
+	GetProfile(ctx context.Context) (*dto.ProfileResponse, error)
+	UpdateName(ctx context.Context, name string) error
+	UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest) error
+}
+
 type App struct {
 	log     *slog.Logger
 	bot     BotService
 	auth    AuthService
 	channel ChannelService
+	user    UserService
 	srv     *http.Server
 }
 
@@ -51,15 +58,16 @@ func New(
 	bot BotService,
 	authSvc AuthService,
 	channelSvc ChannelService,
+	userSvc UserService,
 ) *App {
-	a := &App{log: log, bot: bot, auth: authSvc, channel: channelSvc}
+	a := &App{log: log, bot: bot, auth: authSvc, channel: channelSvc, user: userSvc}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{httpCfg.FrontendURL},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -72,6 +80,12 @@ func New(
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc, log))
 			r.Get("/me", a.HandleMe())
+
+			r.Route("/user", func(r chi.Router) {
+				r.Get("/profile", a.HandleGetProfile())
+				r.Patch("/name", a.HandleUpdateName())
+				r.Patch("/settings", a.HandleUpdateSettings())
+			})
 
 			r.Route("/channels", func(r chi.Router) {
 				r.Get("/", a.HandleListChannels())

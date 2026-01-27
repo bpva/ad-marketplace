@@ -11,9 +11,9 @@ export function getToken(): string | null {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   }
 
   if (token) {
@@ -52,4 +52,38 @@ export async function authenticate(initData: string): Promise<AuthResponse> {
 
 export async function fetchMe(): Promise<User> {
   return request<User>('/api/v1/me')
+}
+
+export interface Profile {
+  id: string
+  telegram_id: number
+  name: string
+  language: string
+  receive_notifications: boolean
+  preferred_mode: 'publisher' | 'advertiser'
+  onboarding_finished: boolean
+}
+
+export interface UpdateSettingsRequest {
+  language?: string
+  receive_notifications?: boolean
+  preferred_mode?: 'publisher' | 'advertiser'
+}
+
+export async function fetchProfile(): Promise<Profile> {
+  return request<Profile>('/api/v1/user/profile')
+}
+
+export async function updateName(name: string): Promise<void> {
+  await request('/api/v1/user/name', {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export async function updateSettings(settings: UpdateSettingsRequest): Promise<void> {
+  await request('/api/v1/user/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(settings),
+  })
 }
