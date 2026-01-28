@@ -26,7 +26,7 @@ import (
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
-	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
@@ -135,12 +135,12 @@ func setupTestServer(testDB db) *httptest.Server {
 	}
 
 	ctrl := gomock.NewController(&testing.T{})
-	telebotMock := bot_service.NewMockTelebotClient(ctrl)
+	telebotMock := bot.NewMockTelebotClient(ctrl)
 	telebotMock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
 	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
 
-	botSvc := bot_service.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+	botSvc := bot.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 

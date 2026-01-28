@@ -17,7 +17,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
-	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/bot"
 )
 
 func TestHandleBotAdded(t *testing.T) {
@@ -25,14 +25,14 @@ func TestHandleBotAdded(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		setup        func(t *testing.T, mock *bot_service.MockTelebotClient)
+		setup        func(t *testing.T, mock *bot.MockTelebotClient)
 		update       tele.Update
 		checkUser    func(t *testing.T)
 		checkChannel func(t *testing.T)
 	}{
 		{
 			name: "bot added with post permission, new user",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
 						TgID:      111222333,
@@ -66,7 +66,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "bot added with post permission, existing user",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				_, err := testTools.CreateUser(ctx, 111222333, "Existing User")
 				require.NoError(t, err)
 
@@ -101,7 +101,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name:   "bot added without post permission",
-			setup:  func(t *testing.T, mock *bot_service.MockTelebotClient) {},
+			setup:  func(t *testing.T, mock *bot.MockTelebotClient) {},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", false),
 			checkUser: func(t *testing.T) {
 				_, err := testTools.GetUserByTgID(ctx, 111222333)
@@ -114,7 +114,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name:   "bot added to group (not channel)",
-			setup:  func(t *testing.T, mock *bot_service.MockTelebotClient) {},
+			setup:  func(t *testing.T, mock *bot.MockTelebotClient) {},
 			update: createBotAddedToGroupUpdate(-1001234567890, "Test Group", true),
 			checkUser: func(t *testing.T) {
 				_, err := testTools.GetUserByTgID(ctx, 111222333)
@@ -127,7 +127,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "bot added but no creator in admins",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
 						TgID:      999,
@@ -148,7 +148,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "bot added but AdminsOf API fails",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				mock.EXPECT().
 					AdminsOf(int64(-1001234567890)).
 					Return(nil, errors.New("telegram api error"))
@@ -165,7 +165,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "bot re-added to deleted channel",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				user, err := testTools.CreateUser(ctx, 111222333, "Owner")
 				require.NoError(t, err)
 
@@ -208,7 +208,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "channel without username",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
 						TgID:      111222333,
@@ -232,7 +232,7 @@ func TestHandleBotAdded(t *testing.T) {
 		},
 		{
 			name: "creator with first name only",
-			setup: func(t *testing.T, mock *bot_service.MockTelebotClient) {
+			setup: func(t *testing.T, mock *bot.MockTelebotClient) {
 				mock.EXPECT().AdminsOf(int64(-1001234567890)).Return([]dto.ChannelAdmin{
 					{
 						TgID:      111222333,
@@ -262,10 +262,10 @@ func TestHandleBotAdded(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mock := bot_service.NewMockTelebotClient(ctrl)
+			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot_service.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 
 			tt.setup(t, mock)
 

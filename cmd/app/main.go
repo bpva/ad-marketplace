@@ -10,13 +10,13 @@ import (
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/gateway/telebot"
 	"github.com/bpva/ad-marketplace/internal/http/app"
-	"github.com/bpva/ad-marketplace/internal/http/dbg_server"
+	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
-	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
@@ -29,7 +29,7 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
@@ -53,7 +53,7 @@ func main() {
 	settingsRepo := settings_repo.New(db)
 	authSvc := auth.New(userRepo, cfg.Telegram.BotToken, cfg.JWT.Secret, log)
 
-	go dbg_server.Run(cfg.HTTP.PrivatePort, log)
+	go dbgserver.Run(cfg.HTTP.PrivatePort, log)
 
 	telebotClient, err := telebot.New(cfg.Telegram.BotToken)
 	if err != nil {
@@ -61,10 +61,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	bot := bot_service.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo)
+	botSvc := bot.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo)
 
 	if cfg.Env == "prod" {
-		if err := bot.SetWebhook(); err != nil {
+		if err := botSvc.SetWebhook(); err != nil {
 			log.Error("failed to set webhook", "error", err)
 			os.Exit(1)
 		}
@@ -75,7 +75,7 @@ func main() {
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, db, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 
-	a := app.New(cfg.HTTP, log, bot, authSvc, channelSvc, userSvc)
+	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {

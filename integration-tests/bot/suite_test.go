@@ -20,7 +20,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
-	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/bot"
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
@@ -34,8 +34,8 @@ var (
 	testPool    *pgxpool.Pool
 	testDB      db
 	testTools   *tools.Tools
-	channelRepo bot_service.ChannelRepository
-	userRepo    bot_service.UserRepository
+	channelRepo bot.ChannelRepository
+	userRepo    bot.UserRepository
 	log         *slog.Logger
 )
 

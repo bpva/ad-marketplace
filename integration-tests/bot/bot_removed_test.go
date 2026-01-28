@@ -15,7 +15,7 @@ import (
 
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/entity"
-	bot_service "github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/bot"
 )
 
 func TestHandleBotRemoved(t *testing.T) {
@@ -102,10 +102,10 @@ func TestHandleBotRemoved(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mock := bot_service.NewMockTelebotClient(ctrl)
+			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot_service.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
 
 			tt.setup(t)
 
