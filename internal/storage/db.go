@@ -58,10 +58,12 @@ func (d *db) WithTx(ctx context.Context, f func(ctx context.Context) error) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
 
 	txCtx := context.WithValue(ctx, txCtxKey{}, tx)
 	if err := f(txCtx); err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("%w (rollback failed: %v)", err, rbErr)
+		}
 		return err
 	}
 

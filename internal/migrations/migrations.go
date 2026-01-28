@@ -23,11 +23,12 @@ func Run(dbURL string) error {
 	if err != nil {
 		return fmt.Errorf("create migrate: %w", err)
 	}
-	defer m.Close()
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("run migrations: %w", err)
+		srcErr, dbErr := m.Close()
+		return errors.Join(fmt.Errorf("run migrations: %w", err), srcErr, dbErr)
 	}
 
-	return nil
+	srcErr, dbErr := m.Close()
+	return errors.Join(srcErr, dbErr)
 }
