@@ -1,4 +1,4 @@
-package bot_service
+package bot
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/storage"
 )
 
-//go:generate mockgen -destination=mocks.go -package=bot_service . TelebotClient
+//go:generate mockgen -destination=mocks.go -package=bot . TelebotClient
 type TelebotClient interface {
 	Handle(endpoint any, h tele.HandlerFunc)
 	ProcessUpdate(upd tele.Update)
@@ -119,11 +119,23 @@ func (b *svc) SetWebhook() error {
 		return fmt.Errorf("marshal request: %w", err)
 	}
 
-	resp, err := http.Post(apiURL, "application/json", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(
+		context.Background(), http.MethodPost, apiURL, bytes.NewReader(body),
+	)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			b.log.Error("failed to close response body", "error", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("telegram api returned %d", resp.StatusCode)
