@@ -47,3 +47,4 @@ deploy.sh
 
 # Local tools
 tools/bin/
+/.playwright*
