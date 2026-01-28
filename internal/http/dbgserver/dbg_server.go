@@ -1,4 +1,4 @@
-package dbg_server
+package dbgserver
 
 import (
 	"log/slog"
@@ -9,7 +9,9 @@ func Run(port string, log *slog.Logger) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			log.Error("failed to write health response", "error", err)
+		}
 	})
 
 	addr := "127.0.0.1:" + port
