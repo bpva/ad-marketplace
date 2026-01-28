@@ -44,7 +44,7 @@ function App() {
           </main>
         </div>
       )}
-      <Toaster position="top-center" richColors />
+      <Toaster position="bottom-center" richColors />
     </>
   )
 }
