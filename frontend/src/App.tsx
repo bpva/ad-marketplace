@@ -6,6 +6,7 @@ import { NotInTelegram } from '@/components/NotInTelegram'
 import { Header } from '@/components/Header'
 import { SettingsPage } from '@/components/SettingsPage'
 import { Button } from '@/components/ui/button'
+import { Toaster } from 'sonner'
 
 function App() {
   useTelegramTheme()
@@ -26,22 +27,25 @@ function App() {
     )
   }
 
-  if (page === 'settings') {
-    return <SettingsPage onBack={() => setPage('main')} />
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header userId={user?.id} userName={user?.name} onSettingsClick={() => setPage('settings')} />
-      <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
-        <div className="p-8 rounded-xl bg-card text-card-foreground border border-border">
-          <h1 className="text-2xl font-bold">
-            Welcome
-          </h1>
+    <>
+      {page === 'settings' ? (
+        <SettingsPage onBack={() => setPage('main')} />
+      ) : (
+        <div className="min-h-screen flex flex-col bg-background">
+          <Header userId={user?.id} userName={user?.name} onSettingsClick={() => setPage('settings')} />
+          <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
+            <div className="p-8 rounded-xl bg-card text-card-foreground border border-border">
+              <h1 className="text-2xl font-bold">
+                Welcome
+              </h1>
+            </div>
+            <Button>Get Started</Button>
+          </main>
         </div>
-        <Button>Get Started</Button>
-      </main>
-    </div>
+      )}
+      <Toaster position="top-center" richColors />
+    </>
   )
 }
 
