@@ -23,12 +23,18 @@ func NoContent(w http.ResponseWriter) {
 
 func Err(w http.ResponseWriter, log *slog.Logger, err error) {
 	var apiErr *dto.APIError
-	if !errors.As(err, &apiErr) {
+	isAPIError := errors.As(err, &apiErr)
+
+	if !isAPIError {
 		log.Error("internal error", "error", err)
 		apiErr = dto.ErrInternalError
-	} else if apiErr.Status() >= 500 {
+	}
+
+	if isAPIError && apiErr.Status() >= 500 {
 		log.Error("server error", "error", err)
-	} else {
+	}
+
+	if isAPIError && apiErr.Status() < 500 {
 		log.Warn("client error", "error", err)
 	}
 
