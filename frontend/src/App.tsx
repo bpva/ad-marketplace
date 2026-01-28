@@ -33,7 +33,7 @@ function App() {
         <SettingsPage onBack={() => setPage('main')} />
       ) : (
         <div className="min-h-screen flex flex-col bg-background">
-          <Header userId={user?.id} userName={user?.name} onSettingsClick={() => setPage('settings')} />
+          <Header userName={user?.name} onSettingsClick={() => setPage('settings')} />
           <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
             <div className="p-8 rounded-xl bg-card text-card-foreground border border-border">
               <h1 className="text-2xl font-bold">

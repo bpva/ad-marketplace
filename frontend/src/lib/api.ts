@@ -37,7 +37,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export interface User {
-  id: string
   telegram_id: number
   name: string
 }
@@ -59,7 +58,6 @@ export async function fetchMe(): Promise<User> {
 }
 
 export interface Profile {
-  id: string
   telegram_id: number
   name: string
   language: string
