@@ -124,7 +124,10 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 	return nil
 }
 
-func (s *svc) getOrCreateSettings(ctx context.Context, userID uuid.UUID) (*entity.UserSettings, error) {
+func (s *svc) getOrCreateSettings(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*entity.UserSettings, error) {
 	settings, err := s.settingsRepo.GetByUserID(ctx, userID)
 	if errors.Is(err, dto.ErrNotFound) {
 		settings, err = s.settingsRepo.Create(ctx, userID)
