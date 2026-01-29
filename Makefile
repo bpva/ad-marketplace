@@ -9,7 +9,7 @@ MOCKGEN_VERSION := v0.6.0
 GOFUMPT_VERSION := v0.7.0
 GOLANGCI_LINT_VERSION := v2.1.6
 
-.PHONY: up down dev-logs lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines
+.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines
 
 # Bootstrap
 up:
@@ -18,8 +18,17 @@ up:
 down:
 	docker compose down
 
+wipe:
+	docker compose down -v
+
 dev-logs:
 	docker compose logs -f
+
+logs-back:
+	docker compose logs -f backend
+
+logs-front:
+	docker compose logs -f frontend
 
 # Tooling
 deps:
