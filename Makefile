@@ -11,6 +11,17 @@ GOLANGCI_LINT_VERSION := v2.1.6
 
 .PHONY: up down dev-logs lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines
 
+# Bootstrap
+up:
+	docker compose up --build
+
+down:
+	docker compose down
+
+dev-logs:
+	docker compose logs -f
+
+# Tooling
 deps:
 	@mkdir -p $(TOOLS_BIN)
 	go install github.com/golangci/golines@$(GOLINES_VERSION)
@@ -28,15 +39,6 @@ fmt-lines:
 	golines -w -m 100 .
 
 fmt: fmt-go fmt-gofumpt fmt-lines
-
-up:
-	docker compose up --build
-
-down:
-	docker compose down
-
-dev-logs:
-	docker compose logs -f
 
 lint:
 	golangci-lint run ./...
