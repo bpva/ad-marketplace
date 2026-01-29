@@ -13,7 +13,7 @@ GOLANGCI_LINT_VERSION := v2.1.6
 
 # Bootstrap
 up:
-	docker compose up --build
+	docker compose up --build -d
 
 down:
 	docker compose down
