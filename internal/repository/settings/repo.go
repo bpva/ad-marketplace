@@ -28,7 +28,7 @@ func New(db db) *repo {
 
 func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) (*entity.UserSettings, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT user_id, language, receive_notifications, preferred_mode, onboarding_finished
+		SELECT user_id, language, receive_notifications, preferred_mode, onboarding_finished, theme
 		FROM user_settings
 		WHERE user_id = $1
 	`, userID)
@@ -51,7 +51,7 @@ func (r *repo) Create(ctx context.Context, userID uuid.UUID) (*entity.UserSettin
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO user_settings (user_id)
 		VALUES ($1)
-		RETURNING user_id, language, receive_notifications, preferred_mode, onboarding_finished
+		RETURNING user_id, language, receive_notifications, preferred_mode, onboarding_finished, theme
 	`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("creating settings: %w", err)
@@ -68,9 +68,9 @@ func (r *repo) Create(ctx context.Context, userID uuid.UUID) (*entity.UserSettin
 func (r *repo) Update(ctx context.Context, s *entity.UserSettings) error {
 	_, err := r.db.Exec(ctx, `
 		UPDATE user_settings
-		SET language = $2, receive_notifications = $3, preferred_mode = $4, onboarding_finished = $5
+		SET language = $2, receive_notifications = $3, preferred_mode = $4, onboarding_finished = $5, theme = $6
 		WHERE user_id = $1
-	`, s.UserID, s.Language, s.ReceiveNotifications, s.PreferredMode, s.OnboardingFinished)
+	`, s.UserID, s.Language, s.ReceiveNotifications, s.PreferredMode, s.OnboardingFinished, s.Theme)
 	if err != nil {
 		return fmt.Errorf("updating settings: %w", err)
 	}
