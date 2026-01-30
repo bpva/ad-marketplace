@@ -11,6 +11,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/gateway/telebot"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
+	"github.com/bpva/ad-marketplace/internal/logx"
 	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
@@ -32,8 +33,11 @@ func main() {
 		os.Exit(1) //nolint:gocritic
 	}
 
-	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	log = log.With("env", cfg.Env)
+	log, logShutdown, err := logx.NewLogger(ctx, cfg.Logger, cfg.Env)
+	if err != nil {
+		slog.Error("failed to initialize logger", "error", err)
+		os.Exit(1)
+	}
 
 	if err := migrations.Run(storage.URL(cfg.Postgres)); err != nil {
 		log.Error("failed to run migrations", "error", err)
@@ -95,4 +99,8 @@ func main() {
 	}
 
 	log.Info("server stopped")
+
+	if err := logShutdown(shutdownCtx); err != nil {
+		log.Error("logger shutdown error", "error", err)
+	}
 }
