@@ -5,5 +5,3 @@ http:
 logger:
   level: debug
   otlp_enabled: false
-  otlp_endpoint:
-  otlp_auth:
