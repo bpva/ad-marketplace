@@ -7,18 +7,18 @@ import (
 )
 
 type Config struct {
-	Env      string `env:"ENV" env-default:"local"`
-	HTTP     HTTP
-	Postgres Postgres
-	Telegram Telegram
-	JWT      JWT
-	Logger   Logger
+	Env      string   `env:"ENV" env-default:"local"`
+	HTTP     HTTP     `yaml:"http"`
+	Postgres Postgres `yaml:"postgres"`
+	Telegram Telegram `yaml:"telegram"`
+	JWT      JWT      `yaml:"jwt"`
+	Logger   Logger   `yaml:"logger"`
 }
 
 type Logger struct {
-	Level        string `yaml:"level" env-default:"info"`
+	Level        string `yaml:"level" yaml-default:"info"`
 	OTLPEnabled  bool   `yaml:"otlp_enabled" env:"OTLP_ENABLED" env-default:"false"`
-	OTLPEndpoint string `yaml:"otlp_endpoint" env:"OTLP_ENDPOINT" env-default:"https://otlp-gateway-prod-eu-west-2.grafana.net/otlp"`
+	OTLPEndpoint string `yaml:"otlp_endpoint" env:"OTLP_ENDPOINT"`
 	OTLPAuth     string `env:"OTLP_AUTH"`
 }
 
