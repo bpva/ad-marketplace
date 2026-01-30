@@ -9,7 +9,7 @@ MOCKGEN_VERSION := v0.6.0
 GOFUMPT_VERSION := v0.7.0
 GOLANGCI_LINT_VERSION := v2.1.6
 
-.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines
+.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe
 
 # Bootstrap
 up:
@@ -47,7 +47,10 @@ fmt-gofumpt:
 fmt-lines:
 	golines -w -m 100 .
 
-fmt: fmt-go fmt-gofumpt fmt-lines
+fmt-fe:
+	cd frontend && npm run format
+
+fmt: fmt-go fmt-gofumpt fmt-lines fmt-fe
 
 lint:
 	golangci-lint run ./...

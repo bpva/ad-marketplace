@@ -1,85 +1,85 @@
-import { useState, useEffect, useRef } from 'react'
-import { toast } from 'sonner'
-import { Check, Megaphone, Target } from 'lucide-react'
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { Check, Megaphone, Target } from "lucide-react";
 
-const isPublisher = (mode: string) => mode === 'publisher'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
-import { fetchProfile, updateName, updateSettings, type Profile } from '@/lib/api'
+const isPublisher = (mode: string) => mode === "publisher";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { fetchProfile, updateName, updateSettings, type Profile } from "@/lib/api";
 
 interface SettingsPageProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [nameValue, setNameValue] = useState('')
-  const [nameFocused, setNameFocused] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const lastSavedName = useRef('')
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [nameValue, setNameValue] = useState("");
+  const [nameFocused, setNameFocused] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const lastSavedName = useRef("");
 
   useEffect(() => {
     fetchProfile()
       .then((data) => {
-        setProfile(data)
-        setNameValue(data.name)
-        lastSavedName.current = data.name
+        setProfile(data);
+        setNameValue(data.name);
+        lastSavedName.current = data.name;
       })
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   const saveName = async (name: string) => {
-    const trimmed = name.trim()
-    if (!trimmed || trimmed === lastSavedName.current) return
-    setSaving(true)
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === lastSavedName.current) return;
+    setSaving(true);
     try {
-      await updateName(trimmed)
-      setProfile((prev) => (prev ? { ...prev, name: trimmed } : null))
-      lastSavedName.current = trimmed
-      toast('Name updated')
+      await updateName(trimmed);
+      setProfile((prev) => (prev ? { ...prev, name: trimmed } : null));
+      lastSavedName.current = trimmed;
+      toast("Name updated");
     } catch {
-      toast('Failed to save name')
+      toast("Failed to save name");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleNameChange = (value: string) => {
-    setNameValue(value)
-  }
+    setNameValue(value);
+  };
 
   const handleNameFocus = () => {
-    setNameFocused(true)
-  }
+    setNameFocused(true);
+  };
 
   const handleNameBlur = () => {
-    setNameFocused(false)
-    saveName(nameValue)
-  }
+    setNameFocused(false);
+    saveName(nameValue);
+  };
 
   const handleSettingChange = async (update: Parameters<typeof updateSettings>[0]) => {
-    setSaving(true)
+    setSaving(true);
     try {
-      await updateSettings(update)
-      setProfile((prev) => (prev ? { ...prev, ...update } : null))
-      toast('Settings saved')
+      await updateSettings(update);
+      setProfile((prev) => (prev ? { ...prev, ...update } : null));
+      toast("Settings saved");
     } catch {
-      toast('Failed to save settings')
+      toast("Failed to save settings");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-muted-foreground">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (!profile) {
@@ -87,13 +87,13 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Failed to load profile</div>
       </div>
-    )
+    );
   }
 
   return (
     <div
       className="min-h-screen bg-background p-4"
-      style={{ paddingTop: 'calc(var(--total-safe-area-top, 0px) + 1rem)' }}
+      style={{ paddingTop: "calc(var(--total-safe-area-top, 0px) + 1rem)" }}
     >
       <div className="max-w-md mx-auto space-y-6">
         <Button variant="ghost" onClick={onBack}>
@@ -132,19 +132,19 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
           <div className="relative flex rounded-lg bg-muted p-1">
             <div
               className={cn(
-                'absolute inset-y-1 w-[calc(50%-4px)] rounded-md border-2 border-primary bg-background shadow-sm transition-all duration-200 ease-out',
-                isPublisher(profile.preferred_mode) ? 'left-1' : 'left-[calc(50%+2px)]'
+                "absolute inset-y-1 w-[calc(50%-4px)] rounded-md border-2 border-primary bg-background shadow-sm transition-all duration-200 ease-out",
+                isPublisher(profile.preferred_mode) ? "left-1" : "left-[calc(50%+2px)]",
               )}
             />
             <button
               type="button"
-              onClick={() => handleSettingChange({ preferred_mode: 'publisher' })}
+              onClick={() => handleSettingChange({ preferred_mode: "publisher" })}
               disabled={saving}
               className={cn(
-                'relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50',
+                "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
                 isPublisher(profile.preferred_mode)
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Megaphone className="h-4 w-4" />
@@ -152,13 +152,13 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
             </button>
             <button
               type="button"
-              onClick={() => handleSettingChange({ preferred_mode: 'advertiser' })}
+              onClick={() => handleSettingChange({ preferred_mode: "advertiser" })}
               disabled={saving}
               className={cn(
-                'relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50',
+                "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
                 !isPublisher(profile.preferred_mode)
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <Target className="h-4 w-4" />
@@ -183,14 +183,12 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
             <Label className="text-muted-foreground">Notifications</Label>
             <Switch
               checked={profile.receive_notifications}
-              onCheckedChange={(checked) =>
-                handleSettingChange({ receive_notifications: checked })
-              }
+              onCheckedChange={(checked) => handleSettingChange({ receive_notifications: checked })}
               disabled={saving}
             />
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -95,9 +95,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         </div>
 
         <div>
-          <p className="text-lg italic text-center text-foreground mb-3">
-            I am a... 🤔
-          </p>
+          <p className="text-lg italic text-center text-foreground mb-3">I am a... 🤔</p>
           <div className="relative">
             <div className="flex relative z-10">
               <button
@@ -135,9 +133,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                   </div>
                   <div>
                     <h3 className="font-medium">{benefit.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {benefit.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
                   </div>
                 </div>
               ))}
