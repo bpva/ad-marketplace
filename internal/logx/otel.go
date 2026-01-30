@@ -96,7 +96,7 @@ func NewLogger(
 	exporter, err := otlploghttp.New(ctx,
 		otlploghttp.WithEndpointURL(cfg.OTLPEndpoint),
 		otlploghttp.WithHeaders(map[string]string{
-			"Authorization": "Basic " + cfg.OTLPAuth,
+			"Authorization": cfg.OTLPAuth,
 		}),
 	)
 	if err != nil {
