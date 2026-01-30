@@ -45,7 +45,7 @@ fmt-gofumpt:
 	gofumpt -w .
 
 fmt-lines:
-	golines -w -m 100 .
+	golines -w -m 100 --no-reformat-tags .
 
 fmt-fe:
 	cd frontend && npm run format
