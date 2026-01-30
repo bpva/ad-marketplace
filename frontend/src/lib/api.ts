@@ -64,6 +64,7 @@ export interface Profile {
   receive_notifications: boolean;
   preferred_mode: "publisher" | "advertiser";
   onboarding_finished: boolean;
+  theme: "light" | "dark" | "auto";
 }
 
 export interface UpdateSettingsRequest {
@@ -71,6 +72,7 @@ export interface UpdateSettingsRequest {
   receive_notifications?: boolean;
   preferred_mode?: "publisher" | "advertiser";
   onboarding_finished?: boolean;
+  theme?: "light" | "dark" | "auto";
 }
 
 export async function fetchProfile(): Promise<Profile> {

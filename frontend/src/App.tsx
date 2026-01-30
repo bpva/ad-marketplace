@@ -11,11 +11,12 @@ import { Toaster } from "sonner";
 import { fetchProfile, updateSettings, type Profile } from "@/lib/api";
 
 function App() {
-  useTelegramTheme();
   const { user, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [page, setPage] = useState<"main" | "settings">("main");
+
+  useTelegramTheme(profile?.theme ?? "auto");
 
   const isInTelegram = WebApp.initData !== "" || import.meta.env.VITE_ENV === "local";
 
@@ -58,7 +59,10 @@ function App() {
   return (
     <>
       {page === "settings" ? (
-        <SettingsPage onBack={() => setPage("main")} />
+        <SettingsPage
+          onBack={() => setPage("main")}
+          onThemeChange={(t) => setProfile((p) => (p ? { ...p, theme: t } : null))}
+        />
       ) : (
         <div className="min-h-screen flex flex-col bg-background">
           <Header userName={user?.name} onSettingsClick={() => setPage("settings")} />

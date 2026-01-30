@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Check, Megaphone, Target } from "lucide-react";
+import { Check, Megaphone, Target, Sun, Moon, Monitor } from "lucide-react";
 
 const isPublisher = (mode: string) => mode === "publisher";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,10 @@ import { fetchProfile, updateName, updateSettings, type Profile } from "@/lib/ap
 
 interface SettingsPageProps {
   onBack: () => void;
+  onThemeChange: (theme: "light" | "dark" | "auto") => void;
 }
 
-export function SettingsPage({ onBack }: SettingsPageProps) {
+export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [nameValue, setNameValue] = useState("");
@@ -164,6 +165,42 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
               <Target className="h-4 w-4" />
               Advertiser
             </button>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">Theme</Label>
+            <div className="relative flex rounded-lg bg-muted p-1">
+              <div
+                className={cn(
+                  "absolute inset-y-1 w-[calc(33.333%-4px)] rounded-md border-2 border-primary bg-background shadow-sm transition-all duration-200 ease-out",
+                  profile.theme === "auto" && "left-1",
+                  profile.theme === "light" && "left-[calc(33.333%+1px)]",
+                  profile.theme === "dark" && "left-[calc(66.666%+2px)]",
+                )}
+              />
+              {(["auto", "light", "dark"] as const).map((theme) => (
+                <button
+                  key={theme}
+                  type="button"
+                  onClick={() => {
+                    handleSettingChange({ theme });
+                    onThemeChange(theme);
+                  }}
+                  disabled={saving}
+                  className={cn(
+                    "relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-medium transition-colors disabled:opacity-50",
+                    profile.theme === theme
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {theme === "auto" && <Monitor className="h-4 w-4" />}
+                  {theme === "light" && <Sun className="h-4 w-4" />}
+                  {theme === "dark" && <Moon className="h-4 w-4" />}
+                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center justify-between">

@@ -7,6 +7,7 @@ type UpdateSettingsRequest struct {
 	ReceiveNotifications *bool   `json:"receive_notifications,omitempty"`
 	PreferredMode        *string `json:"preferred_mode,omitempty"`
 	OnboardingFinished   *bool   `json:"onboarding_finished,omitempty"`
+	Theme                *string `json:"theme,omitempty"`
 }
 
 type UpdateNameRequest struct {
@@ -20,6 +21,7 @@ type ProfileResponse struct {
 	ReceiveNotifications bool   `json:"receive_notifications"`
 	PreferredMode        string `json:"preferred_mode"`
 	OnboardingFinished   bool   `json:"onboarding_finished"`
+	Theme                string `json:"theme"`
 }
 
 func ProfileResponseFrom(u *entity.User, s *entity.UserSettings) ProfileResponse {
@@ -30,5 +32,6 @@ func ProfileResponseFrom(u *entity.User, s *entity.UserSettings) ProfileResponse
 		ReceiveNotifications: s.ReceiveNotifications,
 		PreferredMode:        string(s.PreferredMode),
 		OnboardingFinished:   s.OnboardingFinished,
+		Theme:                string(s.Theme),
 	}
 }
