@@ -116,6 +116,14 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 		settings.OnboardingFinished = *req.OnboardingFinished
 	}
 
+	if req.Theme != nil {
+		theme := entity.Theme(*req.Theme)
+		if theme != entity.ThemeLight && theme != entity.ThemeDark && theme != entity.ThemeAuto {
+			return fmt.Errorf("update settings: invalid theme: %w", dto.ErrBadRequest)
+		}
+		settings.Theme = theme
+	}
+
 	if err := s.settingsRepo.Update(ctx, settings); err != nil {
 		return fmt.Errorf("update settings: %w", err)
 	}

@@ -1,12 +1,19 @@
 import { useEffect } from "react";
 import WebApp from "@twa-dev/sdk";
 
-export function useTelegramTheme() {
+type ThemePreference = "light" | "dark" | "auto";
+
+export function useTelegramTheme(preference: ThemePreference = "auto") {
   useEffect(() => {
     const root = document.documentElement;
 
     const applyTheme = () => {
-      const isDark = WebApp.colorScheme === "dark";
+      let isDark: boolean;
+      if (preference === "auto") {
+        isDark = WebApp.colorScheme === "dark";
+      } else {
+        isDark = preference === "dark";
+      }
       root.classList.toggle("dark", isDark);
     };
 
@@ -27,16 +34,21 @@ export function useTelegramTheme() {
 
     applyTheme();
     applySafeArea();
-    WebApp.onEvent("themeChanged", applyTheme);
+
+    if (preference === "auto") {
+      WebApp.onEvent("themeChanged", applyTheme);
+    }
     WebApp.onEvent("safeAreaChanged", applySafeArea);
     WebApp.onEvent("contentSafeAreaChanged", applySafeArea);
     WebApp.ready();
     WebApp.expand();
 
     return () => {
-      WebApp.offEvent("themeChanged", applyTheme);
+      if (preference === "auto") {
+        WebApp.offEvent("themeChanged", applyTheme);
+      }
       WebApp.offEvent("safeAreaChanged", applySafeArea);
       WebApp.offEvent("contentSafeAreaChanged", applySafeArea);
     };
-  }, []);
+  }, [preference]);
 }
