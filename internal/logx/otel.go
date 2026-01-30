@@ -78,7 +78,7 @@ func NewLogger(
 	stdoutHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
 	stdoutLogger := slog.New(stdoutHandler).With("env", env)
 
-	if !cfg.OTLPEnabled || cfg.OTLPAuth == "" {
+	if !cfg.OTLPEnabled {
 		return stdoutLogger, func(context.Context) error { return nil }, nil
 	}
 
@@ -93,12 +93,7 @@ func NewLogger(
 		return nil, func(context.Context) error { return nil }, err
 	}
 
-	exporter, err := otlploghttp.New(ctx,
-		otlploghttp.WithEndpointURL(cfg.OTLPEndpoint),
-		otlploghttp.WithHeaders(map[string]string{
-			"Authorization": cfg.OTLPAuth,
-		}),
-	)
+	exporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		stdoutLogger.Error("failed to create otel exporter", "error", err)
 		return nil, func(context.Context) error { return nil }, err

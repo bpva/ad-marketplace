@@ -16,10 +16,8 @@ type Config struct {
 }
 
 type Logger struct {
-	Level        string `yaml:"level" yaml-default:"info"`
-	OTLPEnabled  bool   `yaml:"otlp_enabled" env:"OTLP_ENABLED" env-default:"false"`
-	OTLPEndpoint string `yaml:"otlp_endpoint" env:"OTLP_ENDPOINT"`
-	OTLPAuth     string `env:"OTLP_AUTH"`
+	Level       string `yaml:"level" yaml-default:"info"`
+	OTLPEnabled bool   `yaml:"otlp_enabled" env:"OTLP_ENABLED" env-default:"false"`
 }
 
 type HTTP struct {
