@@ -70,6 +70,7 @@ export interface UpdateSettingsRequest {
   language?: string
   receive_notifications?: boolean
   preferred_mode?: 'publisher' | 'advertiser'
+  onboarding_finished?: boolean
 }
 
 export async function fetchProfile(): Promise<Profile> {

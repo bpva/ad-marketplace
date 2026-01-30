@@ -1,29 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import WebApp from '@twa-dev/sdk'
 import { useTelegramTheme } from '@/hooks/useTelegramTheme'
 import { useAuth } from '@/hooks/useAuth'
 import { NotInTelegram } from '@/components/NotInTelegram'
 import { Header } from '@/components/Header'
 import { SettingsPage } from '@/components/SettingsPage'
+import { OnboardingPage } from '@/components/OnboardingPage'
 import { Button } from '@/components/ui/button'
 import { Toaster } from 'sonner'
+import { fetchProfile, updateSettings, type Profile } from '@/lib/api'
 
 function App() {
   useTelegramTheme()
   const { user, loading } = useAuth()
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
   const [page, setPage] = useState<'main' | 'settings'>('main')
 
   const isInTelegram = WebApp.initData !== '' || import.meta.env.VITE_ENV === 'local'
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile()
+        .then(setProfile)
+        .finally(() => setProfileLoading(false))
+    }
+  }, [user])
 
   if (!isInTelegram) {
     return <NotInTelegram />
   }
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-muted-foreground">Loading...</div>
       </div>
+    )
+  }
+
+  const handleOnboardingComplete = async (mode: 'publisher' | 'advertiser') => {
+    await updateSettings({ preferred_mode: mode, onboarding_finished: true })
+    setProfile((prev) =>
+      prev ? { ...prev, preferred_mode: mode, onboarding_finished: true } : null
+    )
+  }
+
+  if (profile && !profile.onboarding_finished) {
+    return (
+      <>
+        <OnboardingPage onComplete={handleOnboardingComplete} />
+        <Toaster position="bottom-center" richColors />
+      </>
     )
   }
 
