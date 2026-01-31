@@ -106,7 +106,12 @@ func (s *svc) GetChannel(
 func (s *svc) GetChannelAdmins(
 	ctx context.Context, tgChannelID int64,
 ) (*dto.ChannelAdminsResponse, error) {
-	_, err := s.getChannelEntity(ctx, tgChannelID)
+	user, ok := dto.UserFromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("get channel admins: %w", dto.ErrForbidden)
+	}
+
+	channel, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +121,29 @@ func (s *svc) GetChannelAdmins(
 		return nil, fmt.Errorf("get admins: %w", err)
 	}
 
-	return &dto.ChannelAdminsResponse{Admins: admins}, nil
+	roles, err := s.channelRepo.GetRolesByChannelID(ctx, channel.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get roles: %w", err)
+	}
+
+	exclude := make(map[int64]bool)
+	exclude[user.TgID] = true
+	for _, role := range roles {
+		u, err := s.userRepo.GetByID(ctx, role.UserID)
+		if err != nil {
+			continue
+		}
+		exclude[u.TgID] = true
+	}
+
+	result := make([]dto.ChannelAdmin, 0, len(admins))
+	for _, admin := range admins {
+		if !exclude[admin.TgID] {
+			result = append(result, admin)
+		}
+	}
+
+	return &dto.ChannelAdminsResponse{Admins: result}, nil
 }
 
 func (s *svc) GetChannelManagers(
