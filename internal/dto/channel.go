@@ -40,3 +40,15 @@ type ManagerResponse struct {
 type AddManagerRequest struct {
 	TgID int64 `json:"telegram_id"`
 }
+
+type ChannelsResponse struct {
+	Channels []ChannelWithRoleResponse `json:"channels"`
+}
+
+type ChannelAdminsResponse struct {
+	Admins []ChannelAdmin `json:"admins"`
+}
+
+type ChannelManagersResponse struct {
+	Managers []ManagerResponse `json:"managers"`
+}

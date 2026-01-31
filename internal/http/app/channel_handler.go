@@ -18,7 +18,7 @@ import (
 //	@Tags			channels
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{array}		dto.ChannelWithRoleResponse
+//	@Success		200	{object}	dto.ChannelsResponse
 //	@Failure		401	{object}	dto.ErrorResponse
 //	@Router			/channels [get]
 func (a *App) HandleListChannels() http.HandlerFunc {
@@ -74,7 +74,7 @@ func (a *App) HandleGetChannel() http.HandlerFunc {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			TgChannelID	path		int	true	"Telegram channel ID"
-//	@Success		200			{array}		dto.ChannelAdmin
+//	@Success		200			{object}	dto.ChannelAdminsResponse
 //	@Failure		400			{object}	dto.ErrorResponse
 //	@Failure		401			{object}	dto.ErrorResponse
 //	@Failure		404			{object}	dto.ErrorResponse
@@ -106,7 +106,7 @@ func (a *App) HandleGetChannelAdmins() http.HandlerFunc {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			TgChannelID	path		int	true	"Telegram channel ID"
-//	@Success		200			{array}		dto.ManagerResponse
+//	@Success		200			{object}	dto.ChannelManagersResponse
 //	@Failure		400			{object}	dto.ErrorResponse
 //	@Failure		401			{object}	dto.ErrorResponse
 //	@Failure		404			{object}	dto.ErrorResponse

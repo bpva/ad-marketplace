@@ -29,10 +29,10 @@ type AuthService interface {
 }
 
 type ChannelService interface {
-	GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleResponse, error)
+	GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error)
 	GetChannel(ctx context.Context, TgChannelID int64) (*dto.ChannelResponse, error)
-	GetChannelAdmins(ctx context.Context, TgChannelID int64) ([]dto.ChannelAdmin, error)
-	GetChannelManagers(ctx context.Context, TgChannelID int64) ([]dto.ManagerResponse, error)
+	GetChannelAdmins(ctx context.Context, TgChannelID int64) (*dto.ChannelAdminsResponse, error)
+	GetChannelManagers(ctx context.Context, TgChannelID int64) (*dto.ChannelManagersResponse, error)
 	AddManager(ctx context.Context, TgChannelID int64, tgID int64) error
 	RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error
 }

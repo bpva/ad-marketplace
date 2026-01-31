@@ -123,10 +123,10 @@ func (mr *MockChannelServiceMockRecorder) GetChannel(ctx, TgChannelID any) *gomo
 }
 
 // GetChannelAdmins mocks base method.
-func (m *MockChannelService) GetChannelAdmins(ctx context.Context, TgChannelID int64) ([]dto.ChannelAdmin, error) {
+func (m *MockChannelService) GetChannelAdmins(ctx context.Context, TgChannelID int64) (*dto.ChannelAdminsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelAdmins", ctx, TgChannelID)
-	ret0, _ := ret[0].([]dto.ChannelAdmin)
+	ret0, _ := ret[0].(*dto.ChannelAdminsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -138,10 +138,10 @@ func (mr *MockChannelServiceMockRecorder) GetChannelAdmins(ctx, TgChannelID any)
 }
 
 // GetChannelManagers mocks base method.
-func (m *MockChannelService) GetChannelManagers(ctx context.Context, TgChannelID int64) ([]dto.ManagerResponse, error) {
+func (m *MockChannelService) GetChannelManagers(ctx context.Context, TgChannelID int64) (*dto.ChannelManagersResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelManagers", ctx, TgChannelID)
-	ret0, _ := ret[0].([]dto.ManagerResponse)
+	ret0, _ := ret[0].(*dto.ChannelManagersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -153,10 +153,10 @@ func (mr *MockChannelServiceMockRecorder) GetChannelManagers(ctx, TgChannelID an
 }
 
 // GetUserChannels mocks base method.
-func (m *MockChannelService) GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleResponse, error) {
+func (m *MockChannelService) GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserChannels", ctx)
-	ret0, _ := ret[0].([]dto.ChannelWithRoleResponse)
+	ret0, _ := ret[0].(*dto.ChannelsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

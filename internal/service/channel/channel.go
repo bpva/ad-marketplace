@@ -65,7 +65,7 @@ func New(
 	}
 }
 
-func (s *svc) GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleResponse, error) {
+func (s *svc) GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("get user channels: %w", dto.ErrForbidden)
@@ -88,7 +88,7 @@ func (s *svc) GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleRespons
 		})
 	}
 
-	return result, nil
+	return &dto.ChannelsResponse{Channels: result}, nil
 }
 
 func (s *svc) GetChannel(
@@ -105,7 +105,7 @@ func (s *svc) GetChannel(
 
 func (s *svc) GetChannelAdmins(
 	ctx context.Context, tgChannelID int64,
-) ([]dto.ChannelAdmin, error) {
+) (*dto.ChannelAdminsResponse, error) {
 	_, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
@@ -116,12 +116,12 @@ func (s *svc) GetChannelAdmins(
 		return nil, fmt.Errorf("get admins: %w", err)
 	}
 
-	return admins, nil
+	return &dto.ChannelAdminsResponse{Admins: admins}, nil
 }
 
 func (s *svc) GetChannelManagers(
 	ctx context.Context, tgChannelID int64,
-) ([]dto.ManagerResponse, error) {
+) (*dto.ChannelManagersResponse, error) {
 	channel, err := s.getChannelEntity(ctx, tgChannelID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (s *svc) GetChannelManagers(
 		})
 	}
 
-	return result, nil
+	return &dto.ChannelManagersResponse{Managers: result}, nil
 }
 
 func (s *svc) AddManager(
