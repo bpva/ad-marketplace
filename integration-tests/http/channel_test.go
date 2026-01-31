@@ -38,9 +38,9 @@ func TestHandleListChannels(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			check: func(t *testing.T, body []byte) {
-				var resp []dto.ChannelWithRoleResponse
+				var resp dto.ChannelsResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Empty(t, resp)
+				assert.Empty(t, resp.Channels)
 			},
 		},
 		{
@@ -76,9 +76,9 @@ func TestHandleListChannels(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			check: func(t *testing.T, body []byte) {
-				var resp []dto.ChannelWithRoleResponse
+				var resp dto.ChannelsResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Len(t, resp, 2)
+				assert.Len(t, resp.Channels, 2)
 			},
 		},
 		{
@@ -105,9 +105,9 @@ func TestHandleListChannels(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			check: func(t *testing.T, body []byte) {
-				var resp []dto.ChannelWithRoleResponse
+				var resp dto.ChannelsResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Empty(t, resp)
+				assert.Empty(t, resp.Channels)
 			},
 		},
 		{
@@ -411,9 +411,9 @@ func TestHandleGetChannelManagers(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			check: func(t *testing.T, body []byte) {
-				var resp []dto.ManagerResponse
+				var resp dto.ChannelManagersResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Len(t, resp, 3)
+				assert.Len(t, resp.Managers, 3)
 			},
 		},
 		{
@@ -438,9 +438,9 @@ func TestHandleGetChannelManagers(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			check: func(t *testing.T, body []byte) {
-				var resp []dto.ManagerResponse
+				var resp dto.ChannelManagersResponse
 				require.NoError(t, json.Unmarshal(body, &resp))
-				assert.Len(t, resp, 1)
+				assert.Len(t, resp.Managers, 1)
 			},
 		},
 		{

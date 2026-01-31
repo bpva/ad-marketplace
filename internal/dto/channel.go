@@ -27,7 +27,7 @@ type ChannelAdmin struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name,omitempty"`
 	Username  string `json:"username,omitempty"`
-	Role      string `json:"role"`
+	Role      string `json:"-"`
 }
 
 type ManagerResponse struct {
