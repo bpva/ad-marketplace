@@ -64,10 +64,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ChannelWithRoleResponse"
-                                    }
+                                    "$ref": "#/components/schemas/ChannelsResponse"
                                 }
                             }
                         }
@@ -179,10 +176,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ChannelAdmin"
-                                    }
+                                    "$ref": "#/components/schemas/ChannelAdminsResponse"
                                 }
                             }
                         }
@@ -248,10 +242,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ManagerResponse"
-                                    }
+                                    "$ref": "#/components/schemas/ChannelManagersResponse"
                                 }
                             }
                         }
@@ -654,14 +645,33 @@
                     "last_name": {
                         "type": "string"
                     },
-                    "role": {
-                        "type": "string"
-                    },
                     "telegram_id": {
                         "type": "integer"
                     },
                     "username": {
                         "type": "string"
+                    }
+                }
+            },
+            "ChannelAdminsResponse": {
+                "type": "object",
+                "properties": {
+                    "admins": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChannelAdmin"
+                        }
+                    }
+                }
+            },
+            "ChannelManagersResponse": {
+                "type": "object",
+                "properties": {
+                    "managers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ManagerResponse"
+                        }
                     }
                 }
             },
@@ -700,6 +710,17 @@
                     },
                     "role": {
                         "$ref": "#/components/schemas/ChannelRoleType"
+                    }
+                }
+            },
+            "ChannelsResponse": {
+                "type": "object",
+                "properties": {
+                    "channels": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChannelWithRoleResponse"
+                        }
                     }
                 }
             },

@@ -77,7 +77,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            "application/json": components["schemas"]["ChannelWithRoleResponse"][];
+            "application/json": components["schemas"]["ChannelsResponse"];
           };
         };
         /** @description Unauthorized */
@@ -191,7 +191,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            "application/json": components["schemas"]["ChannelAdmin"][];
+            "application/json": components["schemas"]["ChannelAdminsResponse"];
           };
         };
         /** @description Bad Request */
@@ -257,7 +257,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            "application/json": components["schemas"]["ManagerResponse"][];
+            "application/json": components["schemas"]["ChannelManagersResponse"];
           };
         };
         /** @description Bad Request */
@@ -646,9 +646,14 @@ export interface components {
     ChannelAdmin: {
       first_name?: string;
       last_name?: string;
-      role?: string;
       telegram_id?: number;
       username?: string;
+    };
+    ChannelAdminsResponse: {
+      admins?: components["schemas"]["ChannelAdmin"][];
+    };
+    ChannelManagersResponse: {
+      managers?: components["schemas"]["ManagerResponse"][];
     };
     ChannelResponse: {
       id?: number;
@@ -660,6 +665,9 @@ export interface components {
     ChannelWithRoleResponse: {
       channel?: components["schemas"]["ChannelResponse"];
       role?: components["schemas"]["ChannelRoleType"];
+    };
+    ChannelsResponse: {
+      channels?: components["schemas"]["ChannelWithRoleResponse"][];
     };
     ErrorResponse: {
       details?: {

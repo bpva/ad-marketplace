@@ -72,10 +72,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ChannelWithRoleResponse"
-                            }
+                            "$ref": "#/definitions/ChannelsResponse"
                         }
                     },
                     "401": {
@@ -165,10 +162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ChannelAdmin"
-                            }
+                            "$ref": "#/definitions/ChannelAdminsResponse"
                         }
                     },
                     "400": {
@@ -219,10 +213,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ManagerResponse"
-                            }
+                            "$ref": "#/definitions/ChannelManagersResponse"
                         }
                     },
                     "400": {
@@ -545,14 +536,33 @@ const docTemplate = `{
                 "last_name": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "telegram_id": {
                     "type": "integer"
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "ChannelAdminsResponse": {
+            "type": "object",
+            "properties": {
+                "admins": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ChannelAdmin"
+                    }
+                }
+            }
+        },
+        "ChannelManagersResponse": {
+            "type": "object",
+            "properties": {
+                "managers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ManagerResponse"
+                    }
                 }
             }
         },
@@ -591,6 +601,17 @@ const docTemplate = `{
                 },
                 "role": {
                     "$ref": "#/definitions/ChannelRoleType"
+                }
+            }
+        },
+        "ChannelsResponse": {
+            "type": "object",
+            "properties": {
+                "channels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ChannelWithRoleResponse"
+                    }
                 }
             }
         },

@@ -23,12 +23,24 @@ definitions:
         type: string
       last_name:
         type: string
-      role:
-        type: string
       telegram_id:
         type: integer
       username:
         type: string
+    type: object
+  ChannelAdminsResponse:
+    properties:
+      admins:
+        items:
+          $ref: '#/definitions/ChannelAdmin'
+        type: array
+    type: object
+  ChannelManagersResponse:
+    properties:
+      managers:
+        items:
+          $ref: '#/definitions/ManagerResponse'
+        type: array
     type: object
   ChannelResponse:
     properties:
@@ -55,6 +67,13 @@ definitions:
         $ref: '#/definitions/ChannelResponse'
       role:
         $ref: '#/definitions/ChannelRoleType'
+    type: object
+  ChannelsResponse:
+    properties:
+      channels:
+        items:
+          $ref: '#/definitions/ChannelWithRoleResponse'
+        type: array
     type: object
   ErrorResponse:
     properties:
@@ -181,9 +200,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ChannelWithRoleResponse'
-            type: array
+            $ref: '#/definitions/ChannelsResponse'
         "401":
           description: Unauthorized
           schema:
@@ -239,9 +256,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ChannelAdmin'
-            type: array
+            $ref: '#/definitions/ChannelAdminsResponse'
         "400":
           description: Bad Request
           schema:
@@ -273,9 +288,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/ManagerResponse'
-            type: array
+            $ref: '#/definitions/ChannelManagersResponse'
         "400":
           description: Bad Request
           schema:
