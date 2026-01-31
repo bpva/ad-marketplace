@@ -1,0 +1,463 @@
+basePath: /api/v1
+definitions:
+  AddManagerRequest:
+    properties:
+      telegram_id:
+        type: integer
+    type: object
+  AuthRequest:
+    properties:
+      init_data:
+        type: string
+    type: object
+  AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/UserResponse'
+    type: object
+  ChannelAdmin:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      role:
+        type: string
+      telegram_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  ChannelResponse:
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      username:
+        type: string
+    type: object
+  ChannelRoleType:
+    enum:
+    - undefined
+    - owner
+    - manager
+    type: string
+    x-enum-varnames:
+    - ChannelRoleTypeUndefined
+    - ChannelRoleTypeOwner
+    - ChannelRoleTypeManager
+  ChannelWithRoleResponse:
+    properties:
+      channel:
+        $ref: '#/definitions/ChannelResponse'
+      role:
+        $ref: '#/definitions/ChannelRoleType'
+    type: object
+  ErrorResponse:
+    properties:
+      details:
+        additionalProperties: {}
+        type: object
+      error_code:
+        type: string
+    type: object
+  Language:
+    enum:
+    - en
+    - ru
+    type: string
+    x-enum-varnames:
+    - LanguageEN
+    - LanguageRU
+  ManagerResponse:
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/ChannelRoleType'
+      telegram_id:
+        type: integer
+    type: object
+  PreferredMode:
+    enum:
+    - publisher
+    - advertiser
+    type: string
+    x-enum-varnames:
+    - PreferredModePublisher
+    - PreferredModeAdvertiser
+  ProfileResponse:
+    properties:
+      language:
+        $ref: '#/definitions/Language'
+      name:
+        type: string
+      onboarding_finished:
+        type: boolean
+      preferred_mode:
+        $ref: '#/definitions/PreferredMode'
+      receive_notifications:
+        type: boolean
+      telegram_id:
+        type: integer
+      theme:
+        $ref: '#/definitions/Theme'
+    type: object
+  Theme:
+    enum:
+    - light
+    - dark
+    - auto
+    type: string
+    x-enum-varnames:
+    - ThemeLight
+    - ThemeDark
+    - ThemeAuto
+  UpdateNameRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  UpdateSettingsRequest:
+    properties:
+      language:
+        $ref: '#/definitions/Language'
+      onboarding_finished:
+        type: boolean
+      preferred_mode:
+        $ref: '#/definitions/PreferredMode'
+      receive_notifications:
+        type: boolean
+      theme:
+        $ref: '#/definitions/Theme'
+    type: object
+  UserResponse:
+    properties:
+      name:
+        type: string
+      telegram_id:
+        type: integer
+    type: object
+info:
+  contact: {}
+  title: Ad Marketplace API
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Telegram init data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Authenticate user
+      tags:
+      - auth
+  /channels:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ChannelWithRoleResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List user channels
+      tags:
+      - channels
+  /channels/{TgChannelID}:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ChannelResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get channel
+      tags:
+      - channels
+  /channels/{TgChannelID}/admins:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ChannelAdmin'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get channel admins
+      tags:
+      - channels
+  /channels/{TgChannelID}/managers:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ManagerResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get channel managers
+      tags:
+      - channels
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Manager telegram ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AddManagerRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add channel manager
+      tags:
+      - channels
+  /channels/{TgChannelID}/managers/{tgID}:
+    delete:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Manager telegram ID
+        in: path
+        name: tgID
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove channel manager
+      tags:
+      - channels
+  /me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - auth
+  /user/name:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: New name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateNameRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user name
+      tags:
+      - user
+  /user/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - user
+  /user/settings:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Settings to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateSettingsRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user settings
+      tags:
+      - user
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

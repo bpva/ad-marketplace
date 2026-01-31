@@ -1,3 +1,5 @@
+import type { components } from "@/types/api";
+
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 let token: string | null = null;
@@ -36,15 +38,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
-export interface User {
-  telegram_id: number;
-  name: string;
-}
-
-interface AuthResponse {
-  token: string;
-  user: User;
-}
+export type User = components["schemas"]["UserResponse"];
+type AuthResponse = components["schemas"]["AuthResponse"];
 
 export async function authenticate(initData: string): Promise<AuthResponse> {
   return request<AuthResponse>("/api/v1/auth", {
@@ -57,23 +52,8 @@ export async function fetchMe(): Promise<User> {
   return request<User>("/api/v1/me");
 }
 
-export interface Profile {
-  telegram_id: number;
-  name: string;
-  language: string;
-  receive_notifications: boolean;
-  preferred_mode: "publisher" | "advertiser";
-  onboarding_finished: boolean;
-  theme: "light" | "dark" | "auto";
-}
-
-export interface UpdateSettingsRequest {
-  language?: string;
-  receive_notifications?: boolean;
-  preferred_mode?: "publisher" | "advertiser";
-  onboarding_finished?: boolean;
-  theme?: "light" | "dark" | "auto";
-}
+export type Profile = components["schemas"]["ProfileResponse"];
+export type UpdateSettingsRequest = components["schemas"]["UpdateSettingsRequest"];
 
 export async function fetchProfile(): Promise<Profile> {
   return request<Profile>("/api/v1/user/profile");
