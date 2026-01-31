@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/bpva/ad-marketplace/internal/entity"
+)
 
 const (
 	RoleCreator       = "creator"
@@ -14,8 +18,8 @@ type ChannelResponse struct {
 }
 
 type ChannelWithRoleResponse struct {
-	Channel ChannelResponse `json:"channel"`
-	Role    string          `json:"role"`
+	Channel ChannelResponse        `json:"channel"`
+	Role    entity.ChannelRoleType `json:"role"`
 }
 
 type ChannelAdmin struct {
@@ -27,10 +31,10 @@ type ChannelAdmin struct {
 }
 
 type ManagerResponse struct {
-	TgID      int64     `json:"telegram_id"`
-	Name      string    `json:"name"`
-	Role      string    `json:"role"`
-	CreatedAt time.Time `json:"created_at"`
+	TgID      int64                  `json:"telegram_id"`
+	Name      string                 `json:"name"`
+	Role      entity.ChannelRoleType `json:"role"`
+	CreatedAt time.Time              `json:"created_at"`
 }
 
 type AddManagerRequest struct {

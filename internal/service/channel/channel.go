@@ -84,7 +84,7 @@ func (s *svc) GetUserChannels(ctx context.Context) ([]dto.ChannelWithRoleRespons
 		}
 		result = append(result, dto.ChannelWithRoleResponse{
 			Channel: channelToResponse(&channels[i]),
-			Role:    string(role.Role),
+			Role:    role.Role,
 		})
 	}
 
@@ -142,7 +142,7 @@ func (s *svc) GetChannelManagers(
 		result = append(result, dto.ManagerResponse{
 			TgID:      u.TgID,
 			Name:      u.Name,
-			Role:      string(role.Role),
+			Role:      role.Role,
 			CreatedAt: role.CreatedAt,
 		})
 	}

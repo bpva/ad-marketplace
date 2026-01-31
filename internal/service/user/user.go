@@ -93,11 +93,10 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 	}
 
 	if req.Language != nil {
-		lang := entity.Language(*req.Language)
-		if lang != entity.LanguageEN && lang != entity.LanguageRU {
+		if *req.Language != entity.LanguageEN && *req.Language != entity.LanguageRU {
 			return fmt.Errorf("update settings: invalid language: %w", dto.ErrBadRequest)
 		}
-		settings.Language = lang
+		settings.Language = *req.Language
 	}
 
 	if req.ReceiveNotifications != nil {
@@ -105,11 +104,11 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 	}
 
 	if req.PreferredMode != nil {
-		mode := entity.PreferredMode(*req.PreferredMode)
-		if mode != entity.PreferredModePublisher && mode != entity.PreferredModeAdvertiser {
+		if *req.PreferredMode != entity.PreferredModePublisher &&
+			*req.PreferredMode != entity.PreferredModeAdvertiser {
 			return fmt.Errorf("update settings: invalid preferred mode: %w", dto.ErrBadRequest)
 		}
-		settings.PreferredMode = mode
+		settings.PreferredMode = *req.PreferredMode
 	}
 
 	if req.OnboardingFinished != nil {
@@ -117,11 +116,11 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 	}
 
 	if req.Theme != nil {
-		theme := entity.Theme(*req.Theme)
-		if theme != entity.ThemeLight && theme != entity.ThemeDark && theme != entity.ThemeAuto {
+		if *req.Theme != entity.ThemeLight && *req.Theme != entity.ThemeDark &&
+			*req.Theme != entity.ThemeAuto {
 			return fmt.Errorf("update settings: invalid theme: %w", dto.ErrBadRequest)
 		}
-		settings.Theme = theme
+		settings.Theme = *req.Theme
 	}
 
 	if err := s.settingsRepo.Update(ctx, settings); err != nil {
