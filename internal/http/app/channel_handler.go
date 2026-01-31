@@ -12,6 +12,15 @@ import (
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
 
+// HandleListChannels returns all channels user has access to
+//
+//	@Summary		List user channels
+//	@Tags			channels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{array}		dto.ChannelWithRoleResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Router			/channels [get]
 func (a *App) HandleListChannels() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels"))
 
@@ -26,6 +35,18 @@ func (a *App) HandleListChannels() http.HandlerFunc {
 	}
 }
 
+// HandleGetChannel returns channel details
+//
+//	@Summary		Get channel
+//	@Tags			channels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path		int	true	"Telegram channel ID"
+//	@Success		200			{object}	dto.ChannelResponse
+//	@Failure		400			{object}	dto.ErrorResponse
+//	@Failure		401			{object}	dto.ErrorResponse
+//	@Failure		404			{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID} [get]
 func (a *App) HandleGetChannel() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}"))
 
@@ -46,6 +67,18 @@ func (a *App) HandleGetChannel() http.HandlerFunc {
 	}
 }
 
+// HandleGetChannelAdmins returns channel admins from Telegram
+//
+//	@Summary		Get channel admins
+//	@Tags			channels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path		int	true	"Telegram channel ID"
+//	@Success		200			{array}		dto.ChannelAdmin
+//	@Failure		400			{object}	dto.ErrorResponse
+//	@Failure		401			{object}	dto.ErrorResponse
+//	@Failure		404			{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/admins [get]
 func (a *App) HandleGetChannelAdmins() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/admins"))
 
@@ -66,6 +99,18 @@ func (a *App) HandleGetChannelAdmins() http.HandlerFunc {
 	}
 }
 
+// HandleGetChannelManagers returns channel managers from system
+//
+//	@Summary		Get channel managers
+//	@Tags			channels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path		int	true	"Telegram channel ID"
+//	@Success		200			{array}		dto.ManagerResponse
+//	@Failure		400			{object}	dto.ErrorResponse
+//	@Failure		401			{object}	dto.ErrorResponse
+//	@Failure		404			{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/managers [get]
 func (a *App) HandleGetChannelManagers() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/managers"))
 
@@ -86,6 +131,19 @@ func (a *App) HandleGetChannelManagers() http.HandlerFunc {
 	}
 }
 
+// HandleAddManager adds a manager to the channel
+//
+//	@Summary		Add channel manager
+//	@Tags			channels
+//	@Accept			json
+//	@Security		BearerAuth
+//	@Param		TgChannelID	path	int					true	"Telegram channel ID"
+//	@Param		request		body	dto.AddManagerRequest	true	"Manager telegram ID"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/managers [post]
 func (a *App) HandleAddManager() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/managers"))
 
@@ -117,6 +175,19 @@ func (a *App) HandleAddManager() http.HandlerFunc {
 	}
 }
 
+// HandleRemoveManager removes a manager from the channel
+//
+//	@Summary		Remove channel manager
+//	@Tags			channels
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path	int	true	"Telegram channel ID"
+//	@Param			tgID		path	int	true	"Manager telegram ID"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/managers/{tgID} [delete]
 func (a *App) HandleRemoveManager() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/managers/{tgID}"))
 
