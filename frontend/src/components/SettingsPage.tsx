@@ -15,6 +15,7 @@ import {
   type PreferredMode,
   type Language,
 } from "@/lib/api";
+import { WalletSection } from "@/components/WalletSection";
 
 const isPublisher = (mode: PreferredMode | undefined) => mode === "publisher";
 
@@ -135,6 +136,8 @@ export function SettingsPage({ onBack, onThemeChange, onModeChange }: SettingsPa
             </div>
           </div>
         </div>
+
+        <WalletSection />
 
         <div className="bg-card rounded-lg border border-border p-4 space-y-4">
           <h2 className="text-lg font-semibold">Settings</h2>
