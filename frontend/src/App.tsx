@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import WebApp from "@twa-dev/sdk";
+import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { useTelegramTheme } from "@/hooks/useTelegramTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { NotInTelegram } from "@/components/NotInTelegram";
@@ -104,7 +105,7 @@ function App() {
   };
 
   return (
-    <>
+    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
       <div className="min-h-screen flex flex-col bg-background">
         <main
           className="flex-1 flex flex-col"
@@ -127,7 +128,7 @@ function App() {
         )}
       </div>
       <Toaster position="bottom-center" richColors />
-    </>
+    </TonConnectUIProvider>
   );
 }
 
