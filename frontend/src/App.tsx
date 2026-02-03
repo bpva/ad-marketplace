@@ -6,7 +6,7 @@ import { NotInTelegram } from "@/components/NotInTelegram";
 import { Header } from "@/components/Header";
 import { SettingsPage } from "@/components/SettingsPage";
 import { OnboardingPage } from "@/components/OnboardingPage";
-import { Button } from "@/components/ui/button";
+import { PublisherPage } from "@/components/PublisherPage";
 import { Toaster } from "sonner";
 import { fetchProfile, updateSettings, type Profile } from "@/lib/api";
 
@@ -63,6 +63,8 @@ function App() {
           onBack={() => setPage("main")}
           onThemeChange={(t) => setProfile((p) => (p ? { ...p, theme: t } : null))}
         />
+      ) : profile?.preferred_mode === "publisher" ? (
+        <PublisherPage userName={user?.name} onSettingsClick={() => setPage("settings")} />
       ) : (
         <div className="min-h-screen flex flex-col bg-background">
           <Header

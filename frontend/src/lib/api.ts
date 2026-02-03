@@ -75,3 +75,12 @@ export async function updateSettings(settings: UpdateSettingsRequest): Promise<v
     body: JSON.stringify(settings),
   });
 }
+
+export type ChannelsResponse = components["schemas"]["ChannelsResponse"];
+export type ChannelWithRole = components["schemas"]["ChannelWithRoleResponse"];
+export type Channel = components["schemas"]["ChannelResponse"];
+export type ChannelRoleType = components["schemas"]["ChannelRoleType"];
+
+export async function fetchChannels(): Promise<ChannelsResponse> {
+  return request<ChannelsResponse>("/api/v1/channels");
+}
