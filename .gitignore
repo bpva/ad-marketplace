@@ -51,3 +51,6 @@ tools/bin/
 
 # Frontend build output
 frontend/dist/
+
+# Local seed data
+seeds/
