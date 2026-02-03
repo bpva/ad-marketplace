@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/gateway/mtproto"
 	"github.com/bpva/ad-marketplace/internal/gateway/telebot"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
@@ -64,6 +65,16 @@ func main() {
 		log.Error("failed to create telebot client", "error", err)
 		os.Exit(1)
 	}
+
+	mtprotoClient, err := mtproto.New(ctx, cfg.Telegram, log)
+	if err != nil {
+		if cfg.Env == "prod" {
+			log.Error("failed to create mtproto client", "error", err)
+			os.Exit(1)
+		}
+		log.Warn("mtproto client not available", "error", err)
+	}
+	_ = mtprotoClient
 
 	botSvc := bot.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo)
 

@@ -39,6 +39,8 @@ type Telegram struct {
 	BotToken   string `env:"BOT_TOKEN" env-required:"true"`
 	BaseURL    string `env:"VITE_API_URL"`
 	MiniAppURL string `env:"FRONTEND_URL"`
+	APIId      int    `env:"TG_API_ID"`
+	APIHash    string `env:"TG_API_HASH"`
 }
 
 type JWT struct {
