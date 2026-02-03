@@ -10,20 +10,22 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	nethttpmw "github.com/oapi-codegen/nethttp-middleware"
 
+	"github.com/bpva/ad-marketplace/docs"
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/http/respond"
 )
 
 func NewOpenAPIValidator(log *slog.Logger) (func(http.Handler) http.Handler, error) {
-	spec, err := openapi3.NewLoader().LoadFromFile("docs/openapi.json")
+	spec, err := openapi3.NewLoader().LoadFromData(docs.OpenAPISpec)
 	if err != nil {
-		return nil, fmt.Errorf("load OpenAPI spec: %w", err)
+		return nil, fmt.Errorf("parse OpenAPI spec: %w", err)
 	}
-	spec.Servers = nil
 
 	return nethttpmw.OapiRequestValidatorWithOptions(spec, &nethttpmw.Options{
+		SilenceServersWarning: true,
 		Options: openapi3filter.Options{
-			MultiError: true,
+			MultiError:         true,
+			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
 		},
 		ErrorHandlerWithOpts: func(
 			_ context.Context,

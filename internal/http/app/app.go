@@ -85,8 +85,8 @@ func New(
 		r.Post("/auth", a.HandleAuth())
 
 		r.Group(func(r chi.Router) {
-			r.Use(openAPIMw)
 			r.Use(middleware.Auth(authSvc, log))
+			r.Use(openAPIMw)
 			r.Get("/me", a.HandleMe())
 
 			r.Route("/user", func(r chi.Router) {
