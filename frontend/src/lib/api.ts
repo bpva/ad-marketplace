@@ -54,6 +54,9 @@ export async function fetchMe(): Promise<User> {
 
 export type Profile = components["schemas"]["ProfileResponse"];
 export type UpdateSettingsRequest = components["schemas"]["UpdateSettingsRequest"];
+export type Language = components["schemas"]["Language"];
+export type Theme = components["schemas"]["Theme"];
+export type PreferredMode = components["schemas"]["PreferredMode"];
 
 export async function fetchProfile(): Promise<Profile> {
   return request<Profile>("/api/v1/user/profile");

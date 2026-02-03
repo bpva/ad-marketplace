@@ -1,18 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Check, Megaphone, Target, Sun, Moon, Monitor } from "lucide-react";
-
-const isPublisher = (mode: string) => mode === "publisher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { fetchProfile, updateName, updateSettings, type Profile } from "@/lib/api";
+import {
+  fetchProfile,
+  updateName,
+  updateSettings,
+  type Profile,
+  type Theme,
+  type PreferredMode,
+  type Language,
+} from "@/lib/api";
+
+const isPublisher = (mode: PreferredMode | undefined) => mode === "publisher";
 
 interface SettingsPageProps {
   onBack: () => void;
-  onThemeChange: (theme: "light" | "dark" | "auto") => void;
+  onThemeChange: (theme: Theme) => void;
 }
 
 export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
@@ -27,8 +35,8 @@ export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
     fetchProfile()
       .then((data) => {
         setProfile(data);
-        setNameValue(data.name);
-        lastSavedName.current = data.name;
+        setNameValue(data.name ?? "");
+        lastSavedName.current = data.name ?? "";
       })
       .finally(() => setLoading(false));
   }, []);
@@ -178,7 +186,7 @@ export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
                   profile.theme === "dark" && "left-[calc(66.666%+2px)]",
                 )}
               />
-              {(["auto", "light", "dark"] as const).map((theme) => (
+              {(["auto", "light", "dark"] satisfies Theme[]).map((theme) => (
                 <button
                   key={theme}
                   type="button"
@@ -207,7 +215,7 @@ export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
             <Label className="text-muted-foreground">Language</Label>
             <select
               value={profile.language}
-              onChange={(e) => handleSettingChange({ language: e.target.value })}
+              onChange={(e) => handleSettingChange({ language: e.target.value as Language })}
               disabled={saving}
               className="rounded-md border border-input bg-background px-3 py-1.5 text-sm disabled:opacity-50"
             >
