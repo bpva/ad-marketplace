@@ -11,7 +11,7 @@ type UpdateSettingsRequest struct {
 }
 
 type UpdateNameRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 }
 
 type ProfileResponse struct {

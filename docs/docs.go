@@ -710,6 +710,9 @@ const docTemplate = `{
         },
         "UpdateNameRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
                     "type": "string"

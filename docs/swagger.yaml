@@ -143,6 +143,8 @@ definitions:
     properties:
       name:
         type: string
+    required:
+    - name
     type: object
   UpdateSettingsRequest:
     properties:

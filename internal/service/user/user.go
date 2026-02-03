@@ -69,10 +69,6 @@ func (s *svc) UpdateName(ctx context.Context, name string) error {
 		return fmt.Errorf("update name: %w", dto.ErrForbidden)
 	}
 
-	if name == "" {
-		return fmt.Errorf("update name: %w", dto.ErrBadRequest)
-	}
-
 	if err := s.userRepo.UpdateName(ctx, user.ID, name); err != nil {
 		return fmt.Errorf("update name: %w", err)
 	}

@@ -697,7 +697,7 @@ export interface components {
     /** @enum {string} */
     Theme: "light" | "dark" | "auto";
     UpdateNameRequest: {
-      name?: string;
+      name: string;
     };
     UpdateSettingsRequest: {
       language?: components["schemas"]["Language"];
