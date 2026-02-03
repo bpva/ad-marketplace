@@ -21,9 +21,10 @@ const isPublisher = (mode: PreferredMode | undefined) => mode === "publisher";
 interface SettingsPageProps {
   onBack: () => void;
   onThemeChange: (theme: Theme) => void;
+  onModeChange: (mode: PreferredMode) => void;
 }
 
-export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
+export function SettingsPage({ onBack, onThemeChange, onModeChange }: SettingsPageProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [nameValue, setNameValue] = useState("");
@@ -147,7 +148,10 @@ export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
             />
             <button
               type="button"
-              onClick={() => handleSettingChange({ preferred_mode: "publisher" })}
+              onClick={() => {
+                handleSettingChange({ preferred_mode: "publisher" });
+                onModeChange("publisher");
+              }}
               disabled={saving}
               className={cn(
                 "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
@@ -161,7 +165,10 @@ export function SettingsPage({ onBack, onThemeChange }: SettingsPageProps) {
             </button>
             <button
               type="button"
-              onClick={() => handleSettingChange({ preferred_mode: "advertiser" })}
+              onClick={() => {
+                handleSettingChange({ preferred_mode: "advertiser" });
+                onModeChange("advertiser");
+              }}
               disabled={saving}
               className={cn(
                 "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
