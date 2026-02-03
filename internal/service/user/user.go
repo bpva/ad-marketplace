@@ -93,33 +93,18 @@ func (s *svc) UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest)
 	}
 
 	if req.Language != nil {
-		if *req.Language != entity.LanguageEN && *req.Language != entity.LanguageRU {
-			return fmt.Errorf("update settings: invalid language: %w", dto.ErrBadRequest)
-		}
 		settings.Language = *req.Language
 	}
-
 	if req.ReceiveNotifications != nil {
 		settings.ReceiveNotifications = *req.ReceiveNotifications
 	}
-
 	if req.PreferredMode != nil {
-		if *req.PreferredMode != entity.PreferredModePublisher &&
-			*req.PreferredMode != entity.PreferredModeAdvertiser {
-			return fmt.Errorf("update settings: invalid preferred mode: %w", dto.ErrBadRequest)
-		}
 		settings.PreferredMode = *req.PreferredMode
 	}
-
 	if req.OnboardingFinished != nil {
 		settings.OnboardingFinished = *req.OnboardingFinished
 	}
-
 	if req.Theme != nil {
-		if *req.Theme != entity.ThemeLight && *req.Theme != entity.ThemeDark &&
-			*req.Theme != entity.ThemeAuto {
-			return fmt.Errorf("update settings: invalid theme: %w", dto.ErrBadRequest)
-		}
 		settings.Theme = *req.Theme
 	}
 
