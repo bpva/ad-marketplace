@@ -48,3 +48,6 @@ deploy.sh
 # Local tools
 tools/bin/
 /.playwright*
+
+# Frontend build output
+frontend/dist/

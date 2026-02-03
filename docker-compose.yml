@@ -11,7 +11,12 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: ${ENV:-local}
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_ENV: ${ENV}
     ports:
       - "1313:1313"
     environment:
@@ -22,6 +27,8 @@ services:
       - VITE_MOCK_TG_FIRST_NAME=${VITE_MOCK_TG_FIRST_NAME}
       - VITE_MOCK_TG_LAST_NAME=${VITE_MOCK_TG_LAST_NAME}
       - VITE_MOCK_TG_USERNAME=${VITE_MOCK_TG_USERNAME}
+    volumes:
+      - ./frontend/src:/app/src
     depends_on:
       - backend
 
