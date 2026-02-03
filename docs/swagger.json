@@ -494,6 +494,9 @@
     "definitions": {
         "AddManagerRequest": {
             "type": "object",
+            "required": [
+                "telegram_id"
+            ],
             "properties": {
                 "telegram_id": {
                     "type": "integer"
@@ -699,6 +702,9 @@
         },
         "UpdateNameRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
                     "type": "string"

@@ -1,13 +1,17 @@
 import { Avatar } from "@/components/ui/avatar";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface HeaderProps {
   userName?: string;
+  telegramId?: number;
+  photoUrl?: string;
   onSettingsClick?: () => void;
 }
 
-export function Header({ userName, onSettingsClick }: HeaderProps) {
+export function Header({ userName, telegramId, photoUrl, onSettingsClick }: HeaderProps) {
   const name = userName || "Guest";
   const initials = name.charAt(0).toUpperCase();
+  const avatarSrc = telegramId ? getAvatarUrl(telegramId, photoUrl) : undefined;
 
   return (
     <header
@@ -16,7 +20,7 @@ export function Header({ userName, onSettingsClick }: HeaderProps) {
     >
       <button className="flex items-center gap-2" onClick={onSettingsClick}>
         <span className="text-sm font-medium text-foreground">{name}</span>
-        <Avatar fallback={initials} className="w-8 h-8 text-sm" />
+        <Avatar src={avatarSrc} fallback={initials} className="w-8 h-8 text-sm" />
       </button>
     </header>
   );

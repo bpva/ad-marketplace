@@ -634,7 +634,7 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     AddManagerRequest: {
-      telegram_id?: number;
+      telegram_id: number;
     };
     AuthRequest: {
       init_data?: string;
@@ -697,7 +697,7 @@ export interface components {
     /** @enum {string} */
     Theme: "light" | "dark" | "auto";
     UpdateNameRequest: {
-      name?: string;
+      name: string;
     };
     UpdateSettingsRequest: {
       language?: components["schemas"]["Language"];

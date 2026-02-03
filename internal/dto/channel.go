@@ -38,7 +38,7 @@ type ManagerResponse struct {
 }
 
 type AddManagerRequest struct {
-	TgID int64 `json:"telegram_id"`
+	TgID int64 `json:"telegram_id" validate:"required"`
 }
 
 type ChannelsResponse struct {

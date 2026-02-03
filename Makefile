@@ -10,7 +10,7 @@ GOFUMPT_VERSION := v0.7.0
 GOLANGCI_LINT_VERSION := v2.1.6
 SWAG_VERSION := v1.16.6
 
-.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs
+.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs build-frontend
 
 # Bootstrap
 up:
@@ -18,6 +18,9 @@ up:
 
 down:
 	docker compose down
+
+build-frontend:
+	cd frontend && npm ci && npm run build
 
 wipe:
 	docker compose down -v

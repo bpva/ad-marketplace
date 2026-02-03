@@ -32,8 +32,10 @@ export function useAuth(): AuthState {
 
       authenticate(initData)
         .then((res) => {
-          setToken(res.token);
-          setState({ user: res.user, loading: false, error: null });
+          if (res.token) {
+            setToken(res.token);
+          }
+          setState({ user: res.user ?? null, loading: false, error: null });
         })
         .catch((err) => {
           setState({ user: null, loading: false, error: err.message });

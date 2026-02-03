@@ -1,13 +1,13 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/http/bind"
 	"github.com/bpva/ad-marketplace/internal/http/respond"
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
@@ -155,13 +155,8 @@ func (a *App) HandleAddManager() http.HandlerFunc {
 		}
 
 		var req dto.AddManagerRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			respond.Err(w, log, dto.ErrBadRequest)
-			return
-		}
-
-		if req.TgID == 0 {
-			respond.Err(w, log, dto.ErrTelegramIDRequired)
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
 			return
 		}
 

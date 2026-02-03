@@ -4,6 +4,8 @@ definitions:
     properties:
       telegram_id:
         type: integer
+    required:
+    - telegram_id
     type: object
   AuthRequest:
     properties:
@@ -141,6 +143,8 @@ definitions:
     properties:
       name:
         type: string
+    required:
+    - name
     type: object
   UpdateSettingsRequest:
     properties:

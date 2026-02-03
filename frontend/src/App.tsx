@@ -67,9 +67,17 @@ function App() {
         <PublisherPage userName={user?.name} onSettingsClick={() => setPage("settings")} />
       ) : (
         <div className="min-h-screen flex flex-col bg-background">
-          <Header userName={user?.name} onSettingsClick={() => setPage("settings")} />
-          <main className="flex-1 flex items-center justify-center p-4">
-            <div className="text-muted-foreground">Advertiser flow coming soon</div>
+          <Header
+            userName={user?.name}
+            telegramId={user?.telegram_id}
+            photoUrl={WebApp.initDataUnsafe?.user?.photo_url}
+            onSettingsClick={() => setPage("settings")}
+          />
+          <main className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
+            <div className="p-8 rounded-xl bg-card text-card-foreground border border-border">
+              <h1 className="text-2xl font-bold">Welcome</h1>
+            </div>
+            <Button>Get Started</Button>
           </main>
         </div>
       )}

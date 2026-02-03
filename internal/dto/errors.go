@@ -21,6 +21,7 @@ func new(status int, code string) *APIError {
 var (
 	// 400 Bad Request
 	ErrBadRequest         = new(http.StatusBadRequest, "bad_request")
+	ErrValidation         = new(http.StatusBadRequest, "invalid_request")
 	ErrInvalidChannelID   = new(http.StatusBadRequest, "invalid_channel_id")
 	ErrInvalidTelegramID  = new(http.StatusBadRequest, "invalid_telegram_id")
 	ErrTelegramIDRequired = new(http.StatusBadRequest, "telegram_id_required")
@@ -60,5 +61,14 @@ func (e *APIError) Wrap(cause error) *APIError {
 		code:    e.code,
 		details: e.details,
 		cause:   cause,
+	}
+}
+
+func (e *APIError) WithDetails(details map[string]any) *APIError {
+	return &APIError{
+		status:  e.status,
+		code:    e.code,
+		details: details,
+		cause:   e.cause,
 	}
 }

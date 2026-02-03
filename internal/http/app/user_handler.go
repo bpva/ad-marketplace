@@ -1,10 +1,10 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/http/bind"
 	"github.com/bpva/ad-marketplace/internal/http/respond"
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
@@ -48,8 +48,8 @@ func (a *App) HandleUpdateName() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UpdateNameRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			respond.Err(w, log, dto.ErrBadRequest)
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
 			return
 		}
 
@@ -78,8 +78,8 @@ func (a *App) HandleUpdateSettings() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.UpdateSettingsRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			respond.Err(w, log, dto.ErrBadRequest)
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
 			return
 		}
 
