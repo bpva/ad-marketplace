@@ -115,7 +115,7 @@ function App() {
         >
           {renderPage()}
         </main>
-        {showNav && profile && (
+        {showNav && profile?.preferred_mode && (
           <BottomNav
             mode={profile.preferred_mode}
             activePage={activeNavPage}
