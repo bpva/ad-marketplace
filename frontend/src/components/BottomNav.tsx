@@ -39,47 +39,54 @@ export function BottomNav({
   ];
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-10 bg-background border-t border-border"
+    <div
+      className="fixed bottom-0 left-0 right-0 z-10 flex justify-center"
       style={{ paddingBottom: "var(--safe-area-inset-bottom, 0px)" }}
     >
-      <div className="relative">
-        <div
-          className={cn(
-            "absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border shadow-sm",
-            "bg-background text-primary border-primary/30",
-          )}
-        >
-          {isPublisher ? "Publisher" : "Advertiser"}
+      <nav
+        className={cn(
+          "w-full max-w-md bg-background border-t border-border",
+          "sm:mb-4 sm:mx-4 sm:rounded-2xl sm:border sm:shadow-lg",
+        )}
+      >
+        <div className="relative">
+          <div
+            className={cn(
+              "absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border shadow-sm",
+              "bg-background text-primary border-primary/30",
+            )}
+          >
+            {isPublisher ? "Publisher" : "Advertiser"}
+          </div>
         </div>
-      </div>
-      <div className="flex items-stretch">
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className={cn(
-                "flex-1 flex flex-col items-center gap-1 py-2 pt-3 transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {item.id === "profile" ? (
-                <Avatar
-                  src={avatarSrc}
-                  fallback={initials}
-                  className={cn("w-5 h-5 text-[10px]", isActive && "ring-2 ring-primary")}
-                />
-              ) : (
-                Icon && <Icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-              )}
-              <span className="text-[11px] font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+        <div className="flex items-stretch">
+          {navItems.map((item) => {
+            const isActive = activePage === item.id;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-1 py-2 pt-3 transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                {item.id === "profile" ? (
+                  <Avatar
+                    src={avatarSrc}
+                    fallback={initials}
+                    className={cn("w-5 h-5 text-[10px]", isActive && "ring-2 ring-primary")}
+                  />
+                ) : (
+                  Icon && <Icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
+                )}
+                <span className="text-[11px] font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
   );
 }
