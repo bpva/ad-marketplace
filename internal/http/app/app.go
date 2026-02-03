@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -73,11 +74,18 @@ func New(
 		MaxAge:           300,
 	}))
 
+	openAPIMw, err := middleware.NewOpenAPIValidator(log)
+	if err != nil {
+		log.Error("initialize OpenAPI middleware", "error", err)
+		os.Exit(1)
+	}
+
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/bot/{token}/webhook", a.HandleBotWebhook())
 		r.Post("/auth", a.HandleAuth())
 
 		r.Group(func(r chi.Router) {
+			r.Use(openAPIMw)
 			r.Use(middleware.Auth(authSvc, log))
 			r.Get("/me", a.HandleMe())
 
