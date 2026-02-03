@@ -12,7 +12,6 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
 	"github.com/bpva/ad-marketplace/internal/logx"
-	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
@@ -21,6 +20,7 @@ import (
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
+	"github.com/bpva/ad-marketplace/migrations"
 )
 
 func main() {

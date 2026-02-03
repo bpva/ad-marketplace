@@ -17,11 +17,11 @@ import (
 
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
-	"github.com/bpva/ad-marketplace/internal/migrations"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	"github.com/bpva/ad-marketplace/internal/storage"
+	"github.com/bpva/ad-marketplace/migrations"
 )
 
 type db interface {
