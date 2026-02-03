@@ -14,7 +14,6 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 COPY config/config.yaml ./config/
-COPY docs/openapi.json ./docs/
 
 EXPOSE 8090
 
