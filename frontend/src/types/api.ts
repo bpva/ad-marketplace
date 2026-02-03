@@ -634,7 +634,7 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     AddManagerRequest: {
-      telegram_id?: number;
+      telegram_id: number;
     };
     AuthRequest: {
       init_data?: string;

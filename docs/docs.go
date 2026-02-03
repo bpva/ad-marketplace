@@ -502,6 +502,9 @@ const docTemplate = `{
     "definitions": {
         "AddManagerRequest": {
             "type": "object",
+            "required": [
+                "telegram_id"
+            ],
             "properties": {
                 "telegram_id": {
                     "type": "integer"

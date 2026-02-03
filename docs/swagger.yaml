@@ -4,6 +4,8 @@ definitions:
     properties:
       telegram_id:
         type: integer
+    required:
+    - telegram_id
     type: object
   AuthRequest:
     properties:
