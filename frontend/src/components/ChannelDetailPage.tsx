@@ -13,10 +13,17 @@ import {
   deleteAdFormat,
 } from "@/lib/api";
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
+import { getFormatDisplay } from "@/lib/adFormats";
 
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
   onBack: () => void;
+}
+
+function formatPrice(nanoTon: number | undefined) {
+  if (nanoTon === undefined || nanoTon === 0) return "0";
+  const val = nanoTon / 1e9;
+  return val % 1 === 0 ? val.toString() : parseFloat(val.toPrecision(10)).toString();
 }
 
 export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
@@ -26,6 +33,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
   const [saving, setSaving] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const isOwner = channel.role === "owner";
   const channelId = channel.channel?.id;
@@ -68,12 +76,8 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
       toast("Failed to delete format");
     } finally {
       setDeletingId(null);
+      setConfirmDeleteId(null);
     }
-  };
-
-  const formatPrice = (nanoTon: number | undefined) => {
-    if (nanoTon === undefined) return "0";
-    return (nanoTon / 1e9).toFixed(2);
   };
 
   return (
@@ -142,45 +146,66 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {formats.map((format) => (
-                <div
-                  key={format.id}
-                  className="bg-muted/50 rounded-lg p-3 flex items-start justify-between gap-2"
-                >
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-primary/10 text-primary capitalize">
-                        {format.format_type}
-                      </span>
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded-md text-xs font-medium",
-                          format.is_native
-                            ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                            : "bg-muted text-muted-foreground",
-                        )}
-                      >
-                        {format.is_native ? "Native" : "Standard"}
-                      </span>
+              {formats.map((format) => {
+                const display = getFormatDisplay(format.format_type, format.is_native);
+                const FormatIcon = display.icon;
+                const isConfirming = confirmDeleteId === format.id;
+                return (
+                  <div
+                    key={format.id}
+                    className={cn(
+                      "bg-muted/50 rounded-lg p-3 flex items-start justify-between gap-2 transition-all duration-150",
+                      isConfirming && "ring-2 ring-destructive/20",
+                    )}
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <FormatIcon className={cn("h-4 w-4 flex-shrink-0", display.color)} />
+                        <span className="text-sm font-medium">{display.label}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {format.feed_hours}h feed + {format.top_hours}h top
+                      </p>
+                      <p className="font-medium">{formatPrice(format.price_nano_ton)} TON</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format.feed_hours}h feed + {format.top_hours}h top
-                    </p>
-                    <p className="font-medium">{formatPrice(format.price_nano_ton)} TON</p>
+                    {isOwner && (
+                      <div className="flex-shrink-0">
+                        {isConfirming ? (
+                          <div className="flex gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setConfirmDeleteId(null)}
+                              disabled={deletingId === format.id}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => format.id && handleDeleteFormat(format.id)}
+                              disabled={deletingId === format.id}
+                            >
+                              {deletingId === format.id ? "..." : "Delete"}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => format.id && setConfirmDeleteId(format.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {isOwner && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => format.id && handleDeleteFormat(format.id)}
-                      disabled={deletingId === format.id}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
