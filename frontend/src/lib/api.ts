@@ -84,3 +84,33 @@ export type ChannelRoleType = components["schemas"]["ChannelRoleType"];
 export async function fetchChannels(): Promise<ChannelsResponse> {
   return request<ChannelsResponse>("/api/v1/channels");
 }
+
+export type AdFormat = components["schemas"]["AdFormatResponse"];
+export type AdFormatsResponse = components["schemas"]["AdFormatsResponse"];
+export type AddAdFormatRequest = components["schemas"]["AddAdFormatRequest"];
+export type AdFormatType = components["schemas"]["AdFormatType"];
+export type UpdateListingRequest = components["schemas"]["UpdateListingRequest"];
+
+export async function fetchAdFormats(channelId: number): Promise<AdFormatsResponse> {
+  return request<AdFormatsResponse>(`/api/v1/channels/${channelId}/ad-formats`);
+}
+
+export async function addAdFormat(channelId: number, req: AddAdFormatRequest): Promise<void> {
+  await request(`/api/v1/channels/${channelId}/ad-formats`, {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
+}
+
+export async function deleteAdFormat(channelId: number, formatId: string): Promise<void> {
+  await request(`/api/v1/channels/${channelId}/ad-formats/${formatId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function updateChannelListing(channelId: number, isListed: boolean): Promise<void> {
+  await request(`/api/v1/channels/${channelId}/listing`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_listed: isListed }),
+  });
+}

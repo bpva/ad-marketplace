@@ -10,7 +10,7 @@ GOFUMPT_VERSION := v0.7.0
 GOLANGCI_LINT_VERSION := v2.1.6
 SWAG_VERSION := v1.16.6
 
-.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs build-frontend
+.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs build-frontend seed
 
 # Bootstrap
 up:
@@ -84,3 +84,9 @@ docs:
 
 test-integration:
 	go test -v -tags integration ./integration-tests/...
+
+seed:
+	@for f in $$(ls seeds/*.sql 2>/dev/null | sort); do \
+		echo "Applying $$f..."; \
+		docker compose exec -T postgres psql -U postgres -d ad_marketplace < "$$f"; \
+	done

@@ -24,6 +24,21 @@ type ChannelRepository interface {
 		ctx context.Context, channelID, userID uuid.UUID, role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
 	DeleteRole(ctx context.Context, channelID, userID uuid.UUID) error
+	UpdateListing(ctx context.Context, channelID uuid.UUID, isListed bool) error
+	CreateAdFormat(
+		ctx context.Context,
+		channelID uuid.UUID,
+		formatType entity.AdFormatType,
+		isNative bool,
+		feedHours, topHours int,
+		priceNanoTON int64,
+	) (*entity.ChannelAdFormat, error)
+	GetAdFormatsByChannelID(
+		ctx context.Context,
+		channelID uuid.UUID,
+	) ([]entity.ChannelAdFormat, error)
+	GetAdFormatByID(ctx context.Context, formatID uuid.UUID) (*entity.ChannelAdFormat, error)
+	DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error
 }
 
 type UserRepository interface {
@@ -296,13 +311,139 @@ func (s *svc) getChannelEntity(
 	return channel, nil
 }
 
+func (s *svc) getChannelEntityAsOwner(
+	ctx context.Context, tgChannelID int64,
+) (*entity.Channel, error) {
+	user, ok := dto.UserFromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("get channel: %w", dto.ErrForbidden)
+	}
+
+	channel, err := s.channelRepo.GetByTgChannelID(ctx, tgChannelID)
+	if err != nil {
+		return nil, fmt.Errorf("get channel: %w", err)
+	}
+
+	role, err := s.channelRepo.GetRole(ctx, channel.ID, user.ID)
+	if errors.Is(err, dto.ErrNotFound) {
+		return nil, fmt.Errorf("get channel: %w", dto.ErrForbidden)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get role: %w", err)
+	}
+	if role.Role != entity.ChannelRoleTypeOwner {
+		return nil, fmt.Errorf("get channel: %w", dto.ErrForbidden)
+	}
+
+	return channel, nil
+}
+
+func (s *svc) UpdateListing(ctx context.Context, tgChannelID int64, isListed bool) error {
+	channel, err := s.getChannelEntityAsOwner(ctx, tgChannelID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.channelRepo.UpdateListing(ctx, channel.ID, isListed); err != nil {
+		return fmt.Errorf("update listing: %w", err)
+	}
+
+	s.log.Info("channel listing updated", "channel_id", channel.ID, "is_listed", isListed)
+	return nil
+}
+
+func (s *svc) GetAdFormats(ctx context.Context, tgChannelID int64) (*dto.AdFormatsResponse, error) {
+	channel, err := s.getChannelEntity(ctx, tgChannelID)
+	if err != nil {
+		return nil, err
+	}
+
+	formats, err := s.channelRepo.GetAdFormatsByChannelID(ctx, channel.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get ad formats: %w", err)
+	}
+
+	result := make([]dto.AdFormatResponse, 0, len(formats))
+	for i := range formats {
+		result = append(result, adFormatToResponse(&formats[i]))
+	}
+
+	return &dto.AdFormatsResponse{AdFormats: result}, nil
+}
+
+func (s *svc) AddAdFormat(
+	ctx context.Context,
+	tgChannelID int64,
+	req dto.AddAdFormatRequest,
+) error {
+	if req.FormatType != entity.AdFormatTypePost {
+		return fmt.Errorf("add ad format: %w", dto.ErrFormatTypeNotAllowed)
+	}
+
+	channel, err := s.getChannelEntityAsOwner(ctx, tgChannelID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.channelRepo.CreateAdFormat(
+		ctx,
+		channel.ID,
+		req.FormatType,
+		req.IsNative,
+		req.FeedHours,
+		req.TopHours,
+		req.PriceNanoTON,
+	)
+	if err != nil {
+		return fmt.Errorf("add ad format: %w", err)
+	}
+
+	s.log.Info("ad format added", "channel_id", channel.ID, "format_type", req.FormatType)
+	return nil
+}
+
+func (s *svc) RemoveAdFormat(ctx context.Context, tgChannelID int64, formatID uuid.UUID) error {
+	channel, err := s.getChannelEntityAsOwner(ctx, tgChannelID)
+	if err != nil {
+		return err
+	}
+
+	format, err := s.channelRepo.GetAdFormatByID(ctx, formatID)
+	if err != nil {
+		return fmt.Errorf("remove ad format: %w", err)
+	}
+
+	if format.ChannelID != channel.ID {
+		return fmt.Errorf("remove ad format: %w", dto.ErrForbidden)
+	}
+
+	if err := s.channelRepo.DeleteAdFormat(ctx, formatID); err != nil {
+		return fmt.Errorf("remove ad format: %w", err)
+	}
+
+	s.log.Info("ad format removed", "channel_id", channel.ID, "format_id", formatID)
+	return nil
+}
+
 func channelToResponse(ch *entity.Channel) dto.ChannelResponse {
 	resp := dto.ChannelResponse{
 		TgChannelID: ch.TgChannelID,
 		Title:       ch.Title,
+		IsListed:    ch.IsListed,
 	}
 	if ch.Username != nil {
 		resp.Username = *ch.Username
 	}
 	return resp
+}
+
+func adFormatToResponse(f *entity.ChannelAdFormat) dto.AdFormatResponse {
+	return dto.AdFormatResponse{
+		ID:           f.ID.String(),
+		FormatType:   f.FormatType,
+		IsNative:     f.IsNative,
+		FeedHours:    f.FeedHours,
+		TopHours:     f.TopHours,
+		PriceNanoTON: f.PriceNanoTON,
+	}
 }

@@ -148,6 +148,248 @@
                 }
             }
         },
+        "/channels/{TgChannelID}/ad-formats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get channel ad formats",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdFormatsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Add channel ad format",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddAdFormatRequest"
+                            }
+                        }
+                    },
+                    "description": "Ad format details",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/channels/{TgChannelID}/ad-formats/{formatID}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Remove channel ad format",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Ad format UUID",
+                        "name": "formatID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/channels/{TgChannelID}/admins": {
             "get": {
                 "security": [
@@ -205,6 +447,86 @@
                         "description": "Not Found",
                         "content": {
                             "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/channels/{TgChannelID}/listing": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Update channel listing",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateListingRequest"
+                            }
+                        }
+                    },
+                    "description": "Listing status",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorResponse"
                                 }
@@ -609,6 +931,79 @@
             }
         },
         "schemas": {
+            "AdFormatResponse": {
+                "type": "object",
+                "properties": {
+                    "feed_hours": {
+                        "type": "integer"
+                    },
+                    "format_type": {
+                        "$ref": "#/components/schemas/AdFormatType"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_native": {
+                        "type": "boolean"
+                    },
+                    "price_nano_ton": {
+                        "type": "integer"
+                    },
+                    "top_hours": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "AdFormatType": {
+                "type": "string",
+                "enum": [
+                    "post",
+                    "repost",
+                    "story"
+                ],
+                "x-enum-varnames": [
+                    "AdFormatTypePost",
+                    "AdFormatTypeRepost",
+                    "AdFormatTypeStory"
+                ]
+            },
+            "AdFormatsResponse": {
+                "type": "object",
+                "properties": {
+                    "ad_formats": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AdFormatResponse"
+                        }
+                    }
+                }
+            },
+            "AddAdFormatRequest": {
+                "type": "object",
+                "required": [
+                    "feed_hours",
+                    "format_type",
+                    "price_nano_ton",
+                    "top_hours"
+                ],
+                "properties": {
+                    "feed_hours": {
+                        "type": "integer"
+                    },
+                    "format_type": {
+                        "$ref": "#/components/schemas/AdFormatType"
+                    },
+                    "is_native": {
+                        "type": "boolean"
+                    },
+                    "price_nano_ton": {
+                        "type": "integer"
+                    },
+                    "top_hours": {
+                        "type": "integer"
+                    }
+                }
+            },
             "AddManagerRequest": {
                 "type": "object",
                 "required": [
@@ -683,6 +1078,9 @@
                 "properties": {
                     "id": {
                         "type": "integer"
+                    },
+                    "is_listed": {
+                        "type": "boolean"
                     },
                     "title": {
                         "type": "string"
@@ -816,6 +1214,14 @@
                     "ThemeDark",
                     "ThemeAuto"
                 ]
+            },
+            "UpdateListingRequest": {
+                "type": "object",
+                "properties": {
+                    "is_listed": {
+                        "type": "boolean"
+                    }
+                }
             },
             "UpdateNameRequest": {
                 "type": "object",
