@@ -1,5 +1,55 @@
 basePath: /api/v1
 definitions:
+  AdFormatResponse:
+    properties:
+      feed_hours:
+        type: integer
+      format_type:
+        $ref: '#/definitions/AdFormatType'
+      id:
+        type: string
+      is_native:
+        type: boolean
+      price_nano_ton:
+        type: integer
+      top_hours:
+        type: integer
+    type: object
+  AdFormatType:
+    enum:
+    - post
+    - repost
+    - story
+    type: string
+    x-enum-varnames:
+    - AdFormatTypePost
+    - AdFormatTypeRepost
+    - AdFormatTypeStory
+  AdFormatsResponse:
+    properties:
+      ad_formats:
+        items:
+          $ref: '#/definitions/AdFormatResponse'
+        type: array
+    type: object
+  AddAdFormatRequest:
+    properties:
+      feed_hours:
+        type: integer
+      format_type:
+        $ref: '#/definitions/AdFormatType'
+      is_native:
+        type: boolean
+      price_nano_ton:
+        type: integer
+      top_hours:
+        type: integer
+    required:
+    - feed_hours
+    - format_type
+    - price_nano_ton
+    - top_hours
+    type: object
   AddManagerRequest:
     properties:
       telegram_id:
@@ -48,6 +98,8 @@ definitions:
     properties:
       id:
         type: integer
+      is_listed:
+        type: boolean
       title:
         type: string
       username:
@@ -139,6 +191,11 @@ definitions:
     - ThemeLight
     - ThemeDark
     - ThemeAuto
+  UpdateListingRequest:
+    properties:
+      is_listed:
+        type: boolean
+    type: object
   UpdateNameRequest:
     properties:
       name:
@@ -246,6 +303,122 @@ paths:
       summary: Get channel
       tags:
       - channels
+  /channels/{TgChannelID}/ad-formats:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/AdFormatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get channel ad formats
+      tags:
+      - channels
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Ad format details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/AddAdFormatRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add channel ad format
+      tags:
+      - channels
+  /channels/{TgChannelID}/ad-formats/{formatID}:
+    delete:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Ad format UUID
+        in: path
+        name: formatID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove channel ad format
+      tags:
+      - channels
   /channels/{TgChannelID}/admins:
     get:
       parameters:
@@ -276,6 +449,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Get channel admins
+      tags:
+      - channels
+  /channels/{TgChannelID}/listing:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Listing status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateListingRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update channel listing
       tags:
       - channels
   /channels/{TgChannelID}/managers:
