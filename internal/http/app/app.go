@@ -36,6 +36,10 @@ type ChannelService interface {
 	GetChannelManagers(ctx context.Context, TgChannelID int64) (*dto.ChannelManagersResponse, error)
 	AddManager(ctx context.Context, TgChannelID int64, tgID int64) error
 	RemoveManager(ctx context.Context, TgChannelID int64, tgID int64) error
+	UpdateListing(ctx context.Context, TgChannelID int64, isListed bool) error
+	GetAdFormats(ctx context.Context, TgChannelID int64) (*dto.AdFormatsResponse, error)
+	AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error
+	RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error
 }
 
 type UserService interface {
@@ -102,6 +106,10 @@ func New(
 				r.Get("/{TgChannelID}/managers", a.HandleGetChannelManagers())
 				r.Post("/{TgChannelID}/managers", a.HandleAddManager())
 				r.Delete("/{TgChannelID}/managers/{tgID}", a.HandleRemoveManager())
+				r.Patch("/{TgChannelID}/listing", a.HandleUpdateListing())
+				r.Get("/{TgChannelID}/ad-formats", a.HandleGetAdFormats())
+				r.Post("/{TgChannelID}/ad-formats", a.HandleAddAdFormat())
+				r.Delete("/{TgChannelID}/ad-formats/{formatID}", a.HandleRemoveAdFormat())
 			})
 		})
 	})
