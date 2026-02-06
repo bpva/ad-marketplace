@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/http/bind"
@@ -201,6 +202,156 @@ func (a *App) HandleRemoveManager() http.HandlerFunc {
 
 		err = a.channel.RemoveManager(r.Context(), TgChannelID, tgID)
 		if err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.NoContent(w)
+	}
+}
+
+// HandleUpdateListing updates channel listing status
+//
+//	@Summary		Update channel listing
+//	@Tags			channels
+//	@Accept			json
+//	@Security		BearerAuth
+//	@Param		TgChannelID	path	int	true	"Telegram channel ID"
+//	@Param		request	body	dto.UpdateListingRequest	true	"Listing status"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/listing [patch]
+func (a *App) HandleUpdateListing() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/listing"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		var req dto.UpdateListingRequest
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		if err := a.channel.UpdateListing(r.Context(), TgChannelID, req.IsListed); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.NoContent(w)
+	}
+}
+
+// HandleGetAdFormats returns channel ad formats
+//
+//	@Summary		Get channel ad formats
+//	@Tags			channels
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path		int	true	"Telegram channel ID"
+//	@Success		200			{object}	dto.AdFormatsResponse
+//	@Failure		400			{object}	dto.ErrorResponse
+//	@Failure		401			{object}	dto.ErrorResponse
+//	@Failure		403			{object}	dto.ErrorResponse
+//	@Failure		404			{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/ad-formats [get]
+func (a *App) HandleGetAdFormats() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/ad-formats"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		formats, err := a.channel.GetAdFormats(r.Context(), TgChannelID)
+		if err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.OK(w, formats)
+	}
+}
+
+// HandleAddAdFormat adds an ad format to the channel
+//
+//	@Summary		Add channel ad format
+//	@Tags			channels
+//	@Accept			json
+//	@Security		BearerAuth
+//	@Param		TgChannelID	path	int	true	"Telegram channel ID"
+//	@Param		request	body	dto.AddAdFormatRequest	true	"Ad format details"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Failure		409	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/ad-formats [post]
+func (a *App) HandleAddAdFormat() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/ad-formats"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		var req dto.AddAdFormatRequest
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		if err := a.channel.AddAdFormat(r.Context(), TgChannelID, req); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.NoContent(w)
+	}
+}
+
+// HandleRemoveAdFormat removes an ad format from the channel
+//
+//	@Summary		Remove channel ad format
+//	@Tags			channels
+//	@Security		BearerAuth
+//	@Param			TgChannelID	path	int		true	"Telegram channel ID"
+//	@Param			formatID	path	string	true	"Ad format UUID"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/ad-formats/{formatID} [delete]
+func (a *App) HandleRemoveAdFormat() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/ad-formats/{formatID}"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		formatID, err := uuid.Parse(chi.URLParam(r, "formatID"))
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidFormatID)
+			return
+		}
+
+		if err := a.channel.RemoveAdFormat(r.Context(), TgChannelID, formatID); err != nil {
 			respond.Err(w, log, err)
 			return
 		}

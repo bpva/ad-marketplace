@@ -15,6 +15,7 @@ type ChannelResponse struct {
 	TgChannelID int64  `json:"id"`
 	Title       string `json:"title"`
 	Username    string `json:"username,omitempty"`
+	IsListed    bool   `json:"is_listed"`
 }
 
 type ChannelWithRoleResponse struct {
@@ -80,4 +81,29 @@ type StatsValue struct {
 type StatsPercentage struct {
 	Part  float64 `json:"part"`
 	Total float64 `json:"total"`
+}
+
+type UpdateListingRequest struct {
+	IsListed bool `json:"is_listed"`
+}
+
+type AddAdFormatRequest struct {
+	FormatType   entity.AdFormatType `json:"format_type" validate:"required"`
+	IsNative     bool                `json:"is_native"`
+	FeedHours    int                 `json:"feed_hours" validate:"required,oneof=12 24"`
+	TopHours     int                 `json:"top_hours" validate:"required,oneof=2 4"`
+	PriceNanoTON int64               `json:"price_nano_ton" validate:"required,gt=0"`
+}
+
+type AdFormatResponse struct {
+	ID           string              `json:"id"`
+	FormatType   entity.AdFormatType `json:"format_type"`
+	IsNative     bool                `json:"is_native"`
+	FeedHours    int                 `json:"feed_hours"`
+	TopHours     int                 `json:"top_hours"`
+	PriceNanoTON int64               `json:"price_nano_ton"`
+}
+
+type AdFormatsResponse struct {
+	AdFormats []AdFormatResponse `json:"ad_formats"`
 }
