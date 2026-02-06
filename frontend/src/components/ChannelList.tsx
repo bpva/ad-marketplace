@@ -1,12 +1,13 @@
-import { Megaphone } from "lucide-react";
+import { ChevronRight, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelWithRole } from "@/lib/api";
 
 interface ChannelListProps {
   channels: ChannelWithRole[];
+  onChannelClick?: (channel: ChannelWithRole) => void;
 }
 
-export function ChannelList({ channels }: ChannelListProps) {
+export function ChannelList({ channels, onChannelClick }: ChannelListProps) {
   return (
     <div className="p-4">
       <div className="max-w-md mx-auto space-y-4">
@@ -17,7 +18,11 @@ export function ChannelList({ channels }: ChannelListProps) {
 
         <div className="space-y-3">
           {channels.map((item) => (
-            <ChannelCard key={item.channel?.id} item={item} />
+            <ChannelCard
+              key={item.channel?.id}
+              item={item}
+              onClick={() => onChannelClick?.(item)}
+            />
           ))}
         </div>
 
@@ -29,11 +34,15 @@ export function ChannelList({ channels }: ChannelListProps) {
   );
 }
 
-function ChannelCard({ item }: { item: ChannelWithRole }) {
+function ChannelCard({ item, onClick }: { item: ChannelWithRole; onClick: () => void }) {
   const { channel, role } = item;
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left transition-colors hover:bg-accent/50 active:bg-accent"
+    >
       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
         <Megaphone className="h-6 w-6 text-primary" />
       </div>
@@ -53,6 +62,8 @@ function ChannelCard({ item }: { item: ChannelWithRole }) {
       >
         {role === "owner" ? "Owner" : "Manager"}
       </div>
-    </div>
+
+      <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+    </button>
   );
 }
