@@ -20,12 +20,14 @@ func new(status int, code string) *APIError {
 
 var (
 	// 400 Bad Request
-	ErrBadRequest         = new(http.StatusBadRequest, "bad_request")
-	ErrValidation         = new(http.StatusBadRequest, "invalid_request")
-	ErrInvalidChannelID   = new(http.StatusBadRequest, "invalid_channel_id")
-	ErrInvalidTelegramID  = new(http.StatusBadRequest, "invalid_telegram_id")
-	ErrTelegramIDRequired = new(http.StatusBadRequest, "telegram_id_required")
-	ErrCannotRemoveOwner  = new(http.StatusBadRequest, "cannot_remove_owner")
+	ErrBadRequest           = new(http.StatusBadRequest, "bad_request")
+	ErrValidation           = new(http.StatusBadRequest, "invalid_request")
+	ErrInvalidChannelID     = new(http.StatusBadRequest, "invalid_channel_id")
+	ErrInvalidTelegramID    = new(http.StatusBadRequest, "invalid_telegram_id")
+	ErrTelegramIDRequired   = new(http.StatusBadRequest, "telegram_id_required")
+	ErrCannotRemoveOwner    = new(http.StatusBadRequest, "cannot_remove_owner")
+	ErrFormatTypeNotAllowed = new(http.StatusBadRequest, "format_type_not_allowed")
+	ErrInvalidFormatID      = new(http.StatusBadRequest, "invalid_format_id")
 
 	// 401 Unauthorized
 	ErrUnauthorized = new(http.StatusUnauthorized, "unauthorized")
@@ -35,6 +37,9 @@ var (
 
 	// 404 Not Found
 	ErrNotFound = new(http.StatusNotFound, "not_found")
+
+	// 409 Conflict
+	ErrAdFormatExists = new(http.StatusConflict, "ad_format_exists")
 
 	// 500 Internal Server Error
 	ErrInternalError = new(http.StatusInternalServerError, "internal_error")

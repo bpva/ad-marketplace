@@ -12,6 +12,7 @@ type Channel struct {
 	TgChannelID int64      `db:"telegram_channel_id"`
 	Title       string     `db:"title"`
 	Username    *string    `db:"username"`
+	IsListed    bool       `db:"is_listed"`
 	CreatedAt   time.Time  `db:"created_at"`
 	DeletedAt   *time.Time `db:"deleted_at"`
 }
@@ -48,4 +49,23 @@ type ChannelRole struct {
 	UserID    uuid.UUID       `db:"user_id"`
 	Role      ChannelRoleType `db:"role"`
 	CreatedAt time.Time       `db:"created_at"`
+}
+
+type AdFormatType string
+
+const (
+	AdFormatTypePost   AdFormatType = "post"
+	AdFormatTypeRepost AdFormatType = "repost"
+	AdFormatTypeStory  AdFormatType = "story"
+)
+
+type ChannelAdFormat struct {
+	ID           uuid.UUID    `db:"id"`
+	ChannelID    uuid.UUID    `db:"channel_id"`
+	FormatType   AdFormatType `db:"format_type"`
+	IsNative     bool         `db:"is_native"`
+	FeedHours    int          `db:"feed_hours"`
+	TopHours     int          `db:"top_hours"`
+	PriceNanoTON int64        `db:"price_nano_ton"`
+	CreatedAt    time.Time    `db:"created_at"`
 }

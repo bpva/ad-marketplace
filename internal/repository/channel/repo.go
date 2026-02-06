@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
@@ -44,7 +45,7 @@ func (r *repo) Create(
 			title = EXCLUDED.title,
 			username = EXCLUDED.username,
 			deleted_at = NULL
-		RETURNING id, telegram_channel_id, title, username, created_at, deleted_at
+		RETURNING id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
 	`, id, tgChannelID, title, username)
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
@@ -63,7 +64,7 @@ func (r *repo) GetByTgChannelID(
 	tgChannelID int64,
 ) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
 		FROM channels
 		WHERE telegram_channel_id = $1 AND deleted_at IS NULL
 	`, tgChannelID)
@@ -84,7 +85,7 @@ func (r *repo) GetByTgChannelID(
 
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
 		FROM channels
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -169,7 +170,8 @@ func (r *repo) GetChannelsByUserID(
 	userID uuid.UUID,
 ) ([]entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT c.id, c.telegram_channel_id, c.title, c.username, c.created_at, c.deleted_at
+		SELECT c.id, c.telegram_channel_id, c.title, c.username, c.is_listed,
+			c.created_at, c.deleted_at
 		FROM channels c
 		JOIN channel_roles cr ON c.id = cr.channel_id
 		WHERE cr.user_id = $1 AND c.deleted_at IS NULL
@@ -223,5 +225,121 @@ func (r *repo) DeleteRole(ctx context.Context, channelID, userID uuid.UUID) erro
 		return fmt.Errorf("deleting channel role: %w", dto.ErrNotFound)
 	}
 
+	return nil
+}
+
+func (r *repo) UpdateListing(ctx context.Context, channelID uuid.UUID, isListed bool) error {
+	tag, err := r.db.Exec(ctx, `
+		UPDATE channels
+		SET is_listed = $2
+		WHERE id = $1 AND deleted_at IS NULL
+	`, channelID, isListed)
+	if err != nil {
+		return fmt.Errorf("updating listing status: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("updating listing status: %w", dto.ErrNotFound)
+	}
+	return nil
+}
+
+func (r *repo) CreateAdFormat(
+	ctx context.Context,
+	channelID uuid.UUID,
+	formatType entity.AdFormatType,
+	isNative bool,
+	feedHours, topHours int,
+	priceNanoTON int64,
+) (*entity.ChannelAdFormat, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("creating ad format: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx, `
+		INSERT INTO channel_ad_formats
+			(id, channel_id, format_type, is_native, feed_hours, top_hours, price_nano_ton)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, channel_id, format_type, is_native, feed_hours, top_hours,
+			price_nano_ton, created_at
+	`, id, channelID, formatType, isNative, feedHours, topHours, priceNanoTON)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil, fmt.Errorf("creating ad format: %w", dto.ErrAdFormatExists)
+		}
+		return nil, fmt.Errorf("creating ad format: %w", err)
+	}
+
+	af, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.ChannelAdFormat])
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil, fmt.Errorf("creating ad format: %w", dto.ErrAdFormatExists)
+		}
+		return nil, fmt.Errorf("creating ad format: %w", err)
+	}
+
+	return &af, nil
+}
+
+func (r *repo) GetAdFormatsByChannelID(
+	ctx context.Context,
+	channelID uuid.UUID,
+) ([]entity.ChannelAdFormat, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, channel_id, format_type, is_native, feed_hours, top_hours,
+			price_nano_ton, created_at
+		FROM channel_ad_formats
+		WHERE channel_id = $1
+		ORDER BY created_at
+	`, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("getting ad formats: %w", err)
+	}
+
+	formats, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.ChannelAdFormat])
+	if err != nil {
+		return nil, fmt.Errorf("getting ad formats: %w", err)
+	}
+
+	return formats, nil
+}
+
+func (r *repo) GetAdFormatByID(
+	ctx context.Context,
+	formatID uuid.UUID,
+) (*entity.ChannelAdFormat, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, channel_id, format_type, is_native, feed_hours, top_hours,
+			price_nano_ton, created_at
+		FROM channel_ad_formats
+		WHERE id = $1
+	`, formatID)
+	if err != nil {
+		return nil, fmt.Errorf("getting ad format: %w", err)
+	}
+
+	af, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.ChannelAdFormat])
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("getting ad format: %w", dto.ErrNotFound)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting ad format: %w", err)
+	}
+
+	return &af, nil
+}
+
+func (r *repo) DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error {
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM channel_ad_formats WHERE id = $1
+	`, formatID)
+	if err != nil {
+		return fmt.Errorf("deleting ad format: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("deleting ad format: %w", dto.ErrNotFound)
+	}
 	return nil
 }
