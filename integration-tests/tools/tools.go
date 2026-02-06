@@ -90,12 +90,13 @@ func (t *Tools) CreateChannel(
 	err = t.pool.QueryRow(ctx, `
 		INSERT INTO channels (id, telegram_channel_id, title, username)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, telegram_channel_id, title, username, created_at, deleted_at
+		RETURNING id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
 	`, id, tgChannelID, title, username).Scan(
 		&channel.ID,
 		&channel.TgChannelID,
 		&channel.Title,
 		&channel.Username,
+		&channel.IsListed,
 		&channel.CreatedAt,
 		&channel.DeletedAt,
 	)
@@ -133,7 +134,7 @@ func (t *Tools) GetChannelByTgID(
 ) (*entity.Channel, error) {
 	var channel entity.Channel
 	err := t.pool.QueryRow(ctx, `
-		SELECT id, telegram_channel_id, title, username, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
 		FROM channels
 		WHERE telegram_channel_id = $1
 	`, tgChannelID).Scan(
@@ -141,6 +142,7 @@ func (t *Tools) GetChannelByTgID(
 		&channel.TgChannelID,
 		&channel.Title,
 		&channel.Username,
+		&channel.IsListed,
 		&channel.CreatedAt,
 		&channel.DeletedAt,
 	)
@@ -199,4 +201,80 @@ func (t *Tools) GetUserByTgID(ctx context.Context, tgID int64) (*entity.User, er
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (t *Tools) UpdateChannelListing(
+	ctx context.Context,
+	channelID uuid.UUID,
+	isListed bool,
+) error {
+	_, err := t.pool.Exec(ctx, `
+		UPDATE channels SET is_listed = $2 WHERE id = $1
+	`, channelID, isListed)
+	return err
+}
+
+func (t *Tools) CreateAdFormat(
+	ctx context.Context,
+	channelID uuid.UUID,
+	formatType entity.AdFormatType,
+	isNative bool,
+	feedHours, topHours int,
+	priceNanoTON int64,
+) (*entity.ChannelAdFormat, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	var af entity.ChannelAdFormat
+	err = t.pool.QueryRow(ctx, `
+		INSERT INTO channel_ad_formats
+			(id, channel_id, format_type, is_native, feed_hours, top_hours, price_nano_ton)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, channel_id, format_type, is_native, feed_hours, top_hours,
+			price_nano_ton, created_at
+	`, id, channelID, formatType, isNative, feedHours, topHours, priceNanoTON).Scan(
+		&af.ID,
+		&af.ChannelID,
+		&af.FormatType,
+		&af.IsNative,
+		&af.FeedHours,
+		&af.TopHours,
+		&af.PriceNanoTON,
+		&af.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &af, nil
+}
+
+func (t *Tools) GetAdFormatsByChannelID(
+	ctx context.Context,
+	channelID uuid.UUID,
+) ([]entity.ChannelAdFormat, error) {
+	rows, err := t.pool.Query(ctx, `
+		SELECT id, channel_id, format_type, is_native, feed_hours, top_hours,
+			price_nano_ton, created_at
+		FROM channel_ad_formats
+		WHERE channel_id = $1
+	`, channelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var formats []entity.ChannelAdFormat
+	for rows.Next() {
+		var af entity.ChannelAdFormat
+		if err := rows.Scan(
+			&af.ID, &af.ChannelID, &af.FormatType, &af.IsNative,
+			&af.FeedHours, &af.TopHours, &af.PriceNanoTON, &af.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		formats = append(formats, af)
+	}
+	return formats, rows.Err()
 }

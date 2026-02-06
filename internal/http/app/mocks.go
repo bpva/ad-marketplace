@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	dto "github.com/bpva/ad-marketplace/internal/dto"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -93,6 +94,20 @@ func (m *MockChannelService) EXPECT() *MockChannelServiceMockRecorder {
 	return m.recorder
 }
 
+// AddAdFormat mocks base method.
+func (m *MockChannelService) AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddAdFormat", ctx, TgChannelID, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddAdFormat indicates an expected call of AddAdFormat.
+func (mr *MockChannelServiceMockRecorder) AddAdFormat(ctx, TgChannelID, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAdFormat", reflect.TypeOf((*MockChannelService)(nil).AddAdFormat), ctx, TgChannelID, req)
+}
+
 // AddManager mocks base method.
 func (m *MockChannelService) AddManager(ctx context.Context, TgChannelID, tgID int64) error {
 	m.ctrl.T.Helper()
@@ -105,6 +120,21 @@ func (m *MockChannelService) AddManager(ctx context.Context, TgChannelID, tgID i
 func (mr *MockChannelServiceMockRecorder) AddManager(ctx, TgChannelID, tgID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddManager", reflect.TypeOf((*MockChannelService)(nil).AddManager), ctx, TgChannelID, tgID)
+}
+
+// GetAdFormats mocks base method.
+func (m *MockChannelService) GetAdFormats(ctx context.Context, TgChannelID int64) (*dto.AdFormatsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAdFormats", ctx, TgChannelID)
+	ret0, _ := ret[0].(*dto.AdFormatsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAdFormats indicates an expected call of GetAdFormats.
+func (mr *MockChannelServiceMockRecorder) GetAdFormats(ctx, TgChannelID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAdFormats", reflect.TypeOf((*MockChannelService)(nil).GetAdFormats), ctx, TgChannelID)
 }
 
 // GetChannel mocks base method.
@@ -167,6 +197,20 @@ func (mr *MockChannelServiceMockRecorder) GetUserChannels(ctx any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChannels", reflect.TypeOf((*MockChannelService)(nil).GetUserChannels), ctx)
 }
 
+// RemoveAdFormat mocks base method.
+func (m *MockChannelService) RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveAdFormat", ctx, TgChannelID, formatID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveAdFormat indicates an expected call of RemoveAdFormat.
+func (mr *MockChannelServiceMockRecorder) RemoveAdFormat(ctx, TgChannelID, formatID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveAdFormat", reflect.TypeOf((*MockChannelService)(nil).RemoveAdFormat), ctx, TgChannelID, formatID)
+}
+
 // RemoveManager mocks base method.
 func (m *MockChannelService) RemoveManager(ctx context.Context, TgChannelID, tgID int64) error {
 	m.ctrl.T.Helper()
@@ -179,6 +223,20 @@ func (m *MockChannelService) RemoveManager(ctx context.Context, TgChannelID, tgI
 func (mr *MockChannelServiceMockRecorder) RemoveManager(ctx, TgChannelID, tgID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveManager", reflect.TypeOf((*MockChannelService)(nil).RemoveManager), ctx, TgChannelID, tgID)
+}
+
+// UpdateListing mocks base method.
+func (m *MockChannelService) UpdateListing(ctx context.Context, TgChannelID int64, isListed bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateListing", ctx, TgChannelID, isListed)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateListing indicates an expected call of UpdateListing.
+func (mr *MockChannelServiceMockRecorder) UpdateListing(ctx, TgChannelID, isListed any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateListing", reflect.TypeOf((*MockChannelService)(nil).UpdateListing), ctx, TgChannelID, isListed)
 }
 
 // MockUserService is a mock of UserService interface.
