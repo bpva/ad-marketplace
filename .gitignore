@@ -49,8 +49,11 @@ deploy.sh
 tools/bin/
 /.playwright*
 
+frontend/src/_brainstorm/
+
 # Frontend build output
 frontend/dist/
+frontend/tsconfig.tsbuildinfo
 
 # Local seed data
 seeds/
