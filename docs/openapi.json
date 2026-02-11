@@ -456,6 +456,57 @@
                 }
             }
         },
+        "/channels/{TgChannelID}/info": {
+            "get": {
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get channel info",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChannelInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/channels/{TgChannelID}/listing": {
             "patch": {
                 "security": [
@@ -748,6 +799,73 @@
                 }
             }
         },
+        "/channels/{TgChannelID}/stats": {
+            "get": {
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get channel historical stats",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChannelHistoricalStatsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "security": [
@@ -988,7 +1106,11 @@
                 ],
                 "properties": {
                     "feed_hours": {
-                        "type": "integer"
+                        "type": "integer",
+                        "enum": [
+                            12,
+                            24
+                        ]
                     },
                     "format_type": {
                         "$ref": "#/components/schemas/AdFormatType"
@@ -1000,7 +1122,11 @@
                         "type": "integer"
                     },
                     "top_hours": {
-                        "type": "integer"
+                        "type": "integer",
+                        "enum": [
+                            2,
+                            4
+                        ]
                     }
                 }
             },
@@ -1059,6 +1185,57 @@
                         "items": {
                             "$ref": "#/components/schemas/ChannelAdmin"
                         }
+                    }
+                }
+            },
+            "ChannelDailyStats": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "object"
+                    },
+                    "date": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ChannelHistoricalStatsResponse": {
+                "type": "object",
+                "properties": {
+                    "stats": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChannelDailyStats"
+                        }
+                    }
+                }
+            },
+            "ChannelInfoResponse": {
+                "type": "object",
+                "properties": {
+                    "about": {
+                        "type": "string"
+                    },
+                    "fetched_at": {
+                        "type": "string"
+                    },
+                    "languages": {
+                        "type": "object"
+                    },
+                    "reactions_by_emotion": {
+                        "type": "object"
+                    },
+                    "recent_posts": {
+                        "type": "object"
+                    },
+                    "story_reactions_by_emotion": {
+                        "type": "object"
+                    },
+                    "subscribers": {
+                        "type": "integer"
+                    },
+                    "top_hours": {
+                        "type": "object"
                     }
                 }
             },

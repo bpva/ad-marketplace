@@ -35,6 +35,9 @@ definitions:
   AddAdFormatRequest:
     properties:
       feed_hours:
+        enum:
+        - 12
+        - 24
         type: integer
       format_type:
         $ref: '#/definitions/AdFormatType'
@@ -43,6 +46,9 @@ definitions:
       price_nano_ton:
         type: integer
       top_hours:
+        enum:
+        - 2
+        - 4
         type: integer
     required:
     - feed_hours
@@ -86,6 +92,39 @@ definitions:
         items:
           $ref: '#/definitions/ChannelAdmin'
         type: array
+    type: object
+  ChannelDailyStats:
+    properties:
+      data:
+        type: object
+      date:
+        type: string
+    type: object
+  ChannelHistoricalStatsResponse:
+    properties:
+      stats:
+        items:
+          $ref: '#/definitions/ChannelDailyStats'
+        type: array
+    type: object
+  ChannelInfoResponse:
+    properties:
+      about:
+        type: string
+      fetched_at:
+        type: string
+      languages:
+        type: object
+      reactions_by_emotion:
+        type: object
+      recent_posts:
+        type: object
+      story_reactions_by_emotion:
+        type: object
+      subscribers:
+        type: integer
+      top_hours:
+        type: object
     type: object
   ChannelManagersResponse:
     properties:
@@ -451,6 +490,32 @@ paths:
       summary: Get channel admins
       tags:
       - channels
+  /channels/{TgChannelID}/info:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ChannelInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get channel info
+      tags:
+      - channels
   /channels/{TgChannelID}/listing:
     patch:
       consumes:
@@ -593,6 +658,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove channel manager
+      tags:
+      - channels
+  /channels/{TgChannelID}/stats:
+    get:
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ChannelHistoricalStatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get channel historical stats
       tags:
       - channels
   /me:
