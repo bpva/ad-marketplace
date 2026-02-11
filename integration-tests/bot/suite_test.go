@@ -15,11 +15,15 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
+	"go.uber.org/mock/gomock"
+
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
+	"github.com/bpva/ad-marketplace/internal/dto"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
+	"github.com/bpva/ad-marketplace/internal/service/stats"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	"github.com/bpva/ad-marketplace/migrations"
 )
@@ -36,6 +40,7 @@ var (
 	testTools   *tools.Tools
 	channelRepo bot.ChannelRepository
 	userRepo    bot.UserRepository
+	statsSvc    bot.StatsFetcher
 	log         *slog.Logger
 )
 
@@ -93,6 +98,27 @@ func TestMain(m *testing.M) {
 	channelRepo = channel_repo.New(testDB)
 	userRepo = user_repo.New(testDB)
 	log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+
+	ctrl := gomock.NewController(&testing.T{})
+	mockMTProto := stats.NewMockMTProtoClient(ctrl)
+	mockMTProto.EXPECT().ResolveChannel(gomock.Any(), gomock.Any()).Return(int64(123), nil).AnyTimes()
+	mockMTProto.EXPECT().GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.ChannelFullInfo{
+		ParticipantsCount: 1500,
+		About:             "Test channel about",
+		CanViewStats:      true,
+		StatsDC:           2,
+	}, nil).AnyTimes()
+	mockMTProto.EXPECT().GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.BroadcastStatsResult{
+		Scalars: dto.BroadcastStats{
+			Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
+			ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
+		},
+		DailyStats: map[string]map[string]any{
+			"2025-01-01": {"subscribers": 1450, "new_followers": 50},
+			"2025-01-02": {"subscribers": 1500, "new_followers": 50},
+		},
+	}, nil).AnyTimes()
+	statsSvc = stats.New(mockMTProto, channel_repo.New(testDB), log)
 
 	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
