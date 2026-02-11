@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -17,7 +18,15 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
-//go:generate mockgen -destination=mocks.go -package=app . BotService,ChannelService,UserService
+type StatsService interface {
+	GetInfo(ctx context.Context, tgChannelID int64) (*dto.ChannelInfoResponse, error)
+	GetHistory(
+		ctx context.Context,
+		tgChannelID int64,
+		from, to time.Time,
+	) (*dto.ChannelHistoricalStatsResponse, error)
+}
+
 type BotService interface {
 	ProcessUpdate(data []byte) error
 	Token() string
@@ -54,6 +63,7 @@ type App struct {
 	auth    AuthService
 	channel ChannelService
 	user    UserService
+	stats   StatsService
 	srv     *http.Server
 }
 
@@ -64,8 +74,16 @@ func New(
 	authSvc AuthService,
 	channelSvc ChannelService,
 	userSvc UserService,
+	statsSvc StatsService,
 ) *App {
-	a := &App{log: log, bot: bot, auth: authSvc, channel: channelSvc, user: userSvc}
+	a := &App{
+		log:     log,
+		bot:     bot,
+		auth:    authSvc,
+		channel: channelSvc,
+		user:    userSvc,
+		stats:   statsSvc,
+	}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
@@ -110,6 +128,8 @@ func New(
 				r.Get("/{TgChannelID}/ad-formats", a.HandleGetAdFormats())
 				r.Post("/{TgChannelID}/ad-formats", a.HandleAddAdFormat())
 				r.Delete("/{TgChannelID}/ad-formats/{formatID}", a.HandleRemoveAdFormat())
+				r.Get("/{TgChannelID}/info", a.HandleGetChannelInfo())
+				r.Get("/{TgChannelID}/stats", a.HandleGetChannelStats())
 			})
 		})
 	})

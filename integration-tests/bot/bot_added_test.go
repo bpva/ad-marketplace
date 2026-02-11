@@ -265,7 +265,7 @@ func TestHandleBotAdded(t *testing.T) {
 			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo, statsSvc)
 
 			tt.setup(t, mock)
 

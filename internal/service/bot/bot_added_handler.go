@@ -3,10 +3,13 @@ package bot
 import (
 	"context"
 	"errors"
+	"time"
+
+	"github.com/google/uuid"
+	tele "gopkg.in/telebot.v4"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
-	tele "gopkg.in/telebot.v4"
 )
 
 func (b *svc) handleMyChatMember(c tele.Context) error {
@@ -49,7 +52,19 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	admins, err := b.client.AdminsOf(chat.ID)
+	var (
+		admins []dto.ChannelAdmin
+		err    error
+	)
+
+	// there's a delay
+	for range 5 {
+		time.Sleep(10 * time.Second)
+		admins, err = b.client.AdminsOf(chat.ID)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		b.log.Error("failed to get channel admins",
 			"channel_id", chat.ID,
@@ -123,6 +138,23 @@ func (b *svc) handleBotAdded(
 		"telegram_channel_id", chat.ID,
 		"title", chat.Title,
 		"owner_id", user.ID)
+
+	chUUID, err := uuid.Parse(channelID)
+	if err != nil {
+		b.log.Error("failed to parse channel ID",
+			"channel_id", channelID,
+			"error", err)
+		return nil
+	}
+
+	go func(ctx context.Context) {
+		if err := b.stats.FetchAndStore(ctx, chUUID, chat.ID); err != nil {
+			b.log.Error("failed to fetch channel stats",
+				"channel_id", channelID,
+				"telegram_channel_id", chat.ID,
+				"error", err)
+		}
+	}(ctx)
 
 	return nil
 }

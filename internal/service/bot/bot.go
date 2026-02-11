@@ -46,6 +46,10 @@ type UserRepository interface {
 	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
 }
 
+type StatsFetcher interface {
+	FetchAndStore(ctx context.Context, channelID uuid.UUID, tgChannelID int64) error
+}
+
 type svc struct {
 	client      TelebotClient
 	log         *slog.Logger
@@ -53,6 +57,7 @@ type svc struct {
 	tx          storage.Transactor
 	channelRepo ChannelRepository
 	userRepo    UserRepository
+	stats       StatsFetcher
 }
 
 func New(
@@ -62,6 +67,7 @@ func New(
 	tx storage.Transactor,
 	channels ChannelRepository,
 	users UserRepository,
+	stats StatsFetcher,
 ) *svc {
 	log = log.With(logx.Service("BotService"))
 
@@ -72,6 +78,7 @@ func New(
 		tx:          tx,
 		channelRepo: channels,
 		userRepo:    users,
+		stats:       stats,
 	}
 
 	s.registerHandlers()

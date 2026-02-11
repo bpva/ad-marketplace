@@ -368,6 +368,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/channels/{TgChannelID}/info": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get channel info",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ChannelInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/channels/{TgChannelID}/listing": {
             "patch": {
                 "security": [
@@ -595,6 +635,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/channels/{TgChannelID}/stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get channel historical stats",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ChannelHistoricalStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "security": [
@@ -802,7 +894,11 @@ const docTemplate = `{
             ],
             "properties": {
                 "feed_hours": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        12,
+                        24
+                    ]
                 },
                 "format_type": {
                     "$ref": "#/definitions/AdFormatType"
@@ -814,7 +910,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "top_hours": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        2,
+                        4
+                    ]
                 }
             }
         },
@@ -873,6 +973,57 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ChannelAdmin"
                     }
+                }
+            }
+        },
+        "ChannelDailyStats": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object"
+                },
+                "date": {
+                    "type": "string"
+                }
+            }
+        },
+        "ChannelHistoricalStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ChannelDailyStats"
+                    }
+                }
+            }
+        },
+        "ChannelInfoResponse": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "fetched_at": {
+                    "type": "string"
+                },
+                "languages": {
+                    "type": "object"
+                },
+                "reactions_by_emotion": {
+                    "type": "object"
+                },
+                "recent_posts": {
+                    "type": "object"
+                },
+                "story_reactions_by_emotion": {
+                    "type": "object"
+                },
+                "subscribers": {
+                    "type": "integer"
+                },
+                "top_hours": {
+                    "type": "object"
                 }
             }
         },
