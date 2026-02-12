@@ -45,7 +45,8 @@ func (r *repo) Create(
 			title = EXCLUDED.title,
 			username = EXCLUDED.username,
 			deleted_at = NULL
-		RETURNING id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
+		RETURNING id, telegram_channel_id, title, username, is_listed,
+			photo_small_file_id, photo_big_file_id, created_at, deleted_at
 	`, id, tgChannelID, title, username)
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
@@ -64,7 +65,8 @@ func (r *repo) GetByTgChannelID(
 	tgChannelID int64,
 ) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed,
+			photo_small_file_id, photo_big_file_id, created_at, deleted_at
 		FROM channels
 		WHERE telegram_channel_id = $1 AND deleted_at IS NULL
 	`, tgChannelID)
@@ -85,7 +87,8 @@ func (r *repo) GetByTgChannelID(
 
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed,
+			photo_small_file_id, photo_big_file_id, created_at, deleted_at
 		FROM channels
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -171,7 +174,7 @@ func (r *repo) GetChannelsByUserID(
 ) ([]entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT c.id, c.telegram_channel_id, c.title, c.username, c.is_listed,
-			c.created_at, c.deleted_at
+			c.photo_small_file_id, c.photo_big_file_id, c.created_at, c.deleted_at
 		FROM channels c
 		JOIN channel_roles cr ON c.id = cr.channel_id
 		WHERE cr.user_id = $1 AND c.deleted_at IS NULL
@@ -225,6 +228,25 @@ func (r *repo) DeleteRole(ctx context.Context, channelID, userID uuid.UUID) erro
 		return fmt.Errorf("deleting channel role: %w", dto.ErrNotFound)
 	}
 
+	return nil
+}
+
+func (r *repo) UpdatePhoto(
+	ctx context.Context,
+	channelID uuid.UUID,
+	smallFileID, bigFileID *string,
+) error {
+	tag, err := r.db.Exec(ctx, `
+		UPDATE channels
+		SET photo_small_file_id = $2, photo_big_file_id = $3
+		WHERE id = $1 AND deleted_at IS NULL
+	`, channelID, smallFileID, bigFileID)
+	if err != nil {
+		return fmt.Errorf("updating channel photo: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("updating channel photo: %w", dto.ErrNotFound)
+	}
 	return nil
 }
 

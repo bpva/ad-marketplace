@@ -8,13 +8,15 @@ import (
 )
 
 type Channel struct {
-	ID          uuid.UUID  `db:"id"`
-	TgChannelID int64      `db:"telegram_channel_id"`
-	Title       string     `db:"title"`
-	Username    *string    `db:"username"`
-	IsListed    bool       `db:"is_listed"`
-	CreatedAt   time.Time  `db:"created_at"`
-	DeletedAt   *time.Time `db:"deleted_at"`
+	ID               uuid.UUID  `db:"id"`
+	TgChannelID      int64      `db:"telegram_channel_id"`
+	Title            string     `db:"title"`
+	Username         *string    `db:"username"`
+	IsListed         bool       `db:"is_listed"`
+	PhotoSmallFileID *string    `db:"photo_small_file_id"`
+	PhotoBigFileID   *string    `db:"photo_big_file_id"`
+	CreatedAt        time.Time  `db:"created_at"`
+	DeletedAt        *time.Time `db:"deleted_at"`
 }
 
 type ChannelRoleType string
