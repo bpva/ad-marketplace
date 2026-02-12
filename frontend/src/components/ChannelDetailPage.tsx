@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Megaphone, Plus, X } from "lucide-react";
+import { ArrowLeft, Eye, Plus, Users, X } from "lucide-react";
+import { ChannelAvatar } from "@/components/ChannelAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,12 @@ import { getFormatDisplay } from "@/lib/adFormats";
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
   onBack: () => void;
+}
+
+function formatCompact(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return n.toString();
 }
 
 function formatPrice(nanoTon: number | undefined) {
@@ -102,14 +109,39 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
         </div>
 
         <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Megaphone className="h-6 w-6 text-primary" />
-          </div>
+          <ChannelAvatar
+            channelId={channel.channel?.id ?? 0}
+            photoUrl={channel.channel?.photo_small_url}
+            className="w-12 h-12 flex-shrink-0"
+          />
           <div className="flex-1 min-w-0">
             <h2 className="font-semibold text-lg truncate">{channel.channel?.title}</h2>
             {channel.channel?.username && (
               <p className="text-sm text-muted-foreground truncate">@{channel.channel.username}</p>
             )}
+            <div className="flex items-center gap-3 mt-1">
+              {channel.channel?.subscribers != null && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  {formatCompact(channel.channel.subscribers)}
+                </span>
+              )}
+              {channel.channel?.avg_views != null ? (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Eye className="h-3 w-3" />~{formatCompact(channel.channel.avg_views)}/day
+                </span>
+              ) : (
+                channel.channel?.subscribers != null && (
+                  <span
+                    className="text-xs text-muted-foreground cursor-help"
+                    title="Not enough data for average views"
+                  >
+                    <Eye className="h-3 w-3 inline mr-0.5" />
+                    &#x1F937;
+                  </span>
+                )
+              )}
+            </div>
           </div>
         </div>
 
