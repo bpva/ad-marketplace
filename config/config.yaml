@@ -5,3 +5,7 @@ http:
 logger:
   level: debug
   otlp_enabled: false
+
+Telegram:
+  retry_delay: 10s
+  max_retries: 5

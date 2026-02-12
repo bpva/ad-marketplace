@@ -58,8 +58,8 @@ func (b *svc) handleBotAdded(
 	)
 
 	// there's a delay
-	for range 5 {
-		time.Sleep(10 * time.Second)
+	for range b.cfg.MaxRetries {
+		time.Sleep(b.cfg.RetryDelay)
 		admins, err = b.client.AdminsOf(chat.ID)
 		if err == nil {
 			break

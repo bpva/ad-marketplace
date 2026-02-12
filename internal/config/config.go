@@ -39,8 +39,12 @@ type Telegram struct {
 	BotToken   string `env:"BOT_TOKEN" env-required:"true"`
 	BaseURL    string `env:"VITE_API_URL"`
 	MiniAppURL string `env:"FRONTEND_URL"`
-	APIId      int    `env:"TG_API_ID"`
-	APIHash    string `env:"TG_API_HASH"`
+
+	APIId   int    `env:"TG_API_ID"`
+	APIHash string `env:"TG_API_HASH"`
+
+	RetryDelay time.Duration `yaml:"retry_delay" env:"TG_RETRY_DELAY" env-default:"10s"`
+	MaxRetries int           `yaml:"max_retries" env:"TG_MAX_RETRIES" env-default:"5"`
 }
 
 type JWT struct {

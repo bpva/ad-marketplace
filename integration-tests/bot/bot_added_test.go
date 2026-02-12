@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
@@ -265,7 +266,12 @@ func TestHandleBotAdded(t *testing.T) {
 			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo, statsSvc)
+			cfg := config.Telegram{
+				RetryDelay: 1 * time.Millisecond,
+				MaxRetries: 1,
+			}
+
+			botSvc := bot.New(mock, cfg, log, testDB, channelRepo, userRepo, statsSvc)
 
 			tt.setup(t, mock)
 
