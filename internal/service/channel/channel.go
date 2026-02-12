@@ -2,9 +2,11 @@ package channel
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
@@ -39,6 +41,10 @@ type ChannelRepository interface {
 	) ([]entity.ChannelAdFormat, error)
 	GetAdFormatByID(ctx context.Context, formatID uuid.UUID) (*entity.ChannelAdFormat, error)
 	DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error
+	GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.ChannelInfo, error)
+	GetHistoricalStats(
+		ctx context.Context, channelID uuid.UUID, from, to time.Time,
+	) ([]entity.ChannelHistoricalStats, error)
 }
 
 type UserRepository interface {
@@ -49,6 +55,7 @@ type UserRepository interface {
 
 type TelebotClient interface {
 	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
+	DownloadFile(fileID string) ([]byte, error)
 }
 
 type Transactor interface {
@@ -97,8 +104,9 @@ func (s *svc) GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error
 		if err != nil {
 			return nil, fmt.Errorf("get role: %w", err)
 		}
+		info, avgViews := s.fetchChannelStats(ctx, channels[i].ID)
 		result = append(result, dto.ChannelWithRoleResponse{
-			Channel: channelToResponse(&channels[i]),
+			Channel: channelToResponse(&channels[i], info, avgViews),
 			Role:    role.Role,
 		})
 	}
@@ -114,7 +122,8 @@ func (s *svc) GetChannel(
 		return nil, err
 	}
 
-	resp := channelToResponse(channel)
+	info, avgViews := s.fetchChannelStats(ctx, channel.ID)
+	resp := channelToResponse(channel, info, avgViews)
 	return &resp, nil
 }
 
@@ -425,7 +434,11 @@ func (s *svc) RemoveAdFormat(ctx context.Context, tgChannelID int64, formatID uu
 	return nil
 }
 
-func channelToResponse(ch *entity.Channel) dto.ChannelResponse {
+func channelToResponse(
+	ch *entity.Channel,
+	info *entity.ChannelInfo,
+	avgViews *int,
+) dto.ChannelResponse {
 	resp := dto.ChannelResponse{
 		TgChannelID: ch.TgChannelID,
 		Title:       ch.Title,
@@ -434,7 +447,91 @@ func channelToResponse(ch *entity.Channel) dto.ChannelResponse {
 	if ch.Username != nil {
 		resp.Username = *ch.Username
 	}
+	if ch.PhotoSmallFileID != nil {
+		resp.PhotoSmallURL = fmt.Sprintf("/api/v1/channels/%d/photo?size=small", ch.TgChannelID)
+	}
+	if ch.PhotoBigFileID != nil {
+		resp.PhotoBigURL = fmt.Sprintf("/api/v1/channels/%d/photo?size=big", ch.TgChannelID)
+	}
+	if info != nil {
+		resp.Subscribers = &info.Subscribers
+	}
+	resp.AvgViews = avgViews
 	return resp
+}
+
+func (s *svc) fetchChannelStats(
+	ctx context.Context, channelID uuid.UUID,
+) (*entity.ChannelInfo, *int) {
+	info, err := s.channelRepo.GetInfo(ctx, channelID)
+	if err != nil {
+		info = nil
+	}
+
+	to := time.Now()
+	from := to.AddDate(0, 0, -7)
+	stats, err := s.channelRepo.GetHistoricalStats(ctx, channelID, from, to)
+	if err != nil {
+		return info, nil
+	}
+
+	avgViews := computeAvgDailyViews(stats)
+	return info, avgViews
+}
+
+func computeAvgDailyViews(stats []entity.ChannelHistoricalStats) *int {
+	if len(stats) < 7 {
+		return nil
+	}
+
+	var totalViews int
+	for _, s := range stats {
+		var data map[string]json.RawMessage
+		if err := json.Unmarshal(s.Data, &data); err != nil {
+			continue
+		}
+		viewsRaw, ok := data["views_by_source"]
+		if !ok {
+			continue
+		}
+		var viewsBySource map[string]int
+		if err := json.Unmarshal(viewsRaw, &viewsBySource); err != nil {
+			continue
+		}
+		for _, v := range viewsBySource {
+			totalViews += v
+		}
+	}
+
+	avg := totalViews / len(stats)
+	return &avg
+}
+
+func (s *svc) GetChannelPhoto(
+	ctx context.Context, tgChannelID int64, size string,
+) ([]byte, error) {
+	channel, err := s.channelRepo.GetByTgChannelID(ctx, tgChannelID)
+	if err != nil {
+		return nil, fmt.Errorf("get channel photo: %w", err)
+	}
+
+	var fileID *string
+	switch size {
+	case "big":
+		fileID = channel.PhotoBigFileID
+	default:
+		fileID = channel.PhotoSmallFileID
+	}
+	if fileID == nil {
+		return nil, fmt.Errorf("get channel photo: %w", dto.ErrNotFound)
+	}
+
+	data, err := s.bot.DownloadFile(*fileID)
+	if err != nil {
+		return nil, fmt.Errorf("download channel photo: %w", err)
+	}
+
+	return data, nil
 }
 
 func adFormatToResponse(f *entity.ChannelAdFormat) dto.AdFormatResponse {

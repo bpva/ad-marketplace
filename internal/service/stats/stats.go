@@ -81,7 +81,12 @@ func (s *svc) FetchAndStore(ctx context.Context, channelID uuid.UUID, tgChannelI
 	}
 
 	if fullInfo.CanViewStats {
-		statsResult, err := s.mtproto.GetBroadcastStats(ctx, mtprotoID, accessHash, fullInfo.StatsDC)
+		statsResult, err := s.mtproto.GetBroadcastStats(
+			ctx,
+			mtprotoID,
+			accessHash,
+			fullInfo.StatsDC,
+		)
 		if err != nil {
 			s.log.Warn("failed to get broadcast stats, storing channel info only",
 				"channel_id", channelID, "error", err)

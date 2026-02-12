@@ -56,6 +56,37 @@ func (mr *MockTelebotClientMockRecorder) AdminsOf(channelID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminsOf", reflect.TypeOf((*MockTelebotClient)(nil).AdminsOf), channelID)
 }
 
+// DownloadFile mocks base method.
+func (m *MockTelebotClient) DownloadFile(fileID string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadFile", fileID)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DownloadFile indicates an expected call of DownloadFile.
+func (mr *MockTelebotClientMockRecorder) DownloadFile(fileID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadFile", reflect.TypeOf((*MockTelebotClient)(nil).DownloadFile), fileID)
+}
+
+// GetChatPhoto mocks base method.
+func (m *MockTelebotClient) GetChatPhoto(chatID int64) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChatPhoto", chatID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetChatPhoto indicates an expected call of GetChatPhoto.
+func (mr *MockTelebotClientMockRecorder) GetChatPhoto(chatID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatPhoto", reflect.TypeOf((*MockTelebotClient)(nil).GetChatPhoto), chatID)
+}
+
 // Handle mocks base method.
 func (m *MockTelebotClient) Handle(endpoint any, h telebot.HandlerFunc) {
 	m.ctrl.T.Helper()

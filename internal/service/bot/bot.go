@@ -24,6 +24,8 @@ type TelebotClient interface {
 	ProcessUpdate(upd tele.Update)
 	Token() string
 	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
+	GetChatPhoto(chatID int64) (smallFileID, bigFileID string, err error)
+	DownloadFile(fileID string) ([]byte, error)
 }
 
 type ChannelRepository interface {
@@ -39,6 +41,7 @@ type ChannelRepository interface {
 		role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
 	SoftDelete(ctx context.Context, TgChannelID int64) error
+	UpdatePhoto(ctx context.Context, channelID uuid.UUID, smallFileID, bigFileID *string) error
 }
 
 type UserRepository interface {

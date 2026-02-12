@@ -42,6 +42,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -79,6 +80,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -191,6 +193,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Updated Title", "newusername", true),
 			checkUser: func(t *testing.T) {
@@ -217,6 +220,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Private Channel", "", true),
 			checkUser: func(t *testing.T) {
@@ -241,6 +245,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {

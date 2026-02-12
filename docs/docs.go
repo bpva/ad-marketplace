@@ -1041,11 +1041,23 @@ const docTemplate = `{
         "ChannelResponse": {
             "type": "object",
             "properties": {
+                "avg_views": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "is_listed": {
                     "type": "boolean"
+                },
+                "photo_big_url": {
+                    "type": "string"
+                },
+                "photo_small_url": {
+                    "type": "string"
+                },
+                "subscribers": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"

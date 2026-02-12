@@ -148,6 +148,27 @@ func (b *svc) handleBotAdded(
 	}
 
 	go func(ctx context.Context) {
+		small, big, err := b.client.GetChatPhoto(chat.ID)
+		if err != nil {
+			b.log.Error("failed to get channel photo",
+				"channel_id", channelID,
+				"telegram_channel_id", chat.ID,
+				"error", err)
+		} else if small != "" || big != "" {
+			var sp, bp *string
+			if small != "" {
+				sp = &small
+			}
+			if big != "" {
+				bp = &big
+			}
+			if err := b.channelRepo.UpdatePhoto(ctx, chUUID, sp, bp); err != nil {
+				b.log.Error("failed to update channel photo",
+					"channel_id", channelID,
+					"error", err)
+			}
+		}
+
 		if err := b.stats.FetchAndStore(ctx, chUUID, chat.ID); err != nil {
 			b.log.Error("failed to fetch channel stats",
 				"channel_id", channelID,

@@ -49,6 +49,7 @@ type ChannelService interface {
 	GetAdFormats(ctx context.Context, TgChannelID int64) (*dto.AdFormatsResponse, error)
 	AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error
 	RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error
+	GetChannelPhoto(ctx context.Context, tgChannelID int64, size string) ([]byte, error)
 }
 
 type UserService interface {
@@ -105,6 +106,11 @@ func New(
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/bot/{token}/webhook", a.HandleBotWebhook())
 		r.Post("/auth", a.HandleAuth())
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Auth(authSvc, log))
+			r.Get("/channels/{TgChannelID}/photo", a.HandleGetChannelPhoto())
+		})
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc, log))

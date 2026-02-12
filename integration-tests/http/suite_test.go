@@ -140,29 +140,40 @@ func setupTestServer(testDB db) *httptest.Server {
 	telebotMock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
 	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
+	telebotMock.EXPECT().GetChatPhoto(gomock.Any()).Return("", "", nil).AnyTimes()
+	telebotMock.EXPECT().DownloadFile(gomock.Any()).Return(nil, nil).AnyTimes()
 
 	botSvc := bot.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo, nil)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 
 	mockMTProto := stats.NewMockMTProtoClient(ctrl)
-	mockMTProto.EXPECT().ResolveChannel(gomock.Any(), gomock.Any()).Return(int64(123), nil).AnyTimes()
-	mockMTProto.EXPECT().GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.ChannelFullInfo{
-		ParticipantsCount: 1500,
-		About:             "Test channel about",
-		CanViewStats:      true,
-		StatsDC:           2,
-	}, nil).AnyTimes()
-	mockMTProto.EXPECT().GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.BroadcastStatsResult{
-		Scalars: dto.BroadcastStats{
-			Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
-			ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
-		},
-		DailyStats: map[string]map[string]any{
-			"2025-01-01": {"subscribers": 1450, "new_followers": 50},
-			"2025-01-02": {"subscribers": 1500, "new_followers": 50},
-		},
-	}, nil).AnyTimes()
+	mockMTProto.EXPECT().
+		ResolveChannel(gomock.Any(), gomock.Any()).
+		Return(int64(123), nil).
+		AnyTimes()
+	mockMTProto.EXPECT().
+		GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&dto.ChannelFullInfo{
+			ParticipantsCount: 1500,
+			About:             "Test channel about",
+			CanViewStats:      true,
+			StatsDC:           2,
+		}, nil).
+		AnyTimes()
+	mockMTProto.EXPECT().
+		GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&dto.BroadcastStatsResult{
+			Scalars: dto.BroadcastStats{
+				Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
+				ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
+			},
+			DailyStats: map[string]map[string]any{
+				"2025-01-01": {"subscribers": 1450, "new_followers": 50},
+				"2025-01-02": {"subscribers": 1500, "new_followers": 50},
+			},
+		}, nil).
+		AnyTimes()
 	statsSvc := stats.New(mockMTProto, channelRepo, log)
 	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc, statsSvc)
 	return httptest.NewServer(a.Handler())

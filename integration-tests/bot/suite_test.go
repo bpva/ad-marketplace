@@ -101,23 +101,32 @@ func TestMain(m *testing.M) {
 
 	ctrl := gomock.NewController(&testing.T{})
 	mockMTProto := stats.NewMockMTProtoClient(ctrl)
-	mockMTProto.EXPECT().ResolveChannel(gomock.Any(), gomock.Any()).Return(int64(123), nil).AnyTimes()
-	mockMTProto.EXPECT().GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.ChannelFullInfo{
-		ParticipantsCount: 1500,
-		About:             "Test channel about",
-		CanViewStats:      true,
-		StatsDC:           2,
-	}, nil).AnyTimes()
-	mockMTProto.EXPECT().GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.BroadcastStatsResult{
-		Scalars: dto.BroadcastStats{
-			Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
-			ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
-		},
-		DailyStats: map[string]map[string]any{
-			"2025-01-01": {"subscribers": 1450, "new_followers": 50},
-			"2025-01-02": {"subscribers": 1500, "new_followers": 50},
-		},
-	}, nil).AnyTimes()
+	mockMTProto.EXPECT().
+		ResolveChannel(gomock.Any(), gomock.Any()).
+		Return(int64(123), nil).
+		AnyTimes()
+	mockMTProto.EXPECT().
+		GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&dto.ChannelFullInfo{
+			ParticipantsCount: 1500,
+			About:             "Test channel about",
+			CanViewStats:      true,
+			StatsDC:           2,
+		}, nil).
+		AnyTimes()
+	mockMTProto.EXPECT().
+		GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&dto.BroadcastStatsResult{
+			Scalars: dto.BroadcastStats{
+				Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
+				ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
+			},
+			DailyStats: map[string]map[string]any{
+				"2025-01-01": {"subscribers": 1450, "new_followers": 50},
+				"2025-01-02": {"subscribers": 1500, "new_followers": 50},
+			},
+		}, nil).
+		AnyTimes()
 	statsSvc = stats.New(mockMTProto, channel_repo.New(testDB), log)
 
 	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
