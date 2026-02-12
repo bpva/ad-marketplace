@@ -55,5 +55,3 @@ frontend/src/_brainstorm/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
 
-# Local seed data
-seeds/

@@ -86,7 +86,4 @@ test-integration:
 	go test -v -tags integration ./integration-tests/...
 
 seed:
-	@for f in $$(ls seeds/*.sql 2>/dev/null | sort); do \
-		echo "Applying $$f..."; \
-		docker compose exec -T postgres psql -U postgres -d ad_marketplace < "$$f"; \
-	done
+	go run ./cmd/seed
