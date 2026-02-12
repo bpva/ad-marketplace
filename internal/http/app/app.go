@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -69,7 +70,7 @@ type App struct {
 }
 
 func New(
-	httpCfg config.HTTP,
+	cfg config.HTTP,
 	log *slog.Logger,
 	bot BotService,
 	authSvc AuthService,
@@ -90,7 +91,7 @@ func New(
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{httpCfg.FrontendURL},
+		AllowedOrigins:   []string{cfg.FrontendURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -141,7 +142,7 @@ func New(
 	})
 
 	a.srv = &http.Server{
-		Addr:    ":" + httpCfg.Port,
+		Addr:    fmt.Sprintf(":%s", cfg.Port),
 		Handler: r,
 	}
 
