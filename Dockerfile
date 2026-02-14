@@ -14,6 +14,7 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 COPY config/config.yaml ./config/
+COPY .session.json ./.session.json
 
 EXPOSE 8090
 
