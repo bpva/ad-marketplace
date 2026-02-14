@@ -27,7 +27,12 @@ func New(ctx context.Context, cfg config.Postgres) (*db, error) {
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DB,
 	)
 
-	pool, err := pgxpool.New(ctx, dsn)
+	poolCfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("create pool: %w", err)
 	}
