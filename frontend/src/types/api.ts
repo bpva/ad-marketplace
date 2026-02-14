@@ -452,63 +452,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/channels/{TgChannelID}/info": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get channel info */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          /** @description Telegram channel ID */
-          TgChannelID: number;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ChannelInfoResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ErrorResponse"];
-          };
-        };
-        /** @description Not Found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ErrorResponse"];
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/channels/{TgChannelID}/listing": {
     parameters: {
       query?: never;
@@ -781,68 +724,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/channels/{TgChannelID}/stats": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get channel historical stats */
-    get: {
-      parameters: {
-        query?: {
-          /** @description Start date (YYYY-MM-DD) */
-          from?: string;
-          /** @description End date (YYYY-MM-DD) */
-          to?: string;
-        };
-        header?: never;
-        path: {
-          /** @description Telegram channel ID */
-          TgChannelID: number;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ChannelHistoricalStatsResponse"];
-          };
-        };
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ErrorResponse"];
-          };
-        };
-        /** @description Not Found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["ErrorResponse"];
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/me": {
     parameters: {
       query?: never;
@@ -882,6 +763,65 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/mp/channels": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** List marketplace channels */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description Search/sort/filter params */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["MarketplaceChannelsRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["MarketplaceChannelsResponse"];
+          };
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
@@ -1051,6 +991,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    AdFormat: {
+      feed_hours?: number;
+      format_type?: components["schemas"]["AdFormatType"];
+      is_native?: boolean;
+      price_nano_ton?: number;
+      top_hours?: number;
+    };
     AdFormatResponse: {
       feed_hours?: number;
       format_type?: components["schemas"]["AdFormatType"];
@@ -1092,28 +1039,10 @@ export interface components {
     ChannelAdminsResponse: {
       admins?: components["schemas"]["ChannelAdmin"][];
     };
-    ChannelDailyStats: {
-      data?: Record<string, never>;
-      date?: string;
-    };
-    ChannelHistoricalStatsResponse: {
-      stats?: components["schemas"]["ChannelDailyStats"][];
-    };
-    ChannelInfoResponse: {
-      about?: string;
-      fetched_at?: string;
-      languages?: Record<string, never>;
-      reactions_by_emotion?: Record<string, never>;
-      recent_posts?: Record<string, never>;
-      story_reactions_by_emotion?: Record<string, never>;
-      subscribers?: number;
-      top_hours?: Record<string, never>;
-    };
     ChannelManagersResponse: {
       managers?: components["schemas"]["ManagerResponse"][];
     };
     ChannelResponse: {
-      avg_views?: number;
       id?: number;
       is_listed?: boolean;
       photo_big_url?: string;
@@ -1124,6 +1053,8 @@ export interface components {
     };
     /** @enum {string} */
     ChannelRoleType: "undefined" | "owner" | "manager";
+    /** @enum {string} */
+    ChannelSortBy: "subscribers" | "views";
     ChannelWithRoleResponse: {
       channel?: components["schemas"]["ChannelResponse"];
       role?: components["schemas"]["ChannelRoleType"];
@@ -1139,11 +1070,60 @@ export interface components {
     };
     /** @enum {string} */
     Language: "en" | "ru";
+    LanguageShare: {
+      language?: string;
+      percentage?: number;
+    };
     ManagerResponse: {
       created_at?: string;
       name?: string;
       role?: components["schemas"]["ChannelRoleType"];
       telegram_id?: number;
+    };
+    MarketplaceChannel: {
+      about?: string;
+      ad_formats?: components["schemas"]["AdFormat"][];
+      avg_daily_views_1d?: number;
+      avg_daily_views_30d?: number;
+      avg_daily_views_7d?: number;
+      avg_interactions_30d?: number;
+      avg_interactions_7d?: number;
+      engagement_rate_30d?: number;
+      engagement_rate_7d?: number;
+      id?: number;
+      /** @description ISO 639-1 codes: "en", "ru" */
+      languages?: components["schemas"]["LanguageShare"][];
+      photo_small_url?: string;
+      /** @description Keys are unicode emoji ("👍"), custom will be mapped to standard too */
+      reactions_by_emotion?: {
+        [key: string]: number;
+      };
+      story_reactions_by_emotion?: {
+        [key: string]: number;
+      };
+      sub_growth_30d?: number;
+      sub_growth_7d?: number;
+      subscribers?: number;
+      title?: string;
+      /** @description Views per hour (index 0–23, UTC) */
+      top_hours?: number[];
+      total_views_30d?: number;
+      total_views_7d?: number;
+      username?: string;
+    };
+    MarketplaceChannelsRequest: {
+      filters?: components["schemas"]["MarketplaceFilter"][];
+      page?: number;
+      sort_by?: components["schemas"]["ChannelSortBy"];
+      sort_order?: components["schemas"]["SortOrder"];
+    };
+    MarketplaceChannelsResponse: {
+      channels?: components["schemas"]["MarketplaceChannel"][];
+      total?: number;
+    };
+    MarketplaceFilter: {
+      name?: string;
+      value?: unknown;
     };
     /** @enum {string} */
     PreferredMode: "publisher" | "advertiser";
@@ -1156,6 +1136,8 @@ export interface components {
       telegram_id?: number;
       theme?: components["schemas"]["Theme"];
     };
+    /** @enum {string} */
+    SortOrder: "asc" | "desc";
     /** @enum {string} */
     Theme: "light" | "dark" | "auto";
     UpdateListingRequest: {
