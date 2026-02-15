@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -20,6 +21,7 @@ import (
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/entity"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
@@ -102,11 +104,7 @@ func TestMain(m *testing.M) {
 	ctrl := gomock.NewController(&testing.T{})
 	mockMTProto := stats.NewMockMTProtoClient(ctrl)
 	mockMTProto.EXPECT().
-		ResolveChannel(gomock.Any(), gomock.Any()).
-		Return(int64(123), nil).
-		AnyTimes()
-	mockMTProto.EXPECT().
-		GetChannelFull(gomock.Any(), gomock.Any(), gomock.Any()).
+		GetChannelFull(gomock.Any(), gomock.Any()).
 		Return(&dto.ChannelFullInfo{
 			ParticipantsCount: 1500,
 			About:             "Test channel about",
@@ -115,15 +113,23 @@ func TestMain(m *testing.M) {
 		}, nil).
 		AnyTimes()
 	mockMTProto.EXPECT().
-		GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(&dto.BroadcastStatsResult{
-			Scalars: dto.BroadcastStats{
-				Followers:    dto.StatsValue{Current: 1500, Previous: 1400},
-				ViewsPerPost: dto.StatsValue{Current: 5000, Previous: 4800},
-			},
-			DailyStats: map[string]map[string]any{
-				"2025-01-01": {"subscribers": 1450, "new_followers": 50},
-				"2025-01-02": {"subscribers": 1500, "new_followers": 50},
+		GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&entity.BroadcastStats{
+			DailyStats: []entity.DailyMetrics{
+				{
+					Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					Data: entity.ChannelHistoricalDayData{
+						Subscribers:  ptrInt64(1450),
+						NewFollowers: ptrInt64(50),
+					},
+				},
+				{
+					Date: time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
+					Data: entity.ChannelHistoricalDayData{
+						Subscribers:  ptrInt64(1500),
+						NewFollowers: ptrInt64(50),
+					},
+				},
 			},
 		}, nil).
 		AnyTimes()
@@ -149,4 +155,8 @@ func TestMain(m *testing.M) {
 	_ = pgContainer.Terminate(ctx)
 
 	os.Exit(code)
+}
+
+func ptrInt64(v int64) *int64 {
+	return &v
 }
