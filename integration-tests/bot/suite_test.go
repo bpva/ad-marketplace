@@ -23,6 +23,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	"github.com/bpva/ad-marketplace/internal/service/stats"
@@ -42,6 +43,7 @@ var (
 	testTools   *tools.Tools
 	channelRepo bot.ChannelRepository
 	userRepo    bot.UserRepository
+	postRepo    bot.PostRepository
 	statsSvc    bot.StatsFetcher
 	log         *slog.Logger
 )
@@ -99,6 +101,7 @@ func TestMain(m *testing.M) {
 
 	channelRepo = channel_repo.New(testDB)
 	userRepo = user_repo.New(testDB)
+	postRepo = post_repo.New(testDB)
 	log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 
 	ctrl := gomock.NewController(&testing.T{})

@@ -59,7 +59,7 @@ func (c *Client) DownloadFile(fileID string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("download file: %w", err)
 	}
-	defer rc.Close()
+	defer func() { _ = rc.Close() }()
 	return io.ReadAll(rc)
 }
 

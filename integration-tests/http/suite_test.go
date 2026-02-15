@@ -24,6 +24,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
@@ -179,7 +180,16 @@ func setupTestServer(testDB db) *httptest.Server {
 		AnyTimes()
 	statsSvc := stats.New(mockMTProto, channelRepo, log)
 
-	botSvc := bot.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo, statsSvc)
+	botSvc := bot.New(
+		telebotMock,
+		config.Telegram{},
+		log,
+		testDB,
+		channelRepo,
+		userRepo,
+		statsSvc,
+		post_repo.New(testDB),
+	)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 	tonRatesSvc := tonrates.New(log)

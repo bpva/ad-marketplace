@@ -14,6 +14,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
 	"github.com/bpva/ad-marketplace/internal/logx"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
@@ -57,6 +58,7 @@ func main() {
 
 	userRepo := user_repo.New(db)
 	channelRepo := channel_repo.New(db)
+	postRepo := post_repo.New(db)
 	settingsRepo := settings_repo.New(db)
 	authSvc := auth.New(userRepo, cfg.Telegram.BotToken, cfg.JWT.Secret, log)
 
@@ -76,7 +78,16 @@ func main() {
 
 	statsSvc := stats.New(mtprotoClient, channelRepo, log)
 
-	botSvc := bot.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo, statsSvc)
+	botSvc := bot.New(
+		telebotClient,
+		cfg.Telegram,
+		log,
+		db,
+		channelRepo,
+		userRepo,
+		statsSvc,
+		postRepo,
+	)
 
 	if cfg.Env == "prod" {
 		if err := botSvc.SetWebhook(); err != nil {

@@ -280,7 +280,7 @@ func TestHandleBotAdded(t *testing.T) {
 				MaxRetries: 1,
 			}
 
-			botSvc := bot.New(mock, cfg, log, testDB, channelRepo, userRepo, statsSvc)
+			botSvc := bot.New(mock, cfg, log, testDB, channelRepo, userRepo, statsSvc, postRepo)
 
 			tt.setup(t, mock)
 
