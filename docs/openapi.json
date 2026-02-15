@@ -456,6 +456,86 @@
                 }
             }
         },
+        "/channels/{TgChannelID}/categories": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Update channel categories",
+                "parameters": [
+                    {
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCategoriesRequest"
+                            }
+                        }
+                    },
+                    "description": "Category slugs (max 3)",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/channels/{TgChannelID}/listing": {
             "patch": {
                 "security": [
@@ -1183,6 +1263,17 @@
                     }
                 }
             },
+            "CategoryResponse": {
+                "type": "object",
+                "properties": {
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    }
+                }
+            },
             "ChannelAdmin": {
                 "type": "object",
                 "properties": {
@@ -1229,6 +1320,12 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/AdFormatResponse"
+                        }
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CategoryResponse"
                         }
                     },
                     "has_stats": {
@@ -1380,6 +1477,12 @@
                     },
                     "avg_interactions_7d": {
                         "type": "integer"
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CategoryResponse"
+                        }
                     },
                     "engagement_rate_30d": {
                         "type": "number"
@@ -1638,6 +1741,17 @@
                     },
                     "usd": {
                         "type": "number"
+                    }
+                }
+            },
+            "UpdateCategoriesRequest": {
+                "type": "object",
+                "properties": {
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },

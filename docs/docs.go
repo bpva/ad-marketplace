@@ -368,6 +368,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/channels/{TgChannelID}/categories": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Update channel categories",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Telegram channel ID",
+                        "name": "TgChannelID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Category slugs (max 3)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCategoriesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/channels/{TgChannelID}/listing": {
             "patch": {
                 "security": [
@@ -981,6 +1044,17 @@ const docTemplate = `{
                 }
             }
         },
+        "CategoryResponse": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
         "ChannelAdmin": {
             "type": "object",
             "properties": {
@@ -1027,6 +1101,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/AdFormatResponse"
+                    }
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CategoryResponse"
                     }
                 },
                 "has_stats": {
@@ -1178,6 +1258,12 @@ const docTemplate = `{
                 },
                 "avg_interactions_7d": {
                     "type": "integer"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CategoryResponse"
+                    }
                 },
                 "engagement_rate_30d": {
                     "type": "number"
@@ -1436,6 +1522,17 @@ const docTemplate = `{
                 },
                 "usd": {
                     "type": "number"
+                }
+            }
+        },
+        "UpdateCategoriesRequest": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

@@ -88,6 +88,13 @@ definitions:
       user:
         $ref: '#/definitions/UserResponse'
     type: object
+  CategoryResponse:
+    properties:
+      display_name:
+        type: string
+      slug:
+        type: string
+    type: object
   ChannelAdmin:
     properties:
       first_name:
@@ -118,6 +125,10 @@ definitions:
       ad_formats:
         items:
           $ref: '#/definitions/AdFormatResponse'
+        type: array
+      categories:
+        items:
+          $ref: '#/definitions/CategoryResponse'
         type: array
       has_stats:
         type: boolean
@@ -220,6 +231,10 @@ definitions:
         type: integer
       avg_interactions_30d:
         type: integer
+      categories:
+        items:
+          $ref: '#/definitions/CategoryResponse'
+        type: array
       engagement_rate_7d:
         type: number
       engagement_rate_30d:
@@ -399,6 +414,13 @@ definitions:
         type: number
       usd:
         type: number
+    type: object
+  UpdateCategoriesRequest:
+    properties:
+      categories:
+        items:
+          type: string
+        type: array
     type: object
   UpdateListingRequest:
     properties:
@@ -658,6 +680,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Get channel admins
+      tags:
+      - channels
+  /channels/{TgChannelID}/categories:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Telegram channel ID
+        in: path
+        name: TgChannelID
+        required: true
+        type: integer
+      - description: Category slugs (max 3)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCategoriesRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update channel categories
       tags:
       - channels
   /channels/{TgChannelID}/listing:
