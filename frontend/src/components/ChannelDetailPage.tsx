@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { ArrowLeft, Plus, Users, X } from "lucide-react";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn, notify } from "@/lib/utils";
 import {
   type ChannelWithRole,
   type AdFormat,
@@ -40,7 +39,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
     setLoading(true);
     fetchAdFormats(channelId)
       .then((res) => setFormats(res.ad_formats ?? []))
-      .catch(() => toast("Failed to load ad formats"))
+      .catch(() => notify("Failed to load ad formats"))
       .finally(() => setLoading(false));
   };
 
@@ -54,9 +53,9 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
     try {
       await updateChannelListing(channelId, checked);
       setIsListed(checked);
-      toast(checked ? "Channel listed" : "Channel unlisted");
+      notify(checked ? "Channel listed" : "Channel unlisted");
     } catch {
-      toast("Failed to update listing");
+      notify("Failed to update listing");
     } finally {
       setSaving(false);
     }
@@ -68,9 +67,9 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
     try {
       await deleteAdFormat(channelId, formatId);
       setFormats((prev) => prev.filter((f) => f.id !== formatId));
-      toast("Format deleted");
+      notify("Format deleted");
     } catch {
-      toast("Failed to delete format");
+      notify("Failed to delete format");
     } finally {
       setDeletingId(null);
       setConfirmDeleteId(null);

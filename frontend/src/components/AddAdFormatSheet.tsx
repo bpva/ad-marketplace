@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
 import { Check, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, notify } from "@/lib/utils";
 import { addAdFormat } from "@/lib/api";
 import { FORMAT_CONFIGS, type FormatConfig } from "@/lib/adFormats";
 import { useTonRates } from "@/hooks/useTonRates";
@@ -53,7 +52,7 @@ export function AddAdFormatSheet({ open, onClose, channelId, onSuccess }: AddAdF
   const handleSubmit = async () => {
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum <= 0) {
-      toast("Please enter a valid price");
+      notify("Please enter a valid price");
       return;
     }
     if (!selected) return;
@@ -67,11 +66,11 @@ export function AddAdFormatSheet({ open, onClose, channelId, onSuccess }: AddAdF
         top_hours: topHours,
         price_nano_ton: Math.round(priceNum * 1e9),
       });
-      toast("Ad format added");
+      notify("Ad format added");
       onSuccess();
       handleClose();
     } catch {
-      toast("Failed to add format");
+      notify("Failed to add format");
     } finally {
       setSaving(false);
     }

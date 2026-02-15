@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { toast } from "sonner";
 import { Check, Megaphone, Target, Sun, Moon, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn, notify } from "@/lib/utils";
 import {
   fetchProfile,
   updateName,
@@ -51,9 +50,9 @@ export function SettingsPage({ onBack, onThemeChange, onModeChange }: SettingsPa
       await updateName(trimmed);
       setProfile((prev) => (prev ? { ...prev, name: trimmed } : null));
       lastSavedName.current = trimmed;
-      toast("Name updated");
+      notify("Name updated");
     } catch {
-      toast("Failed to save name");
+      notify("Failed to save name");
     } finally {
       setSaving(false);
     }
@@ -77,9 +76,9 @@ export function SettingsPage({ onBack, onThemeChange, onModeChange }: SettingsPa
     try {
       await updateSettings(update);
       setProfile((prev) => (prev ? { ...prev, ...update } : null));
-      toast("Settings saved");
+      notify("Settings saved");
     } catch {
-      toast("Failed to save settings");
+      notify("Failed to save settings");
     } finally {
       setSaving(false);
     }
