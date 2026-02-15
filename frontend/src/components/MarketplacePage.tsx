@@ -17,7 +17,7 @@ import {
   X,
   Tag,
 } from "lucide-react";
-import { Pie, PieChart, Cell } from "recharts";
+import { Pie, PieChart, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import { useMarketplace } from "@/hooks/useMarketplace";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
@@ -364,6 +364,66 @@ function LanguagePie({ langs }: { langs: LangSlice[] }) {
   );
 }
 
+const HOURS = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}`, h: i }));
+const HOUR_CHART_CONFIG: ChartConfig = { views: { label: "Views", color: "hsl(var(--primary))" } };
+
+const HOUR_TICKS = new Set([0, 6, 12, 18]);
+
+function TopHoursRadar({ topHours }: { topHours: number[] }) {
+  const data = useMemo(() => HOURS.map((h) => ({ ...h, views: topHours[h.h] ?? 0 })), [topHours]);
+  const peak = useMemo(() => {
+    let max = 0;
+    let idx = 0;
+    for (let i = 0; i < topHours.length; i++) {
+      if (topHours[i] > max) {
+        max = topHours[i];
+        idx = i;
+      }
+    }
+    return idx;
+  }, [topHours]);
+
+  return (
+    <Tooltip text={`Peak hour: ${peak}:00 UTC`}>
+      <ChartContainer
+        config={HOUR_CHART_CONFIG}
+        className="flex-shrink-0 !aspect-square"
+        style={{ height: 60, width: 60 }}
+      >
+        <RadarChart data={data} cx="50%" cy="50%" outerRadius={18}>
+          <PolarGrid stroke="hsl(var(--border))" strokeWidth={0.5} />
+          <PolarAngleAxis
+            dataKey="hour"
+            tick={({ x, y, payload }) => {
+              if (!HOUR_TICKS.has(Number(payload.value))) return <g />;
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="fill-muted-foreground"
+                  style={{ fontSize: 7 }}
+                >
+                  {payload.value}
+                </text>
+              );
+            }}
+          />
+          <Radar
+            dataKey="views"
+            fill="hsl(var(--primary))"
+            fillOpacity={0.3}
+            stroke="hsl(var(--primary))"
+            strokeWidth={1}
+            isAnimationActive={false}
+          />
+        </RadarChart>
+      </ChartContainer>
+    </Tooltip>
+  );
+}
+
 function topReactions(reactions?: Record<string, number>, limit = 3): [string, number][] {
   if (!reactions) return [];
   return Object.entries(reactions)
@@ -381,6 +441,8 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
   const reactions = topReactions(channel.reactions_by_emotion);
   const storyReactions = topReactions(channel.story_reactions_by_emotion);
   const storyTotal = storyReactions.reduce((sum, [, c]) => sum + c, 0);
+  const topHours = channel.top_hours;
+  const hasTopHours = topHours != null && topHours.length === 24 && topHours.some((v) => v > 0);
   const hasReactions = reactions.length > 0 || channel.avg_interactions_7d != null;
   const categories = channel.categories ?? [];
 
@@ -459,11 +521,16 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
         )}
       </div>
 
-      {(langs.length > 0 || hasReactions) && (
+      {(langs.length > 0 || hasTopHours || hasReactions) && (
         <div className="flex items-stretch gap-2">
           {langs.length > 0 && (
-            <div className="flex-shrink-0 flex items-center rounded-lg border border-border px-2 py-1.5">
+            <div className="flex-shrink-0 flex items-center">
               <LanguagePie langs={langs} />
+            </div>
+          )}
+          {hasTopHours && (
+            <div className="flex-shrink-0 flex items-center">
+              <TopHoursRadar topHours={topHours!} />
             </div>
           )}
           {hasReactions && (
