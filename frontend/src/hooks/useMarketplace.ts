@@ -57,7 +57,7 @@ export function useMarketplace(): UseMarketplaceResult {
     })
       .then((res) => {
         setChannels(res.channels ?? []);
-        setTotal(res.total);
+        setTotal(res.total ?? 0);
       })
       .catch(() => {
         setChannels([]);

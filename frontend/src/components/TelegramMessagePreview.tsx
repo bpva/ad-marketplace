@@ -200,7 +200,7 @@ function MediaGallery({ template }: { template: TemplateResponse }) {
   if (media.length === 1) {
     return (
       <div className="w-full">
-        <MediaItem postID={media[0].post_id} />
+        <MediaItem postID={media[0].post_id ?? ""} />
       </div>
     );
   }
@@ -211,7 +211,7 @@ function MediaGallery({ template }: { template: TemplateResponse }) {
         const isFirst = i === 0 && media.length % 2 !== 0;
         return (
           <div key={m.post_id} className={isFirst ? "col-span-2" : ""}>
-            <MediaItem postID={m.post_id} />
+            <MediaItem postID={m.post_id ?? ""} />
           </div>
         );
       })}

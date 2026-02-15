@@ -97,7 +97,7 @@ function TemplateCard({ template, onClick }: { template: TemplateResponse; onCli
         <p className="text-sm truncate">{textPreview}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-muted-foreground">
-            {formatRelativeDate(template.created_at)}
+            {template.created_at ? formatRelativeDate(template.created_at) : ""}
           </span>
           {hasMedia && template.media!.length > 1 && (
             <span className="px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground">
