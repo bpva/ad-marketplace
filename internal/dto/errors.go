@@ -28,6 +28,8 @@ var (
 	ErrCannotRemoveOwner    = new(http.StatusBadRequest, "cannot_remove_owner")
 	ErrFormatTypeNotAllowed = new(http.StatusBadRequest, "format_type_not_allowed")
 	ErrInvalidFormatID      = new(http.StatusBadRequest, "invalid_format_id")
+	ErrTooManyCategories    = new(http.StatusBadRequest, "too_many_categories")
+	ErrInvalidCategory      = new(http.StatusBadRequest, "invalid_category")
 
 	// 401 Unauthorized
 	ErrUnauthorized = new(http.StatusUnauthorized, "unauthorized")
