@@ -70,6 +70,25 @@ func (r *repo) GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.Channe
 	return &info, nil
 }
 
+func (r *repo) HasRecentStats(ctx context.Context, channelID uuid.UUID) (bool, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM channel_historical_stats
+			WHERE channel_id = $1 AND date >= CURRENT_DATE - INTERVAL '7 days'
+		)
+	`, channelID)
+	if err != nil {
+		return false, fmt.Errorf("checking recent stats: %w", err)
+	}
+
+	exists, err := pgx.CollectOneRow(rows, pgx.RowTo[bool])
+	if err != nil {
+		return false, fmt.Errorf("checking recent stats: %w", err)
+	}
+
+	return exists, nil
+}
+
 func (r *repo) BatchUpsertHistoricalStats(
 	ctx context.Context,
 	channelID uuid.UUID,

@@ -12,13 +12,15 @@ const (
 )
 
 type ChannelResponse struct {
-	TgChannelID   int64  `json:"id"`
-	Title         string `json:"title"`
-	Username      string `json:"username,omitempty"`
-	IsListed      bool   `json:"is_listed"`
-	PhotoSmallURL string `json:"photo_small_url,omitempty"`
-	PhotoBigURL   string `json:"photo_big_url,omitempty"`
-	Subscribers   *int   `json:"subscribers,omitempty"`
+	TgChannelID   int64              `json:"id"`
+	Title         string             `json:"title"`
+	Username      string             `json:"username,omitempty"`
+	IsListed      bool               `json:"is_listed"`
+	PhotoSmallURL string             `json:"photo_small_url,omitempty"`
+	PhotoBigURL   string             `json:"photo_big_url,omitempty"`
+	Subscribers   *int               `json:"subscribers,omitempty"`
+	AdFormats     []AdFormatResponse `json:"ad_formats"`
+	HasStats      bool               `json:"has_stats"`
 }
 
 type ChannelWithRoleResponse struct {

@@ -115,6 +115,12 @@ definitions:
     type: object
   ChannelResponse:
     properties:
+      ad_formats:
+        items:
+          $ref: '#/definitions/AdFormatResponse'
+        type: array
+      has_stats:
+        type: boolean
       id:
         type: integer
       is_listed:

@@ -36,15 +36,56 @@ export function ChannelList({ channels, onChannelClick }: ChannelListProps) {
   );
 }
 
+type ChannelStatus = "active" | "no-formats" | "no-stats" | "unlisted";
+
+function getChannelStatus(item: ChannelWithRole): ChannelStatus {
+  if (!item.channel?.is_listed) return "unlisted";
+  if (!item.channel.ad_formats?.length) return "no-formats";
+  if (!item.channel.has_stats) return "no-stats";
+  return "active";
+}
+
+const statusConfig: Record<ChannelStatus, { color: string; glow: string; hint: string }> = {
+  active: {
+    color: "bg-emerald-400",
+    glow: "shadow-[0_0_6px_2px_rgba(52,211,153,0.5)]",
+    hint: "Listed on marketplace",
+  },
+  "no-formats": {
+    color: "bg-amber-400",
+    glow: "shadow-[0_0_6px_2px_rgba(251,191,36,0.5)]",
+    hint: "Add ad formats to receive offers",
+  },
+  "no-stats": {
+    color: "bg-amber-400",
+    glow: "shadow-[0_0_6px_2px_rgba(251,191,36,0.5)]",
+    hint: "Listed without verified stats",
+  },
+  unlisted: {
+    color: "bg-zinc-400 dark:bg-zinc-500",
+    glow: "",
+    hint: "Unlisted, not showing in marketplace",
+  },
+};
+
 function ChannelCard({ item, onClick }: { item: ChannelWithRole; onClick: () => void }) {
   const { channel, role } = item;
+  const status = getChannelStatus(item);
+  const { color, glow, hint } = statusConfig[status];
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left transition-colors hover:bg-accent/50 active:bg-accent"
+      className="relative w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left transition-colors hover:bg-accent/50 active:bg-accent"
     >
+      <div className="group absolute top-2.5 right-2.5 z-10">
+        <div className={cn("h-2 w-2 rounded-full", color, glow)} />
+        <div className="pointer-events-none absolute right-0 top-full mt-1 w-max max-w-[200px] rounded-md bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md border border-border opacity-0 group-hover:opacity-100 transition-opacity">
+          {hint}
+        </div>
+      </div>
+
       <ChannelAvatar
         channelId={channel?.id ?? 0}
         photoUrl={channel?.photo_small_url}

@@ -993,6 +993,15 @@ const docTemplate = `{
         "ChannelResponse": {
             "type": "object",
             "properties": {
+                "ad_formats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AdFormatResponse"
+                    }
+                },
+                "has_stats": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
