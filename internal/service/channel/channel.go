@@ -46,6 +46,7 @@ type ChannelRepository interface {
 	) ([]entity.ChannelAdFormat, error)
 	DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error
 	GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.ChannelInfo, error)
+	HasRecentStats(ctx context.Context, channelID uuid.UUID) (bool, error)
 	RefreshMV(ctx context.Context) error
 }
 
@@ -551,6 +552,7 @@ func (s *svc) channelToResponse(ctx context.Context, ch *entity.Channel) dto.Cha
 		TgChannelID: ch.TgChannelID,
 		Title:       ch.Title,
 		IsListed:    ch.IsListed,
+		AdFormats:   []dto.AdFormatResponse{},
 	}
 	if ch.Username != nil {
 		resp.Username = *ch.Username
@@ -565,6 +567,13 @@ func (s *svc) channelToResponse(ctx context.Context, ch *entity.Channel) dto.Cha
 	if err == nil {
 		resp.Subscribers = &info.Subscribers
 	}
+	formats, err := s.channelRepo.GetAdFormatsByChannelID(ctx, ch.ID)
+	if err == nil {
+		for i := range formats {
+			resp.AdFormats = append(resp.AdFormats, adFormatToResponse(&formats[i]))
+		}
+	}
+	resp.HasStats, _ = s.channelRepo.HasRecentStats(ctx, ch.ID)
 	return resp
 }
 

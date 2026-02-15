@@ -1133,6 +1133,8 @@ export interface components {
       managers?: components["schemas"]["ManagerResponse"][];
     };
     ChannelResponse: {
+      ad_formats?: components["schemas"]["AdFormatResponse"][];
+      has_stats?: boolean;
       id?: number;
       is_listed?: boolean;
       photo_big_url?: string;

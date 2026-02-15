@@ -11,7 +11,7 @@ import { TemplatesPage } from "@/components/TemplatesPage";
 import { MarketplacePage } from "@/components/MarketplacePage";
 import { DealsPage } from "@/components/DealsPage";
 import { BottomNav, type NavPage } from "@/components/BottomNav";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { fetchProfile, updateSettings, type Profile } from "@/lib/api";
 import { Target } from "lucide-react";
 
@@ -35,6 +35,14 @@ function App() {
         .finally(() => setProfileLoading(false));
     }
   }, [user]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("[data-sonner-toast]")) toast.dismiss();
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
 
   if (!isInTelegram) {
     return <NotInTelegram />;
