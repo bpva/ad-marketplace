@@ -11,6 +11,11 @@ const (
 	RoleAdministrator = "administrator"
 )
 
+type CategoryResponse struct {
+	Slug        string `json:"slug"`
+	DisplayName string `json:"display_name"`
+}
+
 type ChannelResponse struct {
 	TgChannelID   int64              `json:"id"`
 	Title         string             `json:"title"`
@@ -20,6 +25,7 @@ type ChannelResponse struct {
 	PhotoBigURL   string             `json:"photo_big_url,omitempty"`
 	Subscribers   *int               `json:"subscribers,omitempty"`
 	AdFormats     []AdFormatResponse `json:"ad_formats"`
+	Categories    []CategoryResponse `json:"categories"`
 	HasStats      bool               `json:"has_stats"`
 }
 
@@ -82,4 +88,8 @@ type AdFormatResponse struct {
 
 type AdFormatsResponse struct {
 	AdFormats []AdFormatResponse `json:"ad_formats"`
+}
+
+type UpdateCategoriesRequest struct {
+	Categories []string `json:"categories"`
 }
