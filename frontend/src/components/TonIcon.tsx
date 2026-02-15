@@ -1,23 +1,16 @@
 interface TonIconProps {
-  size?: number;
   className?: string;
 }
 
-export function TonIcon({ size = 16, className }: TonIconProps) {
+export function TonIcon({ className }: TonIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
+      viewBox="12 15 32 30"
       fill="currentColor"
       className={className}
     >
-      <path
-        d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z"
-        opacity=".15"
-      />
-      <path d="M7.902 6.697h8.196c1.505 0 2.462 1.61 1.727 2.905l-5.078 8.93a.924.924 0 0 1-1.611-.007l-4.96-8.923c-.724-1.3.23-2.905 1.726-2.905zm3.212 2.069-3.036 5.29a.462.462 0 0 0 .4.693h2.636V8.766zm1.772 0v5.983h2.636a.462.462 0 0 0 .4-.692l-3.036-5.291z" />
+      <path d="M37.6,15.6H18.4c-3.5,0-5.7,3.8-4,6.9l11.8,20.5c0.8,1.3,2.7,1.3,3.5,0l11.8-20.5C43.3,19.4,41.1,15.6,37.6,15.6z M26.3,36.8l-2.6-5l-6.2-11.1c-0.4-0.7,0.1-1.6,1-1.6h7.8V36.8z M38.5,20.7l-6.2,11.1l-2.6,5V19.1h7.8C38.4,19.1,38.9,20,38.5,20.7z" />
     </svg>
   );
 }

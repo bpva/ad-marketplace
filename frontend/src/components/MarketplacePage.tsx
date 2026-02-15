@@ -19,9 +19,8 @@ import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/
 import { useMarketplace } from "@/hooks/useMarketplace";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
 import type { MarketplaceChannel, MarketplaceAdFormat } from "@/lib/api";
-import { formatCompact, formatTonAmount, formatFiat, nanoTonToFiat } from "@/lib/format";
-import { TonIcon } from "@/components/TonIcon";
-import { useTonRates } from "@/hooks/useTonRates";
+import { formatCompact } from "@/lib/format";
+import { TonPrice } from "@/components/TonPrice";
 import { normalizeLangs, type LangSlice } from "@/lib/lang";
 
 const PAGE_SIZE = 10;
@@ -375,11 +374,6 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
 }
 
 function PlaceAdButton({ nanoTon }: { nanoTon: number }) {
-  const rates = useTonRates();
-  const amount = formatTonAmount(nanoTon);
-  const rate = rates?.usd as number | undefined;
-  const fiat = rate ? formatFiat(nanoTonToFiat(nanoTon, rate), "usd") : null;
-
   return (
     <button
       type="button"
@@ -391,11 +385,7 @@ function PlaceAdButton({ nanoTon }: { nanoTon: number }) {
       </span>
       <span className="flex items-center gap-1 text-xs leading-snug text-muted-foreground">
         <span className="font-light tracking-wide">from</span>
-        <TonIcon size={12} />
-        <span className="font-semibold" style={{ fontFamily: "var(--font-price)" }}>
-          {amount}
-        </span>
-        {fiat && <span className="font-light opacity-60">~{fiat}</span>}
+        <TonPrice nanoTon={nanoTon} className="font-semibold text-primary" />
       </span>
     </button>
   );

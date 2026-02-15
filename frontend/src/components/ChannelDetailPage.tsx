@@ -188,7 +188,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
                       <p className="text-sm text-muted-foreground">
                         {format.feed_hours}h feed + {format.top_hours}h top
                       </p>
-                      <TonPrice nanoTon={format.price_nano_ton ?? 0} size="sm" />
+                      <TonPrice nanoTon={format.price_nano_ton ?? 0} className="text-sm" />
                     </div>
                     {isOwner && (
                       <div className="flex-shrink-0">
