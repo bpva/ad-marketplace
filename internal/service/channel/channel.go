@@ -45,6 +45,8 @@ type ChannelRepository interface {
 		channelID uuid.UUID,
 	) ([]entity.ChannelAdFormat, error)
 	DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error
+	SetCategories(ctx context.Context, channelID uuid.UUID, categorySlugs []string) error
+	GetCategoriesByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.Category, error)
 	GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.ChannelInfo, error)
 	HasRecentStats(ctx context.Context, channelID uuid.UUID) (bool, error)
 	RefreshMV(ctx context.Context) error
@@ -372,6 +374,7 @@ func (s *svc) GetMarketplaceChannels(
 			})
 		}
 		mc.AdFormats = formats
+		mc.Categories = categoriesToResponse(ch.Categories)
 
 		if ch.Username != nil {
 			mc.Username = *ch.Username
@@ -389,6 +392,51 @@ func (s *svc) GetMarketplaceChannels(
 		Channels: result,
 		Total:    total,
 	}, nil
+}
+
+func (s *svc) UpdateCategories(
+	ctx context.Context, tgChannelID int64, categories []string,
+) error {
+	if len(categories) > 3 {
+		return fmt.Errorf("update categories: %w", dto.ErrTooManyCategories)
+	}
+
+	seen := make(map[string]struct{}, len(categories))
+	for _, slug := range categories {
+		if _, ok := entity.AllCategories[entity.ChannelCategory(slug)]; !ok {
+			return fmt.Errorf(
+				"update categories: unknown category %q: %w",
+				slug,
+				dto.ErrInvalidCategory,
+			)
+		}
+		if _, dup := seen[slug]; dup {
+			return fmt.Errorf(
+				"update categories: duplicate category %q: %w",
+				slug,
+				dto.ErrInvalidCategory,
+			)
+		}
+		seen[slug] = struct{}{}
+	}
+
+	channel, err := s.getChannelEntityAsOwner(ctx, tgChannelID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.channelRepo.SetCategories(ctx, channel.ID, categories); err != nil {
+		return fmt.Errorf("update categories: %w", err)
+	}
+
+	go func() {
+		if err := s.channelRepo.RefreshMV(context.Background()); err != nil {
+			s.log.Warn("refresh marketplace mv", "error", err)
+		}
+	}()
+
+	s.log.Info("channel categories updated", "channel_id", channel.ID, "categories", categories)
+	return nil
 }
 
 func (s *svc) getChannelEntity(
@@ -553,6 +601,7 @@ func (s *svc) channelToResponse(ctx context.Context, ch *entity.Channel) dto.Cha
 		Title:       ch.Title,
 		IsListed:    ch.IsListed,
 		AdFormats:   []dto.AdFormatResponse{},
+		Categories:  []dto.CategoryResponse{},
 	}
 	if ch.Username != nil {
 		resp.Username = *ch.Username
@@ -572,6 +621,10 @@ func (s *svc) channelToResponse(ctx context.Context, ch *entity.Channel) dto.Cha
 		for i := range formats {
 			resp.AdFormats = append(resp.AdFormats, adFormatToResponse(&formats[i]))
 		}
+	}
+	categories, err := s.channelRepo.GetCategoriesByChannelID(ctx, ch.ID)
+	if err == nil {
+		resp.Categories = categoriesToResponse(categories)
 	}
 	resp.HasStats, _ = s.channelRepo.HasRecentStats(ctx, ch.ID)
 	return resp
@@ -613,4 +666,15 @@ func adFormatToResponse(f *entity.ChannelAdFormat) dto.AdFormatResponse {
 		TopHours:     f.TopHours,
 		PriceNanoTON: f.PriceNanoTON,
 	}
+}
+
+func categoriesToResponse(cats []entity.Category) []dto.CategoryResponse {
+	result := make([]dto.CategoryResponse, 0, len(cats))
+	for i := range cats {
+		result = append(result, dto.CategoryResponse{
+			Slug:        cats[i].Slug,
+			DisplayName: cats[i].DisplayName,
+		})
+	}
+	return result
 }

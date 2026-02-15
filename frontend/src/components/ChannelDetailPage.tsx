@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Plus, Users, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, Plus, Users, X, ChevronDown, Tag } from "lucide-react";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,11 +11,13 @@ import {
   fetchAdFormats,
   updateChannelListing,
   deleteAdFormat,
+  updateCategories,
 } from "@/lib/api";
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
 import { getFormatDisplay } from "@/lib/adFormats";
 import { formatCompact } from "@/lib/format";
 import { TonPrice } from "@/components/TonPrice";
+import { ALL_CATEGORIES } from "@/lib/categories";
 
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
@@ -30,6 +32,10 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>(
+    () => channel.channel?.categories?.map((c) => c.slug ?? "").filter(Boolean) ?? [],
+  );
+  const [savingCategories, setSavingCategories] = useState(false);
 
   const isOwner = channel.role === "owner";
   const channelId = channel.channel?.id;
@@ -73,6 +79,26 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
     } finally {
       setDeletingId(null);
       setConfirmDeleteId(null);
+    }
+  };
+
+  const handleCategoryToggle = async (slug: string) => {
+    if (!channelId) return;
+    const next = categories.includes(slug)
+      ? categories.filter((s) => s !== slug)
+      : [...categories, slug];
+    if (next.length > 3) {
+      notify("Max 3 categories");
+      return;
+    }
+    setSavingCategories(true);
+    try {
+      await updateCategories(channelId, next);
+      setCategories(next);
+    } catch {
+      notify("Failed to update categories");
+    } finally {
+      setSavingCategories(false);
     }
   };
 
@@ -129,6 +155,14 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
               <Switch checked={isListed} onCheckedChange={handleListingChange} disabled={saving} />
             </div>
           </div>
+        )}
+
+        {isOwner && (
+          <CategoryEditor
+            selected={categories}
+            onToggle={handleCategoryToggle}
+            saving={savingCategories}
+          />
         )}
 
         <div className="bg-card rounded-lg border border-border p-4 space-y-4">
@@ -225,6 +259,127 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
           onSuccess={loadFormats}
         />
       )}
+    </div>
+  );
+}
+
+function CategoryEditor({
+  selected,
+  onToggle,
+  saving,
+}: {
+  selected: string[];
+  onToggle: (slug: string) => void;
+  saving: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setFilterText("");
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const filtered = filterText
+    ? ALL_CATEGORIES.filter((c) => c.displayName.toLowerCase().includes(filterText.toLowerCase()))
+    : ALL_CATEGORIES;
+
+  return (
+    <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h3 className="font-medium">Categories</h3>
+          <p className="text-sm text-muted-foreground">Up to 3 categories</p>
+        </div>
+      </div>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((slug) => {
+            const cat = ALL_CATEGORIES.find((c) => c.slug === slug);
+            return (
+              <span
+                key={slug}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs"
+              >
+                {cat?.displayName ?? slug}
+                <button
+                  type="button"
+                  onClick={() => onToggle(slug)}
+                  disabled={saving}
+                  className="hover:text-primary/70 disabled:opacity-50"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          disabled={saving}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:bg-accent transition-colors disabled:opacity-50"
+        >
+          <Tag className="h-3.5 w-3.5" />
+          {selected.length >= 3 ? "Max reached" : "Add category"}
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+
+        {open && (
+          <div className="absolute z-20 mt-1 w-64 rounded-lg border border-border bg-card shadow-lg">
+            <div className="p-2 border-b border-border">
+              <input
+                type="text"
+                placeholder="Filter categories..."
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                autoFocus
+              />
+            </div>
+            <div className="max-h-56 overflow-y-auto p-1">
+              {filtered.length === 0 ? (
+                <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+                  No categories found
+                </div>
+              ) : (
+                filtered.map((cat) => {
+                  const isSelected = selected.includes(cat.slug);
+                  const disabled = !isSelected && selected.length >= 3;
+                  return (
+                    <button
+                      key={cat.slug}
+                      type="button"
+                      onClick={() => onToggle(cat.slug)}
+                      disabled={disabled || saving}
+                      className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors ${
+                        isSelected
+                          ? "bg-primary/10 text-primary font-medium"
+                          : disabled
+                            ? "text-muted-foreground/50 cursor-not-allowed"
+                            : "text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {cat.displayName}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

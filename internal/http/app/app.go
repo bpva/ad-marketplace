@@ -40,6 +40,7 @@ type ChannelService interface {
 	GetAdFormats(ctx context.Context, TgChannelID int64) (*dto.AdFormatsResponse, error)
 	AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error
 	RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error
+	UpdateCategories(ctx context.Context, TgChannelID int64, categories []string) error
 	GetChannelPhoto(ctx context.Context, tgChannelID int64, size string) ([]byte, error)
 	GetMarketplaceChannels(
 		ctx context.Context,
@@ -146,6 +147,7 @@ func New(
 				r.Post("/{TgChannelID}/managers", a.HandleAddManager())
 				r.Delete("/{TgChannelID}/managers/{tgID}", a.HandleRemoveManager())
 				r.Patch("/{TgChannelID}/listing", a.HandleUpdateListing())
+				r.Patch("/{TgChannelID}/categories", a.HandleUpdateCategories())
 				r.Get("/{TgChannelID}/ad-formats", a.HandleGetAdFormats())
 				r.Post("/{TgChannelID}/ad-formats", a.HandleAddAdFormat())
 				r.Delete("/{TgChannelID}/ad-formats/{formatID}", a.HandleRemoveAdFormat())

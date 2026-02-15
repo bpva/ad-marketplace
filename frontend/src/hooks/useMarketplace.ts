@@ -19,6 +19,8 @@ interface UseMarketplaceResult {
   setSortOrder: (v: SortOrder) => void;
   page: number;
   setPage: (v: number) => void;
+  selectedCategories: string[];
+  setSelectedCategories: (v: string[]) => void;
 }
 
 export function useMarketplace(): UseMarketplaceResult {
@@ -30,6 +32,7 @@ export function useMarketplace(): UseMarketplaceResult {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -43,11 +46,18 @@ export function useMarketplace(): UseMarketplaceResult {
     };
   }, [search]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategories]);
+
   const load = useCallback(() => {
     setLoading(true);
     const filters: MarketplaceFilter[] = [];
     if (debouncedSearch) {
       filters.push({ name: "fulltext", value: debouncedSearch });
+    }
+    if (selectedCategories.length > 0) {
+      filters.push({ name: "categories", value: selectedCategories });
     }
     fetchMarketplaceChannels({
       filters: filters.length ? filters : undefined,
@@ -64,7 +74,7 @@ export function useMarketplace(): UseMarketplaceResult {
         setTotal(0);
       })
       .finally(() => setLoading(false));
-  }, [debouncedSearch, sortBy, sortOrder, page]);
+  }, [debouncedSearch, sortBy, sortOrder, page, selectedCategories]);
 
   useEffect(() => {
     load();
@@ -82,5 +92,7 @@ export function useMarketplace(): UseMarketplaceResult {
     setSortOrder,
     page,
     setPage,
+    selectedCategories,
+    setSelectedCategories,
   };
 }

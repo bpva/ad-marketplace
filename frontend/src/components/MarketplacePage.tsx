@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import {
   Search,
   Users,
@@ -13,6 +13,9 @@ import {
   TrendingDown,
   MessageCircle,
   Target,
+  ChevronDown,
+  X,
+  Tag,
 } from "lucide-react";
 import { Pie, PieChart, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
@@ -22,6 +25,7 @@ import type { MarketplaceChannel, MarketplaceAdFormat } from "@/lib/api";
 import { formatCompact } from "@/lib/format";
 import { TonPrice } from "@/components/TonPrice";
 import { normalizeLangs, type LangSlice } from "@/lib/lang";
+import { ALL_CATEGORIES, getCategoryDisplayName } from "@/lib/categories";
 
 const PAGE_SIZE = 10;
 
@@ -38,6 +42,8 @@ export function MarketplacePage() {
     setSortOrder,
     page,
     setPage,
+    selectedCategories,
+    setSelectedCategories,
   } = useMarketplace();
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -56,6 +62,8 @@ export function MarketplacePage() {
             className="w-full rounded-lg border border-border bg-card pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
+
+        <CategoryFilter selected={selectedCategories} onChange={setSelectedCategories} />
 
         <div className="flex items-center gap-2">
           <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -126,6 +134,122 @@ export function MarketplacePage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CategoryFilter({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [filterText, setFilterText] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setFilterText("");
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const filtered = filterText
+    ? ALL_CATEGORIES.filter((c) => c.displayName.toLowerCase().includes(filterText.toLowerCase()))
+    : ALL_CATEGORIES;
+
+  const toggle = (slug: string) => {
+    onChange(selected.includes(slug) ? selected.filter((s) => s !== slug) : [...selected, slug]);
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-card text-sm text-muted-foreground hover:bg-accent transition-colors"
+      >
+        <Tag className="h-3.5 w-3.5" />
+        {selected.length === 0 ? "Category" : `${selected.length} selected`}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {selected.map((slug) => (
+            <span
+              key={slug}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs"
+            >
+              {getCategoryDisplayName(slug)}
+              <button type="button" onClick={() => toggle(slug)} className="hover:text-primary/70">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="absolute z-20 mt-1 w-64 rounded-lg border border-border bg-card shadow-lg">
+          <div className="p-2 border-b border-border">
+            <input
+              type="text"
+              placeholder="Filter categories..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto p-1">
+            {filtered.length === 0 ? (
+              <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+                No categories found
+              </div>
+            ) : (
+              filtered.map((cat) => {
+                const isSelected = selected.includes(cat.slug);
+                return (
+                  <button
+                    key={cat.slug}
+                    type="button"
+                    onClick={() => toggle(cat.slug)}
+                    className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors ${
+                      isSelected
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {cat.displayName}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          {selected.length > 0 && (
+            <div className="p-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  onChange([]);
+                  setOpen(false);
+                  setFilterText("");
+                }}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -259,6 +383,7 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
   const storyReactions = topReactions(channel.story_reactions_by_emotion);
   const storyTotal = storyReactions.reduce((sum, [, c]) => sum + c, 0);
   const hasReactions = reactions.length > 0 || channel.avg_interactions_7d != null;
+  const categories = channel.categories ?? [];
 
   return (
     <div className="w-full bg-card rounded-xl border border-border p-3 space-y-2">
@@ -275,6 +400,19 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
           )}
         </div>
       </div>
+
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {categories.map((cat) => (
+            <span
+              key={cat.slug}
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px]"
+            >
+              {cat.display_name}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {channel.subscribers != null && (

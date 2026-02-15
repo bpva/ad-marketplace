@@ -347,6 +347,56 @@ func (r *repo) GetAdFormatByID(
 	return &af, nil
 }
 
+func (r *repo) SetCategories(
+	ctx context.Context,
+	channelID uuid.UUID,
+	categorySlugs []string,
+) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM channel_categories WHERE channel_id = $1
+	`, channelID)
+	if err != nil {
+		return fmt.Errorf("clearing channel categories: %w", err)
+	}
+
+	if len(categorySlugs) == 0 {
+		return nil
+	}
+
+	_, err = r.db.Exec(ctx, `
+		INSERT INTO channel_categories (channel_id, category_id)
+		SELECT $1, id FROM categories WHERE slug = ANY($2)
+	`, channelID, categorySlugs)
+	if err != nil {
+		return fmt.Errorf("setting channel categories: %w", err)
+	}
+
+	return nil
+}
+
+func (r *repo) GetCategoriesByChannelID(
+	ctx context.Context,
+	channelID uuid.UUID,
+) ([]entity.Category, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT cat.id, cat.slug, cat.display_name
+		FROM channel_categories cc
+		JOIN categories cat ON cat.id = cc.category_id
+		WHERE cc.channel_id = $1
+		ORDER BY cat.id
+	`, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("getting channel categories: %w", err)
+	}
+
+	categories, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Category])
+	if err != nil {
+		return nil, fmt.Errorf("getting channel categories: %w", err)
+	}
+
+	return categories, nil
+}
+
 func (r *repo) DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error {
 	tag, err := r.db.Exec(ctx, `
 		DELETE FROM channel_ad_formats WHERE id = $1

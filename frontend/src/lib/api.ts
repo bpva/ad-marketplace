@@ -121,6 +121,7 @@ export type MarketplaceAdFormat = components["schemas"]["AdFormat"];
 export type MarketplaceFilter = components["schemas"]["MarketplaceFilter"];
 export type ChannelSortBy = components["schemas"]["ChannelSortBy"];
 export type SortOrder = components["schemas"]["SortOrder"];
+export type CategoryResponse = components["schemas"]["CategoryResponse"];
 
 export type TemplatesResponse = components["schemas"]["TemplatesResponse"];
 export type TemplateResponse = components["schemas"]["TemplateResponse"];
@@ -141,6 +142,13 @@ export type TonRates = components["schemas"]["TonRatesResponse"];
 
 export async function fetchTonRates(): Promise<TonRates> {
   return request<TonRates>("/api/v1/ton-rates");
+}
+
+export async function updateCategories(channelId: number, categories: string[]): Promise<void> {
+  await request(`/api/v1/channels/${channelId}/categories`, {
+    method: "PATCH",
+    body: JSON.stringify({ categories }),
+  });
 }
 
 export async function fetchMarketplaceChannels(params: {

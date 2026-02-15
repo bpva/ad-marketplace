@@ -31,6 +31,7 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 		listed      bool
 		subscribers int
 		formats     []fmtDef
+		categories  []string
 	}
 
 	defs := []channelDef{
@@ -41,6 +42,7 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 				{entity.AdFormatTypePost, false, 24, 2, 5_000_000_000},
 				{entity.AdFormatTypePost, true, 24, 4, 8_000_000_000},
 			},
+			categories: []string{"technologies", "news_and_media"},
 		},
 		{
 			tgID: -1009876543210, title: "Crypto Signals", username: "cryptosignals",
@@ -50,6 +52,7 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 				{entity.AdFormatTypeRepost, false, 12, 2, 7_000_000_000},
 				{entity.AdFormatTypeStory, false, 24, 2, 3_000_000_000},
 			},
+			categories: []string{"cryptocurrencies", "economics", "business_and_startups"},
 		},
 		{
 			tgID: -1001111111111, title: "Dev Memes", username: "devmemes",
@@ -57,6 +60,7 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 			formats: []fmtDef{
 				{entity.AdFormatTypePost, true, 12, 2, 2_000_000_000},
 			},
+			categories: []string{"humor_and_entertainment", "technologies"},
 		},
 		{
 			tgID: -1002222222222, title: "AI Research Hub", username: "airesearchhub",
@@ -66,10 +70,12 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 				{entity.AdFormatTypePost, true, 24, 2, 18_000_000_000},
 				{entity.AdFormatTypeStory, false, 24, 2, 5_000_000_000},
 			},
+			categories: []string{"technologies", "education"},
 		},
 		{
 			tgID: -1003333333333, title: "TON Ecosystem", username: "tonecosystem",
 			ownerIdx: 0, managerIdx: 1, listed: false, subscribers: 23100,
+			categories: []string{"cryptocurrencies"},
 		},
 	}
 
@@ -105,6 +111,12 @@ func (s *Seeder) seedChannels(ctx context.Context, users []seedUser) ([]seedChan
 				ctx, ch.ID, f.typ, f.native, f.feed, f.top, f.price,
 			); err != nil {
 				return nil, fmt.Errorf("create ad format for %s: %w", d.title, err)
+			}
+		}
+
+		if len(d.categories) > 0 {
+			if err := channels.SetCategories(ctx, ch.ID, d.categories); err != nil {
+				return nil, fmt.Errorf("set categories for %s: %w", d.title, err)
 			}
 		}
 
