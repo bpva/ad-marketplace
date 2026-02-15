@@ -4,3 +4,8 @@ export function getAvatarUrl(telegramId: number, photoUrl?: string): string {
   }
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${telegramId}`;
 }
+
+export function getChannelAvatarUrl(channelId: number): string {
+  const seed = Math.abs(channelId);
+  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`;
+}

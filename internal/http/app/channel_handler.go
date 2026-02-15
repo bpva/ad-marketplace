@@ -13,6 +13,34 @@ import (
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
 
+func (a *App) HandleGetChannelPhoto() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/photo"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		tgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		size := r.URL.Query().Get("size")
+		if size == "" {
+			size = "small"
+		}
+
+		data, err := a.channel.GetChannelPhoto(r.Context(), tgChannelID, size)
+		if err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+	}
+}
+
 // HandleListChannels returns all channels user has access to
 //
 //	@Summary		List user channels

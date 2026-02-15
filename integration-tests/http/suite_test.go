@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -20,6 +21,7 @@ import (
 	"github.com/bpva/ad-marketplace/integration-tests/tools"
 	"github.com/bpva/ad-marketplace/internal/config"
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
@@ -27,6 +29,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	"github.com/bpva/ad-marketplace/internal/service/stats"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	"github.com/bpva/ad-marketplace/migrations"
@@ -139,11 +142,50 @@ func setupTestServer(testDB db) *httptest.Server {
 	telebotMock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 	telebotMock.EXPECT().Token().Return(testBotToken).AnyTimes()
 	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
+	telebotMock.EXPECT().GetChatPhoto(gomock.Any()).Return("", "", nil).AnyTimes()
+	telebotMock.EXPECT().DownloadFile(gomock.Any()).Return(nil, nil).AnyTimes()
 
-	botSvc := bot.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+	mockMTProto := stats.NewMockMTProtoClient(ctrl)
+	mockMTProto.EXPECT().
+		GetChannelFull(gomock.Any(), gomock.Any()).
+		Return(&dto.ChannelFullInfo{
+			ParticipantsCount: 1500,
+			About:             "Test channel about",
+			CanViewStats:      true,
+			StatsDC:           2,
+		}, nil).
+		AnyTimes()
+	mockMTProto.EXPECT().
+		GetBroadcastStats(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&entity.BroadcastStats{
+			DailyStats: []entity.DailyMetrics{
+				{
+					Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					Data: entity.ChannelHistoricalDayData{
+						Subscribers:  ptrInt64(1450),
+						NewFollowers: ptrInt64(50),
+					},
+				},
+				{
+					Date: time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
+					Data: entity.ChannelHistoricalDayData{
+						Subscribers:  ptrInt64(1500),
+						NewFollowers: ptrInt64(50),
+					},
+				},
+			},
+		}, nil).
+		AnyTimes()
+	statsSvc := stats.New(mockMTProto, channelRepo, log)
+
+	botSvc := bot.New(telebotMock, config.Telegram{}, log, testDB, channelRepo, userRepo, statsSvc)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 
 	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc)
 	return httptest.NewServer(a.Handler())
+}
+
+func ptrInt64(v int64) *int64 {
+	return &v
 }

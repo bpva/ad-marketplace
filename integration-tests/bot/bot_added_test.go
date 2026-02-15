@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +42,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -56,7 +58,9 @@ func TestHandleBotAdded(t *testing.T) {
 				assert.Equal(t, "Test Channel", channel.Title)
 				assert.NotNil(t, channel.Username)
 				assert.Equal(t, "testchannel", *channel.Username)
-				assert.Nil(t, channel.DeletedAt)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, channel.TgChannelID)
+				require.NoError(t, err)
+				assert.False(t, deleted)
 
 				roles, err := testTools.GetChannelRolesByChannelID(ctx, channel.ID)
 				require.NoError(t, err)
@@ -78,6 +82,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -190,6 +195,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Updated Title", "newusername", true),
 			checkUser: func(t *testing.T) {
@@ -203,7 +209,9 @@ func TestHandleBotAdded(t *testing.T) {
 				assert.Equal(t, "Updated Title", channel.Title)
 				assert.NotNil(t, channel.Username)
 				assert.Equal(t, "newusername", *channel.Username)
-				assert.Nil(t, channel.DeletedAt)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, channel.TgChannelID)
+				require.NoError(t, err)
+				assert.False(t, deleted)
 			},
 		},
 		{
@@ -216,6 +224,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Private Channel", "", true),
 			checkUser: func(t *testing.T) {
@@ -240,6 +249,7 @@ func TestHandleBotAdded(t *testing.T) {
 						Role:      dto.RoleCreator,
 					},
 				}, nil)
+				mock.EXPECT().GetChatPhoto(int64(-1001234567890)).Return("", "", nil).AnyTimes()
 			},
 			update: createBotAddedUpdate(-1001234567890, "Test Channel", "testchannel", true),
 			checkUser: func(t *testing.T) {
@@ -265,7 +275,12 @@ func TestHandleBotAdded(t *testing.T) {
 			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+			cfg := config.Telegram{
+				RetryDelay: 1 * time.Millisecond,
+				MaxRetries: 1,
+			}
+
+			botSvc := bot.New(mock, cfg, log, testDB, channelRepo, userRepo, statsSvc)
 
 			tt.setup(t, mock)
 

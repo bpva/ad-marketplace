@@ -114,3 +114,40 @@ export async function updateChannelListing(channelId: number, isListed: boolean)
     body: JSON.stringify({ is_listed: isListed }),
   });
 }
+
+export interface MarketplaceChannel {
+  id: number;
+  title: string;
+  username?: string;
+  photo_small_url?: string;
+  subscribers?: number;
+  avg_views?: number;
+  ad_format_count: number;
+  min_price_nano_ton?: number;
+}
+
+export interface MarketplaceChannelsResponse {
+  channels: MarketplaceChannel[];
+  total: number;
+}
+
+export type MarketplaceFilter = { name: string; value?: unknown };
+export type ChannelSortBy = "subscribers" | "views";
+export type SortOrder = "asc" | "desc";
+
+export async function fetchMarketplaceChannels(params: {
+  filters?: MarketplaceFilter[];
+  sort_by?: ChannelSortBy;
+  sort_order?: SortOrder;
+  page?: number;
+}): Promise<MarketplaceChannelsResponse> {
+  const body: Record<string, unknown> = {};
+  if (params.filters?.length) body.filters = params.filters;
+  if (params.sort_by) body.sort_by = params.sort_by;
+  if (params.sort_order) body.sort_order = params.sort_order;
+  if (params.page && params.page > 1) body.page = params.page;
+  return request<MarketplaceChannelsResponse>("/api/v1/mp/channels", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}

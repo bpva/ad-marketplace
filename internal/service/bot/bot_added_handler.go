@@ -3,10 +3,13 @@ package bot
 import (
 	"context"
 	"errors"
+	"time"
+
+	"github.com/google/uuid"
+	tele "gopkg.in/telebot.v4"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
-	tele "gopkg.in/telebot.v4"
 )
 
 func (b *svc) handleMyChatMember(c tele.Context) error {
@@ -49,7 +52,19 @@ func (b *svc) handleBotAdded(
 		return nil
 	}
 
-	admins, err := b.client.AdminsOf(chat.ID)
+	var (
+		admins []dto.ChannelAdmin
+		err    error
+	)
+
+	// there's a delay
+	for range b.cfg.MaxRetries {
+		time.Sleep(b.cfg.RetryDelay)
+		admins, err = b.client.AdminsOf(chat.ID)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		b.log.Error("failed to get channel admins",
 			"channel_id", chat.ID,
@@ -123,6 +138,44 @@ func (b *svc) handleBotAdded(
 		"telegram_channel_id", chat.ID,
 		"title", chat.Title,
 		"owner_id", user.ID)
+
+	chUUID, err := uuid.Parse(channelID)
+	if err != nil {
+		b.log.Error("failed to parse channel ID",
+			"channel_id", channelID,
+			"error", err)
+		return nil
+	}
+
+	go func(ctx context.Context) {
+		small, big, err := b.client.GetChatPhoto(chat.ID)
+		if err != nil {
+			b.log.Error("failed to get channel photo",
+				"channel_id", channelID,
+				"telegram_channel_id", chat.ID,
+				"error", err)
+		} else if small != "" || big != "" {
+			var sp, bp *string
+			if small != "" {
+				sp = &small
+			}
+			if big != "" {
+				bp = &big
+			}
+			if err := b.channelRepo.UpdatePhoto(ctx, chUUID, sp, bp); err != nil {
+				b.log.Error("failed to update channel photo",
+					"channel_id", channelID,
+					"error", err)
+			}
+		}
+
+		if err := b.stats.FetchAndStore(ctx, chUUID, chat.ID); err != nil {
+			b.log.Error("failed to fetch channel stats",
+				"channel_id", channelID,
+				"telegram_channel_id", chat.ID,
+				"error", err)
+		}
+	}(ctx)
 
 	return nil
 }

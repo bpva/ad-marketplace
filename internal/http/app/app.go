@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
 
-//go:generate mockgen -destination=mocks.go -package=app . BotService,ChannelService,UserService
 type BotService interface {
 	ProcessUpdate(data []byte) error
 	Token() string
@@ -40,6 +40,11 @@ type ChannelService interface {
 	GetAdFormats(ctx context.Context, TgChannelID int64) (*dto.AdFormatsResponse, error)
 	AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error
 	RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error
+	GetChannelPhoto(ctx context.Context, tgChannelID int64, size string) ([]byte, error)
+	GetMarketplaceChannels(
+		ctx context.Context,
+		req dto.MarketplaceChannelsRequest,
+	) (*dto.MarketplaceChannelsResponse, error)
 }
 
 type UserService interface {
@@ -58,20 +63,26 @@ type App struct {
 }
 
 func New(
-	httpCfg config.HTTP,
+	cfg config.HTTP,
 	log *slog.Logger,
 	bot BotService,
 	authSvc AuthService,
 	channelSvc ChannelService,
 	userSvc UserService,
 ) *App {
-	a := &App{log: log, bot: bot, auth: authSvc, channel: channelSvc, user: userSvc}
+	a := &App{
+		log:     log,
+		bot:     bot,
+		auth:    authSvc,
+		channel: channelSvc,
+		user:    userSvc,
+	}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{httpCfg.FrontendURL},
+		AllowedOrigins:   []string{cfg.FrontendURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -90,6 +101,11 @@ func New(
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc, log))
+			r.Get("/channels/{TgChannelID}/photo", a.HandleGetChannelPhoto())
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Auth(authSvc, log))
 			r.Use(openAPIMw)
 			r.Get("/me", a.HandleMe())
 
@@ -97,6 +113,10 @@ func New(
 				r.Get("/profile", a.HandleGetProfile())
 				r.Patch("/name", a.HandleUpdateName())
 				r.Patch("/settings", a.HandleUpdateSettings())
+			})
+
+			r.Route("/mp", func(r chi.Router) {
+				r.Post("/channels", a.HandleGetMarketplaceChannels())
 			})
 
 			r.Route("/channels", func(r chi.Router) {
@@ -115,7 +135,7 @@ func New(
 	})
 
 	a.srv = &http.Server{
-		Addr:    ":" + httpCfg.Port,
+		Addr:    fmt.Sprintf(":%s", cfg.Port),
 		Handler: r,
 	}
 

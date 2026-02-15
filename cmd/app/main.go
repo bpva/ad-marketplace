@@ -19,6 +19,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	"github.com/bpva/ad-marketplace/internal/service/stats"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	"github.com/bpva/ad-marketplace/migrations"
@@ -68,15 +69,13 @@ func main() {
 
 	mtprotoClient, err := mtproto.New(ctx, cfg.Telegram, log)
 	if err != nil {
-		if cfg.Env == "prod" {
-			log.Error("failed to create mtproto client", "error", err)
-			os.Exit(1)
-		}
-		log.Warn("mtproto client not available", "error", err)
+		log.Error("failed to create mtproto client", "error", err)
+		os.Exit(1)
 	}
-	_ = mtprotoClient
 
-	botSvc := bot.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo)
+	statsSvc := stats.New(mtprotoClient, channelRepo, log)
+
+	botSvc := bot.New(telebotClient, cfg.Telegram, log, db, channelRepo, userRepo, statsSvc)
 
 	if cfg.Env == "prod" {
 		if err := botSvc.SetWebhook(); err != nil {

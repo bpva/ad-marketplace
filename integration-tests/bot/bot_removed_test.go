@@ -46,9 +46,9 @@ func TestHandleBotRemoved(t *testing.T) {
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Left),
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, -1001234567890)
 				require.NoError(t, err)
-				assert.NotNil(t, channel.DeletedAt)
+				assert.True(t, deleted)
 			},
 		},
 		{
@@ -70,9 +70,9 @@ func TestHandleBotRemoved(t *testing.T) {
 			},
 			update: createBotRemovedUpdate(-1001234567890, "Test Channel", tele.Kicked),
 			checkChannel: func(t *testing.T) {
-				channel, err := testTools.GetChannelByTgID(ctx, -1001234567890)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, -1001234567890)
 				require.NoError(t, err)
-				assert.NotNil(t, channel.DeletedAt)
+				assert.True(t, deleted)
 			},
 		},
 		{
@@ -105,7 +105,7 @@ func TestHandleBotRemoved(t *testing.T) {
 			mock := bot.NewMockTelebotClient(ctrl)
 			mock.EXPECT().Handle(gomock.Any(), gomock.Any()).AnyTimes()
 
-			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo)
+			botSvc := bot.New(mock, config.Telegram{}, log, testDB, channelRepo, userRepo, statsSvc)
 
 			tt.setup(t)
 

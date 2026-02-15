@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/gotd/td/session"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/tg"
 
@@ -13,29 +14,35 @@ import (
 	"github.com/bpva/ad-marketplace/internal/logx"
 )
 
-type Client struct {
-	client *telegram.Client
-	api    *tg.Client
-	log    *slog.Logger
+type gateway struct {
+	client     *telegram.Client
+	api        *tg.Client
+	userClient *telegram.Client
+	userAPI    *tg.Client
+	log        *slog.Logger
 }
 
-func New(ctx context.Context, cfg config.Telegram, log *slog.Logger) (*Client, error) {
+func New(ctx context.Context, cfg config.Telegram, log *slog.Logger) (*gateway, error) {
 	if cfg.APIId == 0 || cfg.APIHash == "" {
 		return nil, fmt.Errorf("TG_API_ID or TG_API_HASH not set")
 	}
 
 	log = log.With(logx.Service("mtproto"))
 	client := telegram.NewClient(cfg.APIId, cfg.APIHash, telegram.Options{})
+	userClient := telegram.NewClient(cfg.APIId, cfg.APIHash, telegram.Options{
+		SessionStorage: &session.FileStorage{Path: ".session.json"},
+	})
 
-	c := &Client{
-		client: client,
-		log:    log,
+	c := &gateway{
+		client:     client,
+		userClient: userClient,
+		log:        log,
 	}
 
-	ready := make(chan struct{})
-	errCh := make(chan error, 1)
+	botReady := make(chan struct{})
+	botErrCh := make(chan error, 1)
 	go func() {
-		errCh <- client.Run(ctx, func(ctx context.Context) error {
+		botErrCh <- client.Run(ctx, func(ctx context.Context) error {
 			status, err := client.Auth().Status(ctx)
 			if err != nil {
 				return fmt.Errorf("auth status: %w", err)
@@ -48,34 +55,104 @@ func New(ctx context.Context, cfg config.Telegram, log *slog.Logger) (*Client, e
 			}
 
 			c.api = client.API()
-			close(ready)
+			close(botReady)
 
 			<-ctx.Done()
 			return ctx.Err()
 		})
 	}()
 
-	select {
-	case <-ready:
-		c.log.Info("connected")
-		return c, nil
-	case err := <-errCh:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	userReady := make(chan struct{})
+	userErrCh := make(chan error, 1)
+	go func() {
+		userErrCh <- userClient.Run(ctx, func(ctx context.Context) error {
+			status, err := userClient.Auth().Status(ctx)
+			if err != nil {
+				return fmt.Errorf("user auth status: %w", err)
+			}
+			if !status.Authorized {
+				return fmt.Errorf("user session is not authorized in .session.json")
+			}
+
+			c.userAPI = userClient.API()
+			close(userReady)
+
+			<-ctx.Done()
+			return ctx.Err()
+		})
+	}()
+
+	botConnected := false
+	userConnected := false
+	for !botConnected || !userConnected {
+		select {
+		case <-botReady:
+			botConnected = true
+		case <-userReady:
+			userConnected = true
+		case err := <-botErrCh:
+			return nil, err
+		case err := <-userErrCh:
+			return nil, err
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
+
+	c.log.Info("connected")
+	return c, nil
 }
 
-func (c *Client) Ping(ctx context.Context) error {
+func (c *gateway) Ping(ctx context.Context) error {
 	_, err := c.client.API().HelpGetConfig(ctx)
 	return err
 }
 
-func (c *Client) GetChannelFull(
+func BotAPIToMTProto(botAPIID int64) int64 {
+	if botAPIID < -1_000_000_000_000 {
+		return -botAPIID - 1_000_000_000_000
+	}
+	return botAPIID
+}
+
+func (c *gateway) resolveChannel(
+	ctx context.Context,
+	api *tg.Client,
+	channelID int64,
+) (int64, error) {
+	res, err := api.ChannelsGetChannels(ctx, []tg.InputChannelClass{
+		&tg.InputChannel{ChannelID: channelID, AccessHash: 0},
+	})
+	if err != nil {
+		return 0, fmt.Errorf("resolve channel %d: %w", channelID, err)
+	}
+
+	chats, ok := res.(*tg.MessagesChats)
+	if !ok {
+		return 0, fmt.Errorf("unexpected response type: %T", res)
+	}
+
+	for _, ch := range chats.Chats {
+		if channel, ok := ch.(*tg.Channel); ok && channel.ID == channelID {
+			return channel.AccessHash, nil
+		}
+	}
+	return 0, fmt.Errorf("channel %d not found", channelID)
+}
+
+func (c *gateway) GetChannelFull(
 	ctx context.Context,
 	channelID int64,
 ) (*dto.ChannelFullInfo, error) {
-	full, err := c.api.ChannelsGetFullChannel(ctx, &tg.InputChannel{ChannelID: channelID})
+	accessHash, err := c.resolveChannel(ctx, c.api, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	full, err := c.api.ChannelsGetFullChannel(ctx, &tg.InputChannel{
+		ChannelID:  channelID,
+		AccessHash: accessHash,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("get full channel: %w", err)
 	}
@@ -86,51 +163,25 @@ func (c *Client) GetChannelFull(
 	}
 
 	info := &dto.ChannelFullInfo{
-		ParticipantsCount: channelFull.ParticipantsCount,
+		About:        channelFull.GetAbout(),
+		CanViewStats: channelFull.CanViewStats,
 	}
 
-	if channelFull.LinkedChatID != 0 {
-		info.LinkedChatID = channelFull.LinkedChatID
+	if v, ok := channelFull.GetParticipantsCount(); ok {
+		info.ParticipantsCount = v
+	}
+	if v, ok := channelFull.GetLinkedChatID(); ok {
+		info.LinkedChatID = v
+	}
+	if v, ok := channelFull.GetAdminsCount(); ok {
+		info.AdminsCount = v
+	}
+	if v, ok := channelFull.GetOnlineCount(); ok {
+		info.OnlineCount = v
+	}
+	if v, ok := channelFull.GetStatsDC(); ok {
+		info.StatsDC = v
 	}
 
 	return info, nil
-}
-
-func (c *Client) GetBroadcastStats(
-	ctx context.Context,
-	channelID int64,
-) (*dto.BroadcastStats, error) {
-	stats, err := c.api.StatsGetBroadcastStats(ctx, &tg.StatsGetBroadcastStatsRequest{
-		Channel: &tg.InputChannel{ChannelID: channelID},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("get broadcast stats: %w", err)
-	}
-
-	return &dto.BroadcastStats{
-		Period: dto.StatsPeriod{
-			MinDate: stats.Period.MinDate,
-			MaxDate: stats.Period.MaxDate,
-		},
-		Followers: dto.StatsValue{
-			Current:  stats.Followers.Current,
-			Previous: stats.Followers.Previous,
-		},
-		ViewsPerPost: dto.StatsValue{
-			Current:  stats.ViewsPerPost.Current,
-			Previous: stats.ViewsPerPost.Previous,
-		},
-		SharesPerPost: dto.StatsValue{
-			Current:  stats.SharesPerPost.Current,
-			Previous: stats.SharesPerPost.Previous,
-		},
-		ReactionsPerPost: dto.StatsValue{
-			Current:  stats.ReactionsPerPost.Current,
-			Previous: stats.ReactionsPerPost.Previous,
-		},
-		EnabledNotifications: dto.StatsPercentage{
-			Part:  stats.EnabledNotifications.Part,
-			Total: stats.EnabledNotifications.Total,
-		},
-	}, nil
 }

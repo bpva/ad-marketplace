@@ -24,6 +24,8 @@ type TelebotClient interface {
 	ProcessUpdate(upd tele.Update)
 	Token() string
 	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
+	GetChatPhoto(chatID int64) (smallFileID, bigFileID string, err error)
+	DownloadFile(fileID string) ([]byte, error)
 }
 
 type ChannelRepository interface {
@@ -39,11 +41,16 @@ type ChannelRepository interface {
 		role entity.ChannelRoleType,
 	) (*entity.ChannelRole, error)
 	SoftDelete(ctx context.Context, TgChannelID int64) error
+	UpdatePhoto(ctx context.Context, channelID uuid.UUID, smallFileID, bigFileID *string) error
 }
 
 type UserRepository interface {
 	GetByTgID(ctx context.Context, tgID int64) (*entity.User, error)
 	Create(ctx context.Context, tgID int64, name string) (*entity.User, error)
+}
+
+type StatsFetcher interface {
+	FetchAndStore(ctx context.Context, channelID uuid.UUID, tgChannelID int64) error
 }
 
 type svc struct {
@@ -53,6 +60,7 @@ type svc struct {
 	tx          storage.Transactor
 	channelRepo ChannelRepository
 	userRepo    UserRepository
+	stats       StatsFetcher
 }
 
 func New(
@@ -62,6 +70,7 @@ func New(
 	tx storage.Transactor,
 	channels ChannelRepository,
 	users UserRepository,
+	stats StatsFetcher,
 ) *svc {
 	log = log.With(logx.Service("BotService"))
 
@@ -72,6 +81,7 @@ func New(
 		tx:          tx,
 		channelRepo: channels,
 		userRepo:    users,
+		stats:       stats,
 	}
 
 	s.registerHandlers()

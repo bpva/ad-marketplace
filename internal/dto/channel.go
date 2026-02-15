@@ -12,10 +12,13 @@ const (
 )
 
 type ChannelResponse struct {
-	TgChannelID int64  `json:"id"`
-	Title       string `json:"title"`
-	Username    string `json:"username,omitempty"`
-	IsListed    bool   `json:"is_listed"`
+	TgChannelID   int64  `json:"id"`
+	Title         string `json:"title"`
+	Username      string `json:"username,omitempty"`
+	IsListed      bool   `json:"is_listed"`
+	PhotoSmallURL string `json:"photo_small_url,omitempty"`
+	PhotoBigURL   string `json:"photo_big_url,omitempty"`
+	Subscribers   *int   `json:"subscribers,omitempty"`
 }
 
 type ChannelWithRoleResponse struct {
@@ -52,35 +55,6 @@ type ChannelAdminsResponse struct {
 
 type ChannelManagersResponse struct {
 	Managers []ManagerResponse `json:"managers"`
-}
-
-type ChannelFullInfo struct {
-	ParticipantsCount int   `json:"participants_count"`
-	LinkedChatID      int64 `json:"linked_chat_id,omitempty"`
-}
-
-type BroadcastStats struct {
-	Period               StatsPeriod     `json:"period"`
-	Followers            StatsValue      `json:"followers"`
-	ViewsPerPost         StatsValue      `json:"views_per_post"`
-	SharesPerPost        StatsValue      `json:"shares_per_post"`
-	ReactionsPerPost     StatsValue      `json:"reactions_per_post"`
-	EnabledNotifications StatsPercentage `json:"enabled_notifications"`
-}
-
-type StatsPeriod struct {
-	MinDate int `json:"min_date"`
-	MaxDate int `json:"max_date"`
-}
-
-type StatsValue struct {
-	Current  float64 `json:"current"`
-	Previous float64 `json:"previous"`
-}
-
-type StatsPercentage struct {
-	Part  float64 `json:"part"`
-	Total float64 `json:"total"`
 }
 
 type UpdateListingRequest struct {

@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.25.6-alpine3.23 AS builder
 
 WORKDIR /app
 
@@ -8,12 +8,13 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/app
 
-FROM alpine:3.19
+FROM alpine:3.23
 
 WORKDIR /app
 
 COPY --from=builder /app/server .
 COPY config/config.yaml ./config/
+COPY .session.json ./.session.json
 
 EXPOSE 8090
 

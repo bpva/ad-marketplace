@@ -2,6 +2,7 @@ package telebot
 
 import (
 	"fmt"
+	"io"
 
 	tele "gopkg.in/telebot.v4"
 
@@ -39,6 +40,27 @@ func (c *Client) ProcessUpdate(upd tele.Update) {
 
 func (c *Client) Token() string {
 	return c.bot.Token
+}
+
+func (c *Client) GetChatPhoto(chatID int64) (smallFileID, bigFileID string, err error) {
+	chat, err := c.bot.ChatByID(chatID)
+	if err != nil {
+		return "", "", fmt.Errorf("get chat: %w", err)
+	}
+	if chat.Photo == nil {
+		return "", "", nil
+	}
+	return chat.Photo.SmallFileID, chat.Photo.BigFileID, nil
+}
+
+func (c *Client) DownloadFile(fileID string) ([]byte, error) {
+	f := tele.File{FileID: fileID}
+	rc, err := c.bot.File(&f)
+	if err != nil {
+		return nil, fmt.Errorf("download file: %w", err)
+	}
+	defer rc.Close()
+	return io.ReadAll(rc)
 }
 
 func (c *Client) AdminsOf(channelID int64) ([]dto.ChannelAdmin, error) {

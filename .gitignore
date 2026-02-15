@@ -51,9 +51,9 @@ tools/bin/
 
 frontend/src/_brainstorm/
 
+# real user session for user-only mtproto
+.session.json
+
 # Frontend build output
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
-
-# Local seed data
-seeds/

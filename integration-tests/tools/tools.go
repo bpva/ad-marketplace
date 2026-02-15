@@ -90,7 +90,7 @@ func (t *Tools) CreateChannel(
 	err = t.pool.QueryRow(ctx, `
 		INSERT INTO channels (id, telegram_channel_id, title, username)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
+		RETURNING id, telegram_channel_id, title, username, is_listed, created_at
 	`, id, tgChannelID, title, username).Scan(
 		&channel.ID,
 		&channel.TgChannelID,
@@ -98,7 +98,6 @@ func (t *Tools) CreateChannel(
 		&channel.Username,
 		&channel.IsListed,
 		&channel.CreatedAt,
-		&channel.DeletedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -134,7 +133,7 @@ func (t *Tools) GetChannelByTgID(
 ) (*entity.Channel, error) {
 	var channel entity.Channel
 	err := t.pool.QueryRow(ctx, `
-		SELECT id, telegram_channel_id, title, username, is_listed, created_at, deleted_at
+		SELECT id, telegram_channel_id, title, username, is_listed, created_at
 		FROM channels
 		WHERE telegram_channel_id = $1
 	`, tgChannelID).Scan(
@@ -144,12 +143,22 @@ func (t *Tools) GetChannelByTgID(
 		&channel.Username,
 		&channel.IsListed,
 		&channel.CreatedAt,
-		&channel.DeletedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 	return &channel, nil
+}
+
+func (t *Tools) IsChannelSoftDeleted(ctx context.Context, tgChannelID int64) (bool, error) {
+	var deletedAt *time.Time
+	err := t.pool.QueryRow(ctx, `
+		SELECT deleted_at FROM channels WHERE telegram_channel_id = $1
+	`, tgChannelID).Scan(&deletedAt)
+	if err != nil {
+		return false, err
+	}
+	return deletedAt != nil, nil
 }
 
 func (t *Tools) GetChannelRolesByChannelID(

@@ -1,6 +1,13 @@
-import { ChevronRight, Megaphone } from "lucide-react";
+import { ChevronRight, Eye, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelWithRole } from "@/lib/api";
+import { ChannelAvatar } from "@/components/ChannelAvatar";
+
+function formatCompact(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return n.toString();
+}
 
 interface ChannelListProps {
   channels: ChannelWithRole[];
@@ -43,15 +50,41 @@ function ChannelCard({ item, onClick }: { item: ChannelWithRole; onClick: () => 
       onClick={onClick}
       className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-3 text-left transition-colors hover:bg-accent/50 active:bg-accent"
     >
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Megaphone className="h-6 w-6 text-primary" />
-      </div>
+      <ChannelAvatar
+        channelId={channel?.id ?? 0}
+        photoUrl={channel?.photo_small_url}
+        className="w-12 h-12 flex-shrink-0"
+      />
 
       <div className="flex-1 min-w-0">
         <h3 className="font-medium truncate">{channel?.title}</h3>
         {channel?.username && (
           <p className="text-sm text-muted-foreground truncate">@{channel.username}</p>
         )}
+        <div className="flex items-center gap-3 mt-1">
+          {channel?.subscribers != null && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Users className="h-3 w-3" />
+              {formatCompact(channel.subscribers)}
+            </span>
+          )}
+          {channel?.avg_views != null ? (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Eye className="h-3 w-3" />
+              {formatCompact(channel.avg_views)}
+            </span>
+          ) : (
+            channel?.subscribers != null && (
+              <span
+                className="text-xs text-muted-foreground cursor-help"
+                title="Not enough data for average views"
+              >
+                <Eye className="h-3 w-3 inline mr-0.5" />
+                &#x1F937;
+              </span>
+            )
+          )}
+        </div>
       </div>
 
       <div

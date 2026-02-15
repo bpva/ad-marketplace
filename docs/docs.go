@@ -625,6 +625,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/mp/channels": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "marketplace"
+                ],
+                "summary": "List marketplace channels",
+                "parameters": [
+                    {
+                        "description": "Search/sort/filter params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/MarketplaceChannelsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/MarketplaceChannelsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/name": {
             "patch": {
                 "security": [
@@ -745,6 +795,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "AdFormat": {
+            "type": "object",
+            "properties": {
+                "feed_hours": {
+                    "type": "integer"
+                },
+                "format_type": {
+                    "$ref": "#/definitions/AdFormatType"
+                },
+                "is_native": {
+                    "type": "boolean"
+                },
+                "price_nano_ton": {
+                    "type": "integer"
+                },
+                "top_hours": {
+                    "type": "integer"
+                }
+            }
+        },
         "AdFormatResponse": {
             "type": "object",
             "properties": {
@@ -802,7 +872,11 @@ const docTemplate = `{
             ],
             "properties": {
                 "feed_hours": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        12,
+                        24
+                    ]
                 },
                 "format_type": {
                     "$ref": "#/definitions/AdFormatType"
@@ -814,7 +888,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "top_hours": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        2,
+                        4
+                    ]
                 }
             }
         },
@@ -896,6 +974,15 @@ const docTemplate = `{
                 "is_listed": {
                     "type": "boolean"
                 },
+                "photo_big_url": {
+                    "type": "string"
+                },
+                "photo_small_url": {
+                    "type": "string"
+                },
+                "subscribers": {
+                    "type": "integer"
+                },
                 "title": {
                     "type": "string"
                 },
@@ -915,6 +1002,17 @@ const docTemplate = `{
                 "ChannelRoleTypeUndefined",
                 "ChannelRoleTypeOwner",
                 "ChannelRoleTypeManager"
+            ]
+        },
+        "ChannelSortBy": {
+            "type": "string",
+            "enum": [
+                "subscribers",
+                "views"
+            ],
+            "x-enum-varnames": [
+                "ChannelSortBySubscribers",
+                "ChannelSortByViews"
             ]
         },
         "ChannelWithRoleResponse": {
@@ -962,6 +1060,17 @@ const docTemplate = `{
                 "LanguageRU"
             ]
         },
+        "LanguageShare": {
+            "type": "object",
+            "properties": {
+                "language": {
+                    "type": "string"
+                },
+                "percentage": {
+                    "type": "number"
+                }
+            }
+        },
         "ManagerResponse": {
             "type": "object",
             "properties": {
@@ -977,6 +1086,138 @@ const docTemplate = `{
                 "telegram_id": {
                     "type": "integer"
                 }
+            }
+        },
+        "MarketplaceChannel": {
+            "type": "object",
+            "properties": {
+                "about": {
+                    "type": "string"
+                },
+                "ad_formats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AdFormat"
+                    }
+                },
+                "avg_daily_views_1d": {
+                    "type": "integer"
+                },
+                "avg_daily_views_30d": {
+                    "type": "integer"
+                },
+                "avg_daily_views_7d": {
+                    "type": "integer"
+                },
+                "avg_interactions_30d": {
+                    "type": "integer"
+                },
+                "avg_interactions_7d": {
+                    "type": "integer"
+                },
+                "engagement_rate_30d": {
+                    "type": "number"
+                },
+                "engagement_rate_7d": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "languages": {
+                    "description": "ISO 639-1 codes: \"en\", \"ru\"",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/LanguageShare"
+                    }
+                },
+                "photo_small_url": {
+                    "type": "string"
+                },
+                "reactions_by_emotion": {
+                    "description": "Keys are unicode emoji (\"👍\"), custom will be mapped to standard too",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "story_reactions_by_emotion": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "sub_growth_30d": {
+                    "type": "integer"
+                },
+                "sub_growth_7d": {
+                    "type": "integer"
+                },
+                "subscribers": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "top_hours": {
+                    "description": "Views per hour (index 0–23, UTC)",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "total_views_30d": {
+                    "type": "integer"
+                },
+                "total_views_7d": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "MarketplaceChannelsRequest": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/MarketplaceFilter"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "sort_by": {
+                    "$ref": "#/definitions/ChannelSortBy"
+                },
+                "sort_order": {
+                    "$ref": "#/definitions/SortOrder"
+                }
+            }
+        },
+        "MarketplaceChannelsResponse": {
+            "type": "object",
+            "properties": {
+                "channels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/MarketplaceChannel"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "MarketplaceFilter": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {}
             }
         },
         "PreferredMode": {
@@ -1015,6 +1256,17 @@ const docTemplate = `{
                     "$ref": "#/definitions/Theme"
                 }
             }
+        },
+        "SortOrder": {
+            "type": "string",
+            "enum": [
+                "asc",
+                "desc"
+            ],
+            "x-enum-varnames": [
+                "SortOrderAsc",
+                "SortOrderDesc"
+            ]
         },
         "Theme": {
             "type": "string",
