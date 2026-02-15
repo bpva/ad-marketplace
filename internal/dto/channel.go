@@ -19,7 +19,6 @@ type ChannelResponse struct {
 	PhotoSmallURL string `json:"photo_small_url,omitempty"`
 	PhotoBigURL   string `json:"photo_big_url,omitempty"`
 	Subscribers   *int   `json:"subscribers,omitempty"`
-	AvgViews      *int   `json:"avg_views,omitempty"`
 }
 
 type ChannelWithRoleResponse struct {
