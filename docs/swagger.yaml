@@ -285,6 +285,37 @@ definitions:
         type: string
       value: {}
     type: object
+  MediaType:
+    enum:
+    - photo
+    - video
+    - document
+    - animation
+    - audio
+    - voice
+    - video_note
+    - sticker
+    type: string
+    x-enum-varnames:
+    - MediaTypePhoto
+    - MediaTypeVideo
+    - MediaTypeDocument
+    - MediaTypeAnimation
+    - MediaTypeAudio
+    - MediaTypeVoice
+    - MediaTypeVideoNote
+    - MediaTypeSticker
+  PostMediaItem:
+    properties:
+      has_media_spoiler:
+        type: boolean
+      media_type:
+        $ref: '#/definitions/MediaType'
+      post_id:
+        type: string
+      show_caption_above_media:
+        type: boolean
+    type: object
   PreferredMode:
     enum:
     - publisher
@@ -318,6 +349,30 @@ definitions:
     x-enum-varnames:
     - SortOrderAsc
     - SortOrderDesc
+  TemplateResponse:
+    properties:
+      created_at:
+        type: string
+      entities:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/PostMediaItem'
+        type: array
+      text:
+        type: string
+    type: object
+  TemplatesResponse:
+    properties:
+      templates:
+        items:
+          $ref: '#/definitions/TemplateResponse'
+        type: array
+    type: object
   Theme:
     enum:
     - light
@@ -792,6 +847,24 @@ paths:
       summary: List marketplace channels
       tags:
       - marketplace
+  /posts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/TemplatesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List templates
+      tags:
+      - posts
   /ton-rates:
     get:
       produces:
