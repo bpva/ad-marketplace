@@ -7,6 +7,7 @@ import { NotInTelegram } from "@/components/NotInTelegram";
 import { SettingsPage } from "@/components/SettingsPage";
 import { OnboardingPage } from "@/components/OnboardingPage";
 import { PublisherPage } from "@/components/PublisherPage";
+import { TemplatesPage } from "@/components/TemplatesPage";
 import { MarketplacePage } from "@/components/MarketplacePage";
 import { DealsPage } from "@/components/DealsPage";
 import { BottomNav, type NavPage } from "@/components/BottomNav";
@@ -21,6 +22,7 @@ function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [page, setPage] = useState<Page>("channels");
+  const [channelsTab, setChannelsTab] = useState<"main" | "templates">("main");
 
   useTelegramTheme(profile?.theme ?? "auto");
 
@@ -75,20 +77,55 @@ function App() {
 
   const renderPage = () => {
     switch (page) {
-      case "channels":
-        return profile?.preferred_mode === "publisher" ? (
-          <PublisherPage />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-muted-foreground" />
+      case "channels": {
+        const mainLabel = profile?.preferred_mode === "publisher" ? "Channels" : "Campaigns";
+        const mainContent =
+          profile?.preferred_mode === "publisher" ? (
+            <PublisherPage />
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-4">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h1 className="text-xl font-semibold mb-2">Campaigns</h1>
+                <p className="text-muted-foreground text-sm">Coming soon</p>
               </div>
-              <h1 className="text-xl font-semibold mb-2">Campaigns</h1>
-              <p className="text-muted-foreground text-sm">Coming soon</p>
             </div>
+          );
+
+        return (
+          <div className="flex-1 flex flex-col">
+            <div className="px-4 pt-4">
+              <div className="max-w-md mx-auto flex gap-1 p-1 bg-muted rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setChannelsTab("main")}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    channelsTab === "main"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {mainLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannelsTab("templates")}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    channelsTab === "templates"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Templates
+                </button>
+              </div>
+            </div>
+            {channelsTab === "templates" ? <TemplatesPage /> : mainContent}
           </div>
         );
+      }
       case "marketplace":
         return <MarketplacePage />;
       case "deals":

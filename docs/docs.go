@@ -675,6 +675,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/posts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "List templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/TemplatesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/ton-rates": {
             "get": {
                 "produces": [
@@ -1245,6 +1275,46 @@ const docTemplate = `{
                 "value": {}
             }
         },
+        "MediaType": {
+            "type": "string",
+            "enum": [
+                "photo",
+                "video",
+                "document",
+                "animation",
+                "audio",
+                "voice",
+                "video_note",
+                "sticker"
+            ],
+            "x-enum-varnames": [
+                "MediaTypePhoto",
+                "MediaTypeVideo",
+                "MediaTypeDocument",
+                "MediaTypeAnimation",
+                "MediaTypeAudio",
+                "MediaTypeVoice",
+                "MediaTypeVideoNote",
+                "MediaTypeSticker"
+            ]
+        },
+        "PostMediaItem": {
+            "type": "object",
+            "properties": {
+                "has_media_spoiler": {
+                    "type": "boolean"
+                },
+                "media_type": {
+                    "$ref": "#/definitions/MediaType"
+                },
+                "post_id": {
+                    "type": "string"
+                },
+                "show_caption_above_media": {
+                    "type": "boolean"
+                }
+            }
+        },
         "PreferredMode": {
             "type": "string",
             "enum": [
@@ -1292,6 +1362,43 @@ const docTemplate = `{
                 "SortOrderAsc",
                 "SortOrderDesc"
             ]
+        },
+        "TemplateResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "entities": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "media": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PostMediaItem"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "TemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "templates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/TemplateResponse"
+                    }
+                }
+            }
         },
         "Theme": {
             "type": "string",

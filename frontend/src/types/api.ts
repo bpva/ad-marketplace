@@ -828,6 +828,51 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/posts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List templates */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["TemplatesResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/ton-rates": {
     parameters: {
       query?: never;
@@ -1171,6 +1216,22 @@ export interface components {
       value?: unknown;
     };
     /** @enum {string} */
+    MediaType:
+      | "photo"
+      | "video"
+      | "document"
+      | "animation"
+      | "audio"
+      | "voice"
+      | "video_note"
+      | "sticker";
+    PostMediaItem: {
+      has_media_spoiler?: boolean;
+      media_type?: components["schemas"]["MediaType"];
+      post_id?: string;
+      show_caption_above_media?: boolean;
+    };
+    /** @enum {string} */
     PreferredMode: "publisher" | "advertiser";
     ProfileResponse: {
       language?: components["schemas"]["Language"];
@@ -1183,6 +1244,16 @@ export interface components {
     };
     /** @enum {string} */
     SortOrder: "asc" | "desc";
+    TemplateResponse: {
+      created_at?: string;
+      entities?: number[];
+      id?: string;
+      media?: components["schemas"]["PostMediaItem"][];
+      text?: string;
+    };
+    TemplatesResponse: {
+      templates?: components["schemas"]["TemplateResponse"][];
+    };
     /** @enum {string} */
     Theme: "light" | "dark" | "auto";
     TonRatesResponse: {

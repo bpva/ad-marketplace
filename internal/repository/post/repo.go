@@ -87,6 +87,27 @@ func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post
 	return posts, nil
 }
 
+func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			id, user_id, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media, created_at, deleted_at
+		FROM posts
+		WHERE id = $1 AND deleted_at IS NULL
+	`, id)
+	if err != nil {
+		return nil, fmt.Errorf("getting post by id: %w", err)
+	}
+
+	p, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.Post])
+	if err != nil {
+		return nil, fmt.Errorf("getting post by id: %w", err)
+	}
+
+	return &p, nil
+}
+
 func (r *repo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `UPDATE posts SET deleted_at = NOW() WHERE id = $1`, id)
 	if err != nil {
