@@ -58,7 +58,9 @@ func TestHandleBotAdded(t *testing.T) {
 				assert.Equal(t, "Test Channel", channel.Title)
 				assert.NotNil(t, channel.Username)
 				assert.Equal(t, "testchannel", *channel.Username)
-				assert.Nil(t, channel.DeletedAt)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, channel.TgChannelID)
+				require.NoError(t, err)
+				assert.False(t, deleted)
 
 				roles, err := testTools.GetChannelRolesByChannelID(ctx, channel.ID)
 				require.NoError(t, err)
@@ -207,7 +209,9 @@ func TestHandleBotAdded(t *testing.T) {
 				assert.Equal(t, "Updated Title", channel.Title)
 				assert.NotNil(t, channel.Username)
 				assert.Equal(t, "newusername", *channel.Username)
-				assert.Nil(t, channel.DeletedAt)
+				deleted, err := testTools.IsChannelSoftDeleted(ctx, channel.TgChannelID)
+				require.NoError(t, err)
+				assert.False(t, deleted)
 			},
 		},
 		{
