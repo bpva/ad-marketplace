@@ -3,10 +3,12 @@ package telebot
 import (
 	"fmt"
 	"io"
+	"log/slog"
 
 	tele "gopkg.in/telebot.v4"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
+	"github.com/bpva/ad-marketplace/internal/logx"
 )
 
 type Client struct {
@@ -17,11 +19,23 @@ type noopPoller struct{}
 
 func (p *noopPoller) Poll(b *tele.Bot, updates chan tele.Update, stop chan struct{}) {}
 
-func New(token string) (*Client, error) {
+func New(token string, log *slog.Logger) (*Client, error) {
+	log = log.With(logx.Service("Telebot"))
+
 	b, err := tele.NewBot(tele.Settings{
 		Token:   token,
 		Poller:  &noopPoller{},
 		Offline: true,
+		OnError: func(err error, c tele.Context) {
+			if c != nil {
+				log.Error("handler error",
+					"update_id", c.Update().ID,
+					"error", err,
+				)
+			} else {
+				log.Error("handler error", "error", err)
+			}
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create telebot: %w", err)
