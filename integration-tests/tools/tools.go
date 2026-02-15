@@ -212,6 +212,37 @@ func (t *Tools) GetUserByTgID(ctx context.Context, tgID int64) (*entity.User, er
 	return &user, nil
 }
 
+func (t *Tools) GetPostsByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]entity.Post, error) {
+	rows, err := t.pool.Query(ctx, `
+		SELECT id, user_id, media_group_id, text, entities, media_type, media_file_id,
+			has_media_spoiler, show_caption_above_media, created_at, deleted_at
+		FROM posts
+		WHERE user_id = $1 AND deleted_at IS NULL
+		ORDER BY created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []entity.Post
+	for rows.Next() {
+		var p entity.Post
+		if err := rows.Scan(
+			&p.ID, &p.UserID, &p.MediaGroupID, &p.Text, &p.Entities,
+			&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
+			&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		posts = append(posts, p)
+	}
+	return posts, rows.Err()
+}
+
 func (t *Tools) UpdateChannelListing(
 	ctx context.Context,
 	channelID uuid.UUID,

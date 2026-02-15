@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/google/uuid"
 	tele "gopkg.in/telebot.v4"
@@ -53,14 +54,31 @@ type StatsFetcher interface {
 	FetchAndStore(ctx context.Context, channelID uuid.UUID, tgChannelID int64) error
 }
 
+type PostRepository interface {
+	Create(
+		ctx context.Context,
+		userID uuid.UUID,
+		mediaGroupID *string,
+		text *string,
+		entities []byte,
+		mediaType *entity.MediaType,
+		mediaFileID *string,
+		hasMediaSpoiler bool,
+		showCaptionAboveMedia bool,
+	) (*entity.Post, error)
+}
+
 type svc struct {
-	client      TelebotClient
-	log         *slog.Logger
-	cfg         config.Telegram
-	tx          storage.Transactor
-	channelRepo ChannelRepository
-	userRepo    UserRepository
-	stats       StatsFetcher
+	client        TelebotClient
+	log           *slog.Logger
+	cfg           config.Telegram
+	tx            storage.Transactor
+	channelRepo   ChannelRepository
+	userRepo      UserRepository
+	stats         StatsFetcher
+	postRepo      PostRepository
+	awaitingPost  sync.Map
+	pendingGroups sync.Map
 }
 
 func New(
@@ -71,6 +89,7 @@ func New(
 	channels ChannelRepository,
 	users UserRepository,
 	stats StatsFetcher,
+	posts PostRepository,
 ) *svc {
 	log = log.With(logx.Service("BotService"))
 
@@ -82,6 +101,7 @@ func New(
 		channelRepo: channels,
 		userRepo:    users,
 		stats:       stats,
+		postRepo:    posts,
 	}
 
 	s.registerHandlers()
@@ -97,10 +117,16 @@ func (b *svc) registerHandlers() {
 		return c.Send("Welcome to ADxCHANGE!", menu)
 	})
 
-	b.client.Handle(tele.OnText, func(c tele.Context) error {
-		return c.Send("confusing...")
-	})
-
+	b.client.Handle("/add_promo", b.handleAddPromo)
+	b.client.Handle(tele.OnText, b.handleIncomingMessage)
+	b.client.Handle(tele.OnPhoto, b.handleIncomingMessage)
+	b.client.Handle(tele.OnVideo, b.handleIncomingMessage)
+	b.client.Handle(tele.OnDocument, b.handleIncomingMessage)
+	b.client.Handle(tele.OnAnimation, b.handleIncomingMessage)
+	b.client.Handle(tele.OnAudio, b.handleIncomingMessage)
+	b.client.Handle(tele.OnVoice, b.handleIncomingMessage)
+	b.client.Handle(tele.OnVideoNote, b.handleIncomingMessage)
+	b.client.Handle(tele.OnSticker, b.handleIncomingMessage)
 	b.client.Handle(tele.OnMyChatMember, b.handleMyChatMember)
 }
 
