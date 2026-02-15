@@ -452,6 +452,84 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/channels/{TgChannelID}/categories": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update channel categories */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Telegram channel ID */
+          TgChannelID: number;
+        };
+        cookie?: never;
+      };
+      /** @description Category slugs (max 3) */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdateCategoriesRequest"];
+        };
+      };
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
   "/channels/{TgChannelID}/listing": {
     parameters: {
       query?: never;
@@ -1120,6 +1198,10 @@ export interface components {
       token?: string;
       user?: components["schemas"]["UserResponse"];
     };
+    CategoryResponse: {
+      display_name?: string;
+      slug?: string;
+    };
     ChannelAdmin: {
       first_name?: string;
       last_name?: string;
@@ -1134,6 +1216,7 @@ export interface components {
     };
     ChannelResponse: {
       ad_formats?: components["schemas"]["AdFormatResponse"][];
+      categories?: components["schemas"]["CategoryResponse"][];
       has_stats?: boolean;
       id?: number;
       is_listed?: boolean;
@@ -1180,6 +1263,7 @@ export interface components {
       avg_daily_views_7d?: number;
       avg_interactions_30d?: number;
       avg_interactions_7d?: number;
+      categories?: components["schemas"]["CategoryResponse"][];
       engagement_rate_30d?: number;
       engagement_rate_7d?: number;
       id?: number;
@@ -1263,6 +1347,9 @@ export interface components {
       gbp?: number;
       rub?: number;
       usd?: number;
+    };
+    UpdateCategoriesRequest: {
+      categories?: string[];
     };
     UpdateListingRequest: {
       is_listed?: boolean;
