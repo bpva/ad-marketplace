@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { ArrowLeft, Eye, Megaphone } from "lucide-react";
+import { ArrowLeft, Eye, Megaphone, Send, Check } from "lucide-react";
 import type { TemplateResponse } from "@/lib/api";
-import { fetchPostMediaBlob } from "@/lib/api";
+import { fetchPostMediaBlob, sendTemplatePreview } from "@/lib/api";
 
 interface TelegramMessagePreviewProps {
   template: TemplateResponse;
@@ -9,6 +9,21 @@ interface TelegramMessagePreviewProps {
 }
 
 export function TelegramMessagePreview({ template, onBack }: TelegramMessagePreviewProps) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSendPreview = async () => {
+    if (!template.id || sending || sent) return;
+    setSending(true);
+    try {
+      await sendTemplatePreview(template.id);
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const channelContent = (
     <div className="flex flex-col h-full bg-muted/30">
       <ChannelHeader onBack={onBack} />
@@ -30,6 +45,16 @@ export function TelegramMessagePreview({ template, onBack }: TelegramMessagePrev
           <div className="mockup-phone-display">{channelContent}</div>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={handleSendPreview}
+        disabled={sending || sent}
+        className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+      >
+        {sent ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+        {sent ? "Sent!" : sending ? "Sending..." : "Preview in Chat"}
+      </button>
     </div>
   );
 }
