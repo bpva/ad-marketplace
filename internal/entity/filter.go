@@ -33,6 +33,14 @@ func (f Filter) ToSql() (string, []any, error) { //nolint:revive
 		return "(title ILIKE ? OR COALESCE(username, '') ILIKE ?)", []any{pattern, pattern}, nil
 	case "has_ad_formats":
 		return "ad_formats IS NOT NULL", nil, nil
+	case "categories":
+		slugs, _ := f.Value.([]string)
+		if len(slugs) == 0 {
+			return "TRUE", nil, nil
+		}
+		sql := "EXISTS (SELECT 1 FROM jsonb_array_elements(categories)" +
+			" cat WHERE cat->>'slug' = ANY(?))"
+		return sql, []any{slugs}, nil
 	default:
 		return "", nil, fmt.Errorf("unknown filter: %s", f.Name)
 	}
