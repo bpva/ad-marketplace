@@ -1,6 +1,7 @@
 interface ImportMetaEnv {
   readonly [key: string]: any;
   readonly VITE_API_URL: string;
+  readonly VITE_APP_URL: string;
   readonly VITE_ENV: string;
   readonly VITE_BOT_TOKEN: string;
   readonly VITE_MOCK_TG_ID: string;

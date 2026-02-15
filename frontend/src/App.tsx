@@ -150,7 +150,7 @@ function App() {
   };
 
   return (
-    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+    <TonConnectUIProvider manifestUrl={`${import.meta.env.VITE_APP_URL}/tonconnect-manifest.json`}>
       <div className="min-h-screen flex flex-col bg-background">
         <main
           className="flex-1 flex flex-col"

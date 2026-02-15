@@ -16,11 +16,13 @@ services:
       target: ${ENV:-local}
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_APP_URL: ${FRONTEND_URL}
         VITE_ENV: ${ENV}
     ports:
       - "1313:1313"
     environment:
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_APP_URL=${FRONTEND_URL}
       - VITE_BOT_TOKEN=${BOT_TOKEN}
       - VITE_ENV=${ENV}
       - VITE_MOCK_TG_ID=${VITE_MOCK_TG_ID}
