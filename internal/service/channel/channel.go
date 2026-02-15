@@ -2,11 +2,9 @@ package channel
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
@@ -20,6 +18,12 @@ type ChannelRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error)
 	GetByTgChannelID(ctx context.Context, tgChannelID int64) (*entity.Channel, error)
 	GetChannelsByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Channel, error)
+	GetChannels(
+		ctx context.Context,
+		filters []entity.Filter,
+		sort entity.ChannelSort,
+		limit, offset int,
+	) ([]entity.MVChannel, int, error)
 	GetRole(ctx context.Context, channelID, userID uuid.UUID) (*entity.ChannelRole, error)
 	GetRolesByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.ChannelRole, error)
 	CreateRole(
@@ -35,16 +39,14 @@ type ChannelRepository interface {
 		feedHours, topHours int,
 		priceNanoTON int64,
 	) (*entity.ChannelAdFormat, error)
+	GetAdFormatByID(ctx context.Context, formatID uuid.UUID) (*entity.ChannelAdFormat, error)
 	GetAdFormatsByChannelID(
 		ctx context.Context,
 		channelID uuid.UUID,
 	) ([]entity.ChannelAdFormat, error)
-	GetAdFormatByID(ctx context.Context, formatID uuid.UUID) (*entity.ChannelAdFormat, error)
 	DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error
 	GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.ChannelInfo, error)
-	GetHistoricalStats(
-		ctx context.Context, channelID uuid.UUID, from, to time.Time,
-	) ([]entity.ChannelHistoricalStats, error)
+	RefreshMV(ctx context.Context) error
 }
 
 type UserRepository interface {
@@ -104,9 +106,8 @@ func (s *svc) GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error
 		if err != nil {
 			return nil, fmt.Errorf("get role: %w", err)
 		}
-		info, avgViews := s.fetchChannelStats(ctx, channels[i].ID)
 		result = append(result, dto.ChannelWithRoleResponse{
-			Channel: channelToResponse(&channels[i], info, avgViews),
+			Channel: s.channelToResponse(ctx, &channels[i]),
 			Role:    role.Role,
 		})
 	}
@@ -122,8 +123,7 @@ func (s *svc) GetChannel(
 		return nil, err
 	}
 
-	info, avgViews := s.fetchChannelStats(ctx, channel.ID)
-	resp := channelToResponse(channel, info, avgViews)
+	resp := s.channelToResponse(ctx, channel)
 	return &resp, nil
 }
 
@@ -296,6 +296,100 @@ func (s *svc) RemoveManager(ctx context.Context, tgChannelID int64, tgID int64) 
 	return nil
 }
 
+const marketplacePageSize = 10
+
+func (s *svc) GetMarketplaceChannels(
+	ctx context.Context, req dto.MarketplaceChannelsRequest,
+) (*dto.MarketplaceChannelsResponse, error) {
+	var filters []entity.Filter
+	filters = append(filters, entity.Filter{Name: "has_ad_formats"})
+	for _, f := range req.Filters {
+		filters = append(filters, entity.Filter{Name: f.Name, Value: f.Value})
+	}
+
+	sortBy := req.SortBy
+	if sortBy == "" {
+		sortBy = entity.ChannelSortBySubscribers
+	}
+	sortOrder := req.SortOrder
+	if sortOrder == "" {
+		sortOrder = entity.SortOrderDesc
+	}
+	sort := entity.ChannelSort{By: sortBy, Order: sortOrder}
+
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	offset := (page - 1) * marketplacePageSize
+
+	channels, total, err := s.channelRepo.GetChannels(
+		ctx,
+		filters,
+		sort,
+		marketplacePageSize,
+		offset,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get marketplace channels: %w", err)
+	}
+
+	result := make([]dto.MarketplaceChannel, 0, len(channels))
+	for _, ch := range channels {
+		mc := dto.MarketplaceChannel{
+			TgChannelID:             ch.TgChannelID,
+			Title:                   ch.Title,
+			About:                   ch.About,
+			Subscribers:             ch.Subscribers,
+			Languages:               ch.Languages,
+			TopHours:                ch.TopHours,
+			ReactionsByEmotion:      ch.ReactionsByEmotion,
+			StoryReactionsByEmotion: ch.StoryReactionsByEmotion,
+			AvgDailyViews1d:         ch.AvgDailyViews1d,
+			AvgDailyViews7d:         ch.AvgDailyViews7d,
+			AvgDailyViews30d:        ch.AvgDailyViews30d,
+			TotalViews7d:            ch.TotalViews7d,
+			TotalViews30d:           ch.TotalViews30d,
+			SubGrowth7d:             ch.SubGrowth7d,
+			SubGrowth30d:            ch.SubGrowth30d,
+			AvgInteractions7d:       ch.AvgInteractions7d,
+			AvgInteractions30d:      ch.AvgInteractions30d,
+			EngagementRate7d:        ch.EngagementRate7d,
+			EngagementRate30d:       ch.EngagementRate30d,
+		}
+
+		formats := make([]dto.AdFormat, 0, len(ch.AdFormats))
+		for i := range ch.AdFormats {
+			f := &ch.AdFormats[i]
+			formats = append(formats, dto.AdFormat{
+				ID:           f.ID.String(),
+				FormatType:   f.FormatType,
+				IsNative:     f.IsNative,
+				FeedHours:    f.FeedHours,
+				TopHours:     f.TopHours,
+				PriceNanoTON: f.PriceNanoTON,
+			})
+		}
+		mc.AdFormats = formats
+
+		if ch.Username != nil {
+			mc.Username = *ch.Username
+		}
+		if ch.PhotoSmallFileID != nil {
+			mc.PhotoSmallURL = fmt.Sprintf(
+				"/api/v1/channels/%d/photo?size=small",
+				ch.TgChannelID,
+			)
+		}
+		result = append(result, mc)
+	}
+
+	return &dto.MarketplaceChannelsResponse{
+		Channels: result,
+		Total:    total,
+	}, nil
+}
+
 func (s *svc) getChannelEntity(
 	ctx context.Context, tgChannelID int64,
 ) (*entity.Channel, error) {
@@ -357,6 +451,12 @@ func (s *svc) UpdateListing(ctx context.Context, tgChannelID int64, isListed boo
 		return fmt.Errorf("update listing: %w", err)
 	}
 
+	go func() {
+		if err := s.channelRepo.RefreshMV(context.Background()); err != nil {
+			s.log.Warn("refresh marketplace mv", "error", err)
+		}
+	}()
+
 	s.log.Info("channel listing updated", "channel_id", channel.ID, "is_listed", isListed)
 	return nil
 }
@@ -407,6 +507,12 @@ func (s *svc) AddAdFormat(
 		return fmt.Errorf("add ad format: %w", err)
 	}
 
+	go func() {
+		if err := s.channelRepo.RefreshMV(context.Background()); err != nil {
+			s.log.Warn("refresh marketplace mv", "error", err)
+		}
+	}()
+
 	s.log.Info("ad format added", "channel_id", channel.ID, "format_type", req.FormatType)
 	return nil
 }
@@ -430,15 +536,17 @@ func (s *svc) RemoveAdFormat(ctx context.Context, tgChannelID int64, formatID uu
 		return fmt.Errorf("remove ad format: %w", err)
 	}
 
+	go func() {
+		if err := s.channelRepo.RefreshMV(context.Background()); err != nil {
+			s.log.Warn("refresh marketplace mv", "error", err)
+		}
+	}()
+
 	s.log.Info("ad format removed", "channel_id", channel.ID, "format_id", formatID)
 	return nil
 }
 
-func channelToResponse(
-	ch *entity.Channel,
-	info *entity.ChannelInfo,
-	avgViews *int,
-) dto.ChannelResponse {
+func (s *svc) channelToResponse(ctx context.Context, ch *entity.Channel) dto.ChannelResponse {
 	resp := dto.ChannelResponse{
 		TgChannelID: ch.TgChannelID,
 		Title:       ch.Title,
@@ -453,58 +561,11 @@ func channelToResponse(
 	if ch.PhotoBigFileID != nil {
 		resp.PhotoBigURL = fmt.Sprintf("/api/v1/channels/%d/photo?size=big", ch.TgChannelID)
 	}
-	if info != nil {
+	info, err := s.channelRepo.GetInfo(ctx, ch.ID)
+	if err == nil {
 		resp.Subscribers = &info.Subscribers
 	}
-	resp.AvgViews = avgViews
 	return resp
-}
-
-func (s *svc) fetchChannelStats(
-	ctx context.Context, channelID uuid.UUID,
-) (*entity.ChannelInfo, *int) {
-	info, err := s.channelRepo.GetInfo(ctx, channelID)
-	if err != nil {
-		info = nil
-	}
-
-	to := time.Now()
-	from := to.AddDate(0, 0, -7)
-	stats, err := s.channelRepo.GetHistoricalStats(ctx, channelID, from, to)
-	if err != nil {
-		return info, nil
-	}
-
-	avgViews := computeAvgDailyViews(stats)
-	return info, avgViews
-}
-
-func computeAvgDailyViews(stats []entity.ChannelHistoricalStats) *int {
-	if len(stats) < 7 {
-		return nil
-	}
-
-	var totalViews int
-	for _, s := range stats {
-		var data map[string]json.RawMessage
-		if err := json.Unmarshal(s.Data, &data); err != nil {
-			continue
-		}
-		viewsRaw, ok := data["views_by_source"]
-		if !ok {
-			continue
-		}
-		var viewsBySource map[string]int
-		if err := json.Unmarshal(viewsRaw, &viewsBySource); err != nil {
-			continue
-		}
-		for _, v := range viewsBySource {
-			totalViews += v
-		}
-	}
-
-	avg := totalViews / len(stats)
-	return &avg
 }
 
 func (s *svc) GetChannelPhoto(

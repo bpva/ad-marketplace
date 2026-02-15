@@ -2,9 +2,9 @@ package channel
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,6 +14,12 @@ import (
 )
 
 func (r *repo) UpsertInfo(ctx context.Context, info *entity.ChannelInfo) error {
+	languages, _ := json.Marshal(info.Languages)
+	topHours, _ := json.Marshal(info.TopHours)
+	reactionsByEmotion, _ := json.Marshal(info.ReactionsByEmotion)
+	storyReactionsByEmotion, _ := json.Marshal(info.StoryReactionsByEmotion)
+	recentPosts, _ := json.Marshal(info.RecentPosts)
+
 	_, err := r.db.Exec(ctx, `
 		INSERT INTO channel_info (
 			channel_id, about, subscribers, linked_chat_id,
@@ -32,8 +38,8 @@ func (r *repo) UpsertInfo(ctx context.Context, info *entity.ChannelInfo) error {
 			fetched_at = NOW()
 	`,
 		info.ChannelID, info.About, info.Subscribers, info.LinkedChatID,
-		info.Languages, info.TopHours, info.ReactionsByEmotion,
-		info.StoryReactionsByEmotion, info.RecentPosts,
+		languages, topHours, reactionsByEmotion,
+		storyReactionsByEmotion, recentPosts,
 	)
 	if err != nil {
 		return fmt.Errorf("upserting channel info: %w", err)
@@ -53,7 +59,7 @@ func (r *repo) GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.Channe
 		return nil, fmt.Errorf("getting channel info: %w", err)
 	}
 
-	info, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.ChannelInfo])
+	info, err := pgx.CollectOneRow(rows, pgx.RowToStructByNameLax[entity.ChannelInfo])
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, fmt.Errorf("getting channel info: %w", dto.ErrNotFound)
 	}
@@ -66,40 +72,22 @@ func (r *repo) GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.Channe
 
 func (r *repo) BatchUpsertHistoricalStats(
 	ctx context.Context,
-	stats []entity.ChannelHistoricalStats,
+	channelID uuid.UUID,
+	stats []entity.DailyMetrics,
 ) error {
-	for _, s := range stats {
-		_, err := r.db.Exec(ctx, `
+	for _, dm := range stats {
+		data, err := json.Marshal(dm.Data)
+		if err != nil {
+			continue
+		}
+		_, err = r.db.Exec(ctx, `
 			INSERT INTO channel_historical_stats (channel_id, date, data)
 			VALUES ($1, $2, $3)
-			ON CONFLICT (channel_id, date) DO UPDATE SET data = EXCLUDED.data
-		`, s.ChannelID, s.Date, s.Data)
+			ON CONFLICT (channel_id, date) DO NOTHING
+		`, channelID, dm.Date, data)
 		if err != nil {
 			return fmt.Errorf("upserting historical stats: %w", err)
 		}
 	}
 	return nil
-}
-
-func (r *repo) GetHistoricalStats(
-	ctx context.Context,
-	channelID uuid.UUID,
-	from, to time.Time,
-) ([]entity.ChannelHistoricalStats, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT channel_id, date, data
-		FROM channel_historical_stats
-		WHERE channel_id = $1 AND date >= $2 AND date <= $3
-		ORDER BY date
-	`, channelID, from, to)
-	if err != nil {
-		return nil, fmt.Errorf("getting historical stats: %w", err)
-	}
-
-	stats, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.ChannelHistoricalStats])
-	if err != nil {
-		return nil, fmt.Errorf("getting historical stats: %w", err)
-	}
-
-	return stats, nil
 }

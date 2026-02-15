@@ -46,13 +46,13 @@ func (r *repo) Create(
 			username = EXCLUDED.username,
 			deleted_at = NULL
 		RETURNING id, telegram_channel_id, title, username, is_listed,
-			photo_small_file_id, photo_big_file_id, created_at, deleted_at
+			photo_small_file_id, photo_big_file_id, created_at
 	`, id, tgChannelID, title, username)
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
 	}
 
-	ch, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.Channel])
+	ch, err := pgx.CollectOneRow(rows, pgx.RowToStructByNameLax[entity.Channel])
 	if err != nil {
 		return nil, fmt.Errorf("creating channel: %w", err)
 	}
@@ -65,9 +65,7 @@ func (r *repo) GetByTgChannelID(
 	tgChannelID int64,
 ) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, is_listed,
-			photo_small_file_id, photo_big_file_id, created_at, deleted_at
-		FROM channels
+		SELECT * FROM channels
 		WHERE telegram_channel_id = $1 AND deleted_at IS NULL
 	`, tgChannelID)
 	if err != nil {
@@ -87,9 +85,7 @@ func (r *repo) GetByTgChannelID(
 
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_channel_id, title, username, is_listed,
-			photo_small_file_id, photo_big_file_id, created_at, deleted_at
-		FROM channels
+		SELECT * FROM channels
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
 	if err != nil {
@@ -173,9 +169,7 @@ func (r *repo) GetChannelsByUserID(
 	userID uuid.UUID,
 ) ([]entity.Channel, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT c.id, c.telegram_channel_id, c.title, c.username, c.is_listed,
-			c.photo_small_file_id, c.photo_big_file_id, c.created_at, c.deleted_at
-		FROM channels c
+		SELECT c.* FROM channels c
 		JOIN channel_roles cr ON c.id = cr.channel_id
 		WHERE cr.user_id = $1 AND c.deleted_at IS NULL
 	`, userID)
