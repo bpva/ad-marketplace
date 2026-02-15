@@ -89,7 +89,7 @@ func main() {
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, db, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 
-	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc, statsSvc)
+	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {
