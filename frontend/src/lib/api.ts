@@ -122,6 +122,12 @@ export type MarketplaceFilter = components["schemas"]["MarketplaceFilter"];
 export type ChannelSortBy = components["schemas"]["ChannelSortBy"];
 export type SortOrder = components["schemas"]["SortOrder"];
 
+export type TonRates = components["schemas"]["TonRatesResponse"];
+
+export async function fetchTonRates(): Promise<TonRates> {
+  return request<TonRates>("/api/v1/ton-rates");
+}
+
 export async function fetchMarketplaceChannels(params: {
   filters?: MarketplaceFilter[];
   sort_by?: ChannelSortBy;

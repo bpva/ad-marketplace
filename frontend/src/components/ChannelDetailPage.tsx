@@ -16,16 +16,11 @@ import {
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
 import { getFormatDisplay } from "@/lib/adFormats";
 import { formatCompact } from "@/lib/format";
+import { TonPrice } from "@/components/TonPrice";
 
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
   onBack: () => void;
-}
-
-function formatPrice(nanoTon: number | undefined) {
-  if (nanoTon === undefined || nanoTon === 0) return "0";
-  const val = nanoTon / 1e9;
-  return val % 1 === 0 ? val.toString() : parseFloat(val.toPrecision(10)).toString();
 }
 
 export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
@@ -193,7 +188,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
                       <p className="text-sm text-muted-foreground">
                         {format.feed_hours}h feed + {format.top_hours}h top
                       </p>
-                      <p className="font-medium">{formatPrice(format.price_nano_ton)} TON</p>
+                      <TonPrice nanoTon={format.price_nano_ton ?? 0} size="sm" />
                     </div>
                     {isOwner && (
                       <div className="flex-shrink-0">

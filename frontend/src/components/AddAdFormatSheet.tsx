@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { addAdFormat } from "@/lib/api";
 import { FORMAT_CONFIGS, type FormatConfig } from "@/lib/adFormats";
+import { useTonRates } from "@/hooks/useTonRates";
+import { formatFiat, tonToFiat } from "@/lib/format";
 
 interface AddAdFormatSheetProps {
   open: boolean;
@@ -287,6 +289,7 @@ export function AddAdFormatSheet({ open, onClose, channelId, onSuccess }: AddAdF
                       TON
                     </div>
                   </div>
+                  <FiatHint tonAmount={parseFloat(price) || 0} />
                 </div>
 
                 <div className="flex gap-3 pt-1">
@@ -308,6 +311,18 @@ export function AddAdFormatSheet({ open, onClose, channelId, onSuccess }: AddAdF
         </div>
       </div>
     </div>
+  );
+}
+
+function FiatHint({ tonAmount }: { tonAmount: number }) {
+  const rates = useTonRates();
+  const currency = "usd";
+  const rate = rates?.[currency];
+  if (!rate || tonAmount <= 0) return null;
+  return (
+    <p className="text-xs text-muted-foreground mt-1">
+      ≈ {formatFiat(tonToFiat(tonAmount, rate), currency)}
+    </p>
   );
 }
 
