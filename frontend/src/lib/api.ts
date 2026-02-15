@@ -122,6 +122,21 @@ export type MarketplaceFilter = components["schemas"]["MarketplaceFilter"];
 export type ChannelSortBy = components["schemas"]["ChannelSortBy"];
 export type SortOrder = components["schemas"]["SortOrder"];
 
+export type TemplatesResponse = components["schemas"]["TemplatesResponse"];
+export type TemplateResponse = components["schemas"]["TemplateResponse"];
+
+export async function fetchTemplates(): Promise<TemplatesResponse> {
+  return request<TemplatesResponse>("/api/v1/posts");
+}
+
+export async function fetchPostMediaBlob(postID: string): Promise<string> {
+  const res = await fetch(`${API_URL}/api/v1/posts/${postID}/media`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error(`Media fetch failed: ${res.status}`);
+  return URL.createObjectURL(await res.blob());
+}
+
 export type TonRates = components["schemas"]["TonRatesResponse"];
 
 export async function fetchTonRates(): Promise<TonRates> {

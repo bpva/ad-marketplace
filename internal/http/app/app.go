@@ -53,6 +53,11 @@ type UserService interface {
 	UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest) error
 }
 
+type PostService interface {
+	GetUserTemplates(ctx context.Context) (*dto.TemplatesResponse, error)
+	GetPostMedia(ctx context.Context, postID uuid.UUID) ([]byte, error)
+}
+
 type TonRatesService interface {
 	GetRates(ctx context.Context) (*dto.TonRatesResponse, error)
 }
@@ -63,6 +68,7 @@ type App struct {
 	auth     AuthService
 	channel  ChannelService
 	user     UserService
+	post     PostService
 	tonRates TonRatesService
 	srv      *http.Server
 }
@@ -74,6 +80,7 @@ func New(
 	authSvc AuthService,
 	channelSvc ChannelService,
 	userSvc UserService,
+	postSvc PostService,
 	tonRatesSvc TonRatesService,
 ) *App {
 	a := &App{
@@ -82,6 +89,7 @@ func New(
 		auth:     authSvc,
 		channel:  channelSvc,
 		user:     userSvc,
+		post:     postSvc,
 		tonRates: tonRatesSvc,
 	}
 
@@ -110,6 +118,7 @@ func New(
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc, log))
 			r.Get("/channels/{TgChannelID}/photo", a.HandleGetChannelPhoto())
+			r.Get("/posts/{postID}/media", a.HandleGetPostMedia())
 		})
 
 		r.Group(func(r chi.Router) {
@@ -126,6 +135,8 @@ func New(
 			r.Route("/mp", func(r chi.Router) {
 				r.Post("/channels", a.HandleGetMarketplaceChannels())
 			})
+
+			r.Get("/posts", a.HandleListTemplates())
 
 			r.Route("/channels", func(r chi.Router) {
 				r.Get("/", a.HandleListChannels())

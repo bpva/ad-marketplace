@@ -839,6 +839,41 @@
                 }
             }
         },
+        "/posts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "List templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TemplatesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ton-rates": {
             "get": {
                 "tags": [
@@ -1451,6 +1486,46 @@
                     "value": {}
                 }
             },
+            "MediaType": {
+                "type": "string",
+                "enum": [
+                    "photo",
+                    "video",
+                    "document",
+                    "animation",
+                    "audio",
+                    "voice",
+                    "video_note",
+                    "sticker"
+                ],
+                "x-enum-varnames": [
+                    "MediaTypePhoto",
+                    "MediaTypeVideo",
+                    "MediaTypeDocument",
+                    "MediaTypeAnimation",
+                    "MediaTypeAudio",
+                    "MediaTypeVoice",
+                    "MediaTypeVideoNote",
+                    "MediaTypeSticker"
+                ]
+            },
+            "PostMediaItem": {
+                "type": "object",
+                "properties": {
+                    "has_media_spoiler": {
+                        "type": "boolean"
+                    },
+                    "media_type": {
+                        "$ref": "#/components/schemas/MediaType"
+                    },
+                    "post_id": {
+                        "type": "string"
+                    },
+                    "show_caption_above_media": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PreferredMode": {
                 "type": "string",
                 "enum": [
@@ -1498,6 +1573,43 @@
                     "SortOrderAsc",
                     "SortOrderDesc"
                 ]
+            },
+            "TemplateResponse": {
+                "type": "object",
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "entities": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PostMediaItem"
+                        }
+                    },
+                    "text": {
+                        "type": "string"
+                    }
+                }
+            },
+            "TemplatesResponse": {
+                "type": "object",
+                "properties": {
+                    "templates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TemplateResponse"
+                        }
+                    }
+                }
             },
             "Theme": {
                 "type": "string",

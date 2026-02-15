@@ -212,6 +212,37 @@ func (t *Tools) GetUserByTgID(ctx context.Context, tgID int64) (*entity.User, er
 	return &user, nil
 }
 
+func (t *Tools) CreatePost(
+	ctx context.Context,
+	userID uuid.UUID,
+	mediaGroupID *string,
+	text *string,
+	entities []byte,
+	mediaType *entity.MediaType,
+	mediaFileID *string,
+) (*entity.Post, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	var p entity.Post
+	err = t.pool.QueryRow(ctx, `
+		INSERT INTO posts (id, user_id, media_group_id, text, entities, media_type, media_file_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, user_id, media_group_id, text, entities, media_type, media_file_id,
+			has_media_spoiler, show_caption_above_media, created_at, deleted_at
+	`, id, userID, mediaGroupID, text, entities, mediaType, mediaFileID).Scan(
+		&p.ID, &p.UserID, &p.MediaGroupID, &p.Text, &p.Entities,
+		&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
+		&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
 func (t *Tools) GetPostsByUserID(
 	ctx context.Context,
 	userID uuid.UUID,
