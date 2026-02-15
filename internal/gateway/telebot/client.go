@@ -77,6 +77,14 @@ func (c *Client) DownloadFile(fileID string) ([]byte, error) {
 	return io.ReadAll(rc)
 }
 
+func (c *Client) Send(to tele.Recipient, what any, opts ...any) (*tele.Message, error) {
+	return c.bot.Send(to, what, opts...)
+}
+
+func (c *Client) SendAlbum(to tele.Recipient, a tele.Album, opts ...any) ([]tele.Message, error) {
+	return c.bot.SendAlbum(to, a, opts...)
+}
+
 func (c *Client) AdminsOf(channelID int64) ([]dto.ChannelAdmin, error) {
 	members, err := c.bot.AdminsOf(&tele.Chat{ID: channelID})
 	if err != nil {

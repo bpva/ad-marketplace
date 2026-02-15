@@ -34,6 +34,37 @@ func (a *App) HandleListTemplates() http.HandlerFunc {
 	}
 }
 
+// HandleSendPreview sends a template preview to user's Telegram chat
+//
+//	@Summary		Send template preview to chat
+//	@Tags			posts
+//	@Security		BearerAuth
+//	@Param			postID	path	string	true	"Post ID"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Router			/posts/{postID}/preview [post]
+func (a *App) HandleSendPreview() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/posts/{postID}/preview"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		postID, err := uuid.Parse(chi.URLParam(r, "postID"))
+		if err != nil {
+			respond.Err(w, log, dto.ErrBadRequest)
+			return
+		}
+
+		if err := a.post.SendPreview(r.Context(), postID); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.NoContent(w)
+	}
+}
+
 func (a *App) HandleGetPostMedia() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/posts/{postID}/media"))
 

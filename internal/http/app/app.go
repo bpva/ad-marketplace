@@ -57,6 +57,7 @@ type UserService interface {
 type PostService interface {
 	GetUserTemplates(ctx context.Context) (*dto.TemplatesResponse, error)
 	GetPostMedia(ctx context.Context, postID uuid.UUID) ([]byte, error)
+	SendPreview(ctx context.Context, postID uuid.UUID) error
 }
 
 type TonRatesService interface {
@@ -138,6 +139,7 @@ func New(
 			})
 
 			r.Get("/posts", a.HandleListTemplates())
+			r.Post("/posts/{postID}/preview", a.HandleSendPreview())
 
 			r.Route("/channels", func(r chi.Router) {
 				r.Get("/", a.HandleListChannels())

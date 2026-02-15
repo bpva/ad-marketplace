@@ -147,6 +147,8 @@ func setupTestServer(testDB db) *httptest.Server {
 	telebotMock.EXPECT().AdminsOf(gomock.Any()).Return([]dto.ChannelAdmin{}, nil).AnyTimes()
 	telebotMock.EXPECT().GetChatPhoto(gomock.Any()).Return("", "", nil).AnyTimes()
 	telebotMock.EXPECT().DownloadFile(gomock.Any()).Return(nil, nil).AnyTimes()
+	telebotMock.EXPECT().Send(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	telebotMock.EXPECT().SendAlbum(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 
 	mockMTProto := stats.NewMockMTProtoClient(ctrl)
 	mockMTProto.EXPECT().
