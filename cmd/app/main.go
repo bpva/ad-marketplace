@@ -20,6 +20,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	"github.com/bpva/ad-marketplace/internal/service/stats"
+	"github.com/bpva/ad-marketplace/internal/service/tonrates"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	"github.com/bpva/ad-marketplace/migrations"
@@ -88,8 +89,9 @@ func main() {
 
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotClient, db, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
+	tonRatesSvc := tonrates.New(log)
 
-	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc)
+	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc, tonRatesSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {

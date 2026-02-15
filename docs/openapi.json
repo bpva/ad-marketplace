@@ -839,6 +839,36 @@
                 }
             }
         },
+        "/ton-rates": {
+            "get": {
+                "tags": [
+                    "rates"
+                ],
+                "summary": "Get TON exchange rates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TonRatesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/user/name": {
             "patch": {
                 "security": [
@@ -1472,6 +1502,23 @@
                     "ThemeDark",
                     "ThemeAuto"
                 ]
+            },
+            "TonRatesResponse": {
+                "type": "object",
+                "properties": {
+                    "eur": {
+                        "type": "number"
+                    },
+                    "gbp": {
+                        "type": "number"
+                    },
+                    "rub": {
+                        "type": "number"
+                    },
+                    "usd": {
+                        "type": "number"
+                    }
+                }
             },
             "UpdateListingRequest": {
                 "type": "object",

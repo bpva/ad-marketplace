@@ -53,13 +53,18 @@ type UserService interface {
 	UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest) error
 }
 
+type TonRatesService interface {
+	GetRates(ctx context.Context) (*dto.TonRatesResponse, error)
+}
+
 type App struct {
-	log     *slog.Logger
-	bot     BotService
-	auth    AuthService
-	channel ChannelService
-	user    UserService
-	srv     *http.Server
+	log      *slog.Logger
+	bot      BotService
+	auth     AuthService
+	channel  ChannelService
+	user     UserService
+	tonRates TonRatesService
+	srv      *http.Server
 }
 
 func New(
@@ -69,13 +74,15 @@ func New(
 	authSvc AuthService,
 	channelSvc ChannelService,
 	userSvc UserService,
+	tonRatesSvc TonRatesService,
 ) *App {
 	a := &App{
-		log:     log,
-		bot:     bot,
-		auth:    authSvc,
-		channel: channelSvc,
-		user:    userSvc,
+		log:      log,
+		bot:      bot,
+		auth:     authSvc,
+		channel:  channelSvc,
+		user:     userSvc,
+		tonRates: tonRatesSvc,
 	}
 
 	r := chi.NewRouter()
@@ -98,6 +105,7 @@ func New(
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/bot/{token}/webhook", a.HandleBotWebhook())
 		r.Post("/auth", a.HandleAuth())
+		r.Get("/ton-rates", a.HandleGetTonRates())
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Auth(authSvc, log))
