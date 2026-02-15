@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, Plus, Users, X } from "lucide-react";
+import { ArrowLeft, Plus, Users, X } from "lucide-react";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -125,21 +125,6 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
                   <Users className="h-3 w-3" />
                   {formatCompact(channel.channel.subscribers)}
                 </span>
-              )}
-              {channel.channel?.avg_views != null ? (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Eye className="h-3 w-3" />~{formatCompact(channel.channel.avg_views)}/day
-                </span>
-              ) : (
-                channel.channel?.subscribers != null && (
-                  <span
-                    className="text-xs text-muted-foreground cursor-help"
-                    title="Not enough data for average views"
-                  >
-                    <Eye className="h-3 w-3 inline mr-0.5" />
-                    &#x1F937;
-                  </span>
-                )
               )}
             </div>
           </div>

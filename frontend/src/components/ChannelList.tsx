@@ -1,4 +1,4 @@
-import { ChevronRight, Eye, Users } from "lucide-react";
+import { ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelWithRole } from "@/lib/api";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
@@ -67,22 +67,6 @@ function ChannelCard({ item, onClick }: { item: ChannelWithRole; onClick: () => 
               <Users className="h-3 w-3" />
               {formatCompact(channel.subscribers)}
             </span>
-          )}
-          {channel?.avg_views != null ? (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Eye className="h-3 w-3" />
-              {formatCompact(channel.avg_views)}
-            </span>
-          ) : (
-            channel?.subscribers != null && (
-              <span
-                className="text-xs text-muted-foreground cursor-help"
-                title="Not enough data for average views"
-              >
-                <Eye className="h-3 w-3 inline mr-0.5" />
-                &#x1F937;
-              </span>
-            )
           )}
         </div>
       </div>
