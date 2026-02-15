@@ -2,7 +2,6 @@ package seeds
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -25,10 +24,10 @@ func (s *Seeder) seedStats(ctx context.Context, channels []seedChannel) error {
 func (s *Seeder) upsertChannelInfo(ctx context.Context, ch seedChannel) error {
 	repo := channel_repo.New(s.db)
 
-	languages := []map[string]any{
-		{"language": "en", "percentage": 55 + s.rng.IntN(20)},
-		{"language": "ru", "percentage": 15 + s.rng.IntN(15)},
-		{"language": "uk", "percentage": 5 + s.rng.IntN(10)},
+	languages := []entity.LanguageShare{
+		{Language: "en", Percentage: float64(55 + s.rng.IntN(20))},
+		{Language: "ru", Percentage: float64(15 + s.rng.IntN(15))},
+		{Language: "uk", Percentage: float64(5 + s.rng.IntN(10))},
 	}
 
 	topHours := make([]float64, 24)
@@ -39,21 +38,39 @@ func (s *Seeder) upsertChannelInfo(ctx context.Context, ch seedChannel) error {
 		topHours[peak] = 3.0 + s.rng.Float64()*3.0
 	}
 
-	reactions := map[string]int{
-		"\U0001f44d":   500 + s.rng.IntN(2000),
-		"\u2764\ufe0f": 300 + s.rng.IntN(1500),
-		"\U0001f525":   200 + s.rng.IntN(1000),
-		"\U0001f914":   50 + s.rng.IntN(300),
+	reactions := map[string]int64{
+		"\U0001f44d":   int64(500 + s.rng.IntN(2000)),
+		"\u2764\ufe0f": int64(300 + s.rng.IntN(1500)),
+		"\U0001f525":   int64(200 + s.rng.IntN(1000)),
+		"\U0001f914":   int64(50 + s.rng.IntN(300)),
+	}
+
+	storyReactions := map[string]int64{
+		"\U0001f44d":   int64(100 + s.rng.IntN(500)),
+		"\u2764\ufe0f": int64(80 + s.rng.IntN(400)),
+		"\U0001f525":   int64(40 + s.rng.IntN(200)),
+	}
+
+	recentPosts := make([]entity.RecentPost, 0, 10)
+	for i := range 10 {
+		recentPosts = append(recentPosts, entity.RecentPost{
+			Type:      "message",
+			ID:        1000 + i,
+			Views:     ch.subscribers/10 + s.rng.IntN(ch.subscribers/5),
+			Forwards:  s.rng.IntN(50),
+			Reactions: s.rng.IntN(200),
+		})
 	}
 
 	info := &entity.ChannelInfo{
 		ChannelID:               ch.entity.ID,
 		About:                   fmt.Sprintf("Official %s channel", ch.entity.Title),
 		Subscribers:             ch.subscribers,
-		Languages:               mustJSON(languages),
-		TopHours:                mustJSON(topHours),
-		ReactionsByEmotion:      mustJSON(reactions),
-		StoryReactionsByEmotion: mustJSON(reactions),
+		Languages:               languages,
+		TopHours:                topHours,
+		ReactionsByEmotion:      reactions,
+		StoryReactionsByEmotion: storyReactions,
+		RecentPosts:             recentPosts,
 	}
 
 	return repo.UpsertInfo(ctx, info)
@@ -63,7 +80,7 @@ func (s *Seeder) upsertHistoricalStats(ctx context.Context, ch seedChannel) erro
 	repo := channel_repo.New(s.db)
 
 	days := 90
-	stats := make([]entity.ChannelHistoricalStats, 0, days)
+	stats := make([]entity.DailyMetrics, 0, days)
 	subs := ch.subscribers - s.rng.IntN(ch.subscribers/5)
 	baseViews := ch.subscribers / 5
 
@@ -78,37 +95,50 @@ func (s *Seeder) upsertHistoricalStats(ctx context.Context, ch seedChannel) erro
 
 		views := baseViews + s.rng.IntN(baseViews/2) - baseViews/4
 		interactions := views/10 + s.rng.IntN(views/20)
+		ivInteractions := s.rng.IntN(views / 20)
+		mutePct := 0.5 + s.rng.Float64()*4.0
+		storyViews := s.rng.IntN(views / 10)
+		storyShares := s.rng.IntN(max(1, storyViews/20))
 
-		daily := map[string]any{
-			"subscribers":   subs,
-			"new_followers": newFollowers,
-			"interactions":  interactions,
-			"views_by_source": map[string]int{
-				"search":   views / 3,
-				"channels": views / 2,
-				"other":    views - views/3 - views/2,
-			},
-			"followers_by_source": map[string]int{
-				"search":   newFollowers / 2,
-				"channels": newFollowers / 3,
-				"other":    max(0, newFollowers-newFollowers/2-newFollowers/3),
-			},
-		}
+		subsI64 := int64(subs)
+		newFollowersI64 := int64(newFollowers)
+		interactionsI64 := int64(interactions)
+		ivInteractionsI64 := int64(ivInteractions)
 
-		stats = append(stats, entity.ChannelHistoricalStats{
-			ChannelID: ch.entity.ID,
-			Date:      date,
-			Data:      mustJSON(daily),
+		stats = append(stats, entity.DailyMetrics{
+			Date: date,
+			Data: entity.ChannelHistoricalDayData{
+				Subscribers:    &subsI64,
+				NewFollowers:   &newFollowersI64,
+				MutePct:        &mutePct,
+				Interactions:   &interactionsI64,
+				IVInteractions: &ivInteractionsI64,
+				ViewsBySource: map[string]int64{
+					"search":   int64(views / 3),
+					"channels": int64(views / 2),
+					"other":    int64(views - views/3 - views/2),
+				},
+				FollowersBySource: map[string]int64{
+					"search":   int64(newFollowers / 2),
+					"channels": int64(newFollowers / 3),
+					"other":    int64(max(0, newFollowers-newFollowers/2-newFollowers/3)),
+				},
+				StoryInteractions: map[string]int64{
+					"Views":  int64(storyViews),
+					"Shares": int64(storyShares),
+				},
+				ReactionsByEmotion: map[string]int64{
+					"\U0001f44d":   int64(s.rng.IntN(interactions/5 + 1)),
+					"\u2764\ufe0f": int64(s.rng.IntN(interactions/8 + 1)),
+					"\U0001f525":   int64(s.rng.IntN(interactions/10 + 1)),
+				},
+				StoryReactionsByEmotion: map[string]int64{
+					"\U0001f44d":   int64(s.rng.IntN(max(1, storyViews/10))),
+					"\u2764\ufe0f": int64(s.rng.IntN(max(1, storyViews/15))),
+				},
+			},
 		})
 	}
 
-	return repo.BatchUpsertHistoricalStats(ctx, stats)
-}
-
-func mustJSON(v any) []byte {
-	b, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	return repo.BatchUpsertHistoricalStats(ctx, ch.entity.ID, stats)
 }

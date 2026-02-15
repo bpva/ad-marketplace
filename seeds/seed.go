@@ -46,6 +46,11 @@ func (s *Seeder) Run(ctx context.Context) error {
 	}
 	s.log.Info("stats seeded")
 
+	if _, err := s.db.Exec(ctx, "REFRESH MATERIALIZED VIEW channel_marketplace"); err != nil {
+		return fmt.Errorf("refresh marketplace mv: %w", err)
+	}
+	s.log.Info("marketplace mv refreshed")
+
 	return nil
 }
 
