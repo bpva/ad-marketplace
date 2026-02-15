@@ -29,6 +29,8 @@ type TelebotClient interface {
 	AdminsOf(channelID int64) ([]dto.ChannelAdmin, error)
 	GetChatPhoto(chatID int64) (smallFileID, bigFileID string, err error)
 	DownloadFile(fileID string) ([]byte, error)
+	Send(to tele.Recipient, what any, opts ...any) (*tele.Message, error)
+	SendAlbum(to tele.Recipient, a tele.Album, opts ...any) ([]tele.Message, error)
 }
 
 type ChannelRepository interface {

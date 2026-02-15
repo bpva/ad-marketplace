@@ -111,6 +111,46 @@ func (mr *MockTelebotClientMockRecorder) ProcessUpdate(upd any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessUpdate", reflect.TypeOf((*MockTelebotClient)(nil).ProcessUpdate), upd)
 }
 
+// Send mocks base method.
+func (m *MockTelebotClient) Send(to telebot.Recipient, what any, opts ...any) (*telebot.Message, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{to, what}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Send", varargs...)
+	ret0, _ := ret[0].(*telebot.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Send indicates an expected call of Send.
+func (mr *MockTelebotClientMockRecorder) Send(to, what any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{to, what}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockTelebotClient)(nil).Send), varargs...)
+}
+
+// SendAlbum mocks base method.
+func (m *MockTelebotClient) SendAlbum(to telebot.Recipient, a telebot.Album, opts ...any) ([]telebot.Message, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{to, a}
+	for _, a_2 := range opts {
+		varargs = append(varargs, a_2)
+	}
+	ret := m.ctrl.Call(m, "SendAlbum", varargs...)
+	ret0, _ := ret[0].([]telebot.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SendAlbum indicates an expected call of SendAlbum.
+func (mr *MockTelebotClientMockRecorder) SendAlbum(to, a any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{to, a}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAlbum", reflect.TypeOf((*MockTelebotClient)(nil).SendAlbum), varargs...)
+}
+
 // Token mocks base method.
 func (m *MockTelebotClient) Token() string {
 	m.ctrl.T.Helper()
