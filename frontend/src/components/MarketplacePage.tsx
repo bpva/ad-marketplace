@@ -63,9 +63,8 @@ export function MarketplacePage() {
           />
         </div>
 
-        <CategoryFilter selected={selectedCategories} onChange={setSelectedCategories} />
-
         <div className="flex items-center gap-2">
+          <CategoryFilter selected={selectedCategories} onChange={setSelectedCategories} />
           <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
           <div className="flex gap-1.5">
             {(["subscribers", "views"] as const).map((field) => (
@@ -396,7 +395,15 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
         <div className="min-w-0">
           <h3 className="font-medium truncate text-sm">{channel.title}</h3>
           {channel.username && (
-            <p className="text-xs text-muted-foreground truncate">@{channel.username}</p>
+            <a
+              href={`https://t.me/${channel.username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary truncate block"
+              onClick={(e) => e.stopPropagation()}
+            >
+              @{channel.username}
+            </a>
           )}
         </div>
       </div>
@@ -452,49 +459,56 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
         )}
       </div>
 
-      {langs.length > 0 && <LanguagePie langs={langs} />}
-
-      {hasReactions && (
-        <Tooltip
-          text={
-            "Avg. daily interactions (7d)" +
-            (storyTotal > 0
-              ? `\nStory reactions: ${storyReactions.map(([e, c]) => `${e} ${formatCompact(c)}`).join(" ")}`
-              : "")
-          }
-        >
-          <div className="inline-flex flex-col gap-1.5 rounded-lg border border-border px-2.5 py-1.5">
-            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-              {channel.avg_interactions_7d != null && (
-                <span className="inline-flex items-center gap-1">
-                  <MessageCircle className="h-3 w-3" />
-                  {formatCompact(channel.avg_interactions_7d)}
-                </span>
-              )}
-              {storyTotal > 0 && (
-                <span className="inline-flex items-center gap-1">
-                  <Camera className="h-3 w-3" />
-                  {formatCompact(storyTotal)}
-                </span>
-              )}
+      {(langs.length > 0 || hasReactions) && (
+        <div className="flex items-stretch gap-2">
+          {langs.length > 0 && (
+            <div className="flex-shrink-0 flex items-center rounded-lg border border-border px-2 py-1.5">
+              <LanguagePie langs={langs} />
             </div>
-            {reactions.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-1">
-                {reactions.map(([emoji, count]) => (
-                  <span
-                    key={emoji}
-                    className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5"
-                  >
-                    <span className="text-xs leading-none">{emoji}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatCompact(count)}
+          )}
+          {hasReactions && (
+            <Tooltip
+              text={
+                "Avg. daily interactions (7d)" +
+                (storyTotal > 0
+                  ? `\nStory reactions: ${storyReactions.map(([e, c]) => `${e} ${formatCompact(c)}`).join(" ")}`
+                  : "")
+              }
+            >
+              <div className="flex-1 min-w-0 inline-flex flex-col gap-1.5 rounded-lg border border-border px-2.5 py-1.5">
+                <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                  {channel.avg_interactions_7d != null && (
+                    <span className="inline-flex items-center gap-1">
+                      <MessageCircle className="h-3 w-3" />
+                      {formatCompact(channel.avg_interactions_7d)}
                     </span>
-                  </span>
-                ))}
+                  )}
+                  {storyTotal > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <Camera className="h-3 w-3" />
+                      {formatCompact(storyTotal)}
+                    </span>
+                  )}
+                </div>
+                {reactions.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-1">
+                    {reactions.map(([emoji, count]) => (
+                      <span
+                        key={emoji}
+                        className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5"
+                      >
+                        <span className="text-xs leading-none">{emoji}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatCompact(count)}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </Tooltip>
+            </Tooltip>
+          )}
+        </div>
       )}
 
       <div className="flex items-end gap-2">
@@ -515,7 +529,7 @@ function PlaceAdButton({ nanoTon }: { nanoTon: number }) {
   return (
     <button
       type="button"
-      className="ml-auto flex-shrink-0 flex flex-col items-end rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1.5 transition-colors active:bg-primary/10"
+      className="ml-auto flex-shrink-0 flex flex-col items-end rounded-lg border border-primary/40 dark:bg-primary/5 px-2.5 py-1.5 transition-colors active:bg-primary/10"
     >
       <span className="flex items-center gap-0.5 text-sm font-semibold leading-snug text-primary">
         Advertise here
