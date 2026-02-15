@@ -88,7 +88,7 @@ function ChannelCard({ item, onClick }: { item: ChannelWithRole; onClick: () => 
 
       <ChannelAvatar
         channelId={channel?.id ?? 0}
-        photoUrl={channel?.photo_small_url}
+        hasPhoto={!!channel?.photo_small_url}
         className="w-12 h-12 flex-shrink-0"
       />
 

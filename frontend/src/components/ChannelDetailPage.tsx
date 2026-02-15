@@ -126,7 +126,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
         <div className="bg-card rounded-xl border border-border p-4 flex items-center gap-3">
           <ChannelAvatar
             channelId={channel.channel?.id ?? 0}
-            photoUrl={channel.channel?.photo_small_url}
+            hasPhoto={!!channel.channel?.photo_small_url}
             className="w-12 h-12 flex-shrink-0"
           />
           <div className="flex-1 min-w-0">
