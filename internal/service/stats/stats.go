@@ -71,24 +71,22 @@ func (s *svc) FetchAndStore(ctx context.Context, channelID uuid.UUID, tgChannelI
 		info.LinkedChatID = &fullInfo.LinkedChatID
 	}
 
-	if fullInfo.CanViewStats {
-		bs, err := s.mtproto.GetBroadcastStats(ctx, mtprotoID, fullInfo.StatsDC)
-		if err != nil {
-			s.log.Warn("failed to get broadcast stats, storing channel info only",
-				"channel_id", channelID, "error", err)
-		} else {
-			info.Languages = bs.Languages
-			info.TopHours = bs.TopHours
-			info.ReactionsByEmotion = bs.ReactionsByEmotion
-			info.StoryReactionsByEmotion = bs.StoryReactionsByEmotion
-			info.RecentPosts = bs.RecentPosts
+	bs, err := s.mtproto.GetBroadcastStats(ctx, mtprotoID, fullInfo.StatsDC)
+	if err != nil {
+		s.log.Warn("failed to get broadcast stats, storing channel info only",
+			"channel_id", channelID, "error", err)
+	} else {
+		info.Languages = bs.Languages
+		info.TopHours = bs.TopHours
+		info.ReactionsByEmotion = bs.ReactionsByEmotion
+		info.StoryReactionsByEmotion = bs.StoryReactionsByEmotion
+		info.RecentPosts = bs.RecentPosts
 
-			if len(bs.DailyStats) > 0 {
-				if err := s.channelRepo.BatchUpsertHistoricalStats(
-					ctx, channelID, bs.DailyStats,
-				); err != nil {
-					return fmt.Errorf("batch upsert historical stats: %w", err)
-				}
+		if len(bs.DailyStats) > 0 {
+			if err := s.channelRepo.BatchUpsertHistoricalStats(
+				ctx, channelID, bs.DailyStats,
+			); err != nil {
+				return fmt.Errorf("batch upsert historical stats: %w", err)
 			}
 		}
 	}
