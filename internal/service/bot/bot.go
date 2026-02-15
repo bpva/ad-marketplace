@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	tele "gopkg.in/telebot.v4"
@@ -111,18 +112,52 @@ func New(
 }
 
 func (b *svc) handle(endpoint any, h tele.HandlerFunc) {
+	handler := endpointName(endpoint)
 	b.client.Handle(endpoint, func(c tele.Context) (err error) {
+		start := time.Now()
+		log := b.log.With("update_id", c.Update().ID, "handler", handler)
+
+		log.Info("webhook received", updateAttrs(c)...)
+
 		defer func() {
+			duration := time.Since(start)
 			if r := recover(); r != nil {
-				b.log.Error("bot handler panic",
+				log.Error("bot handler panic",
 					"panic", r,
-					"update_id", c.Update().ID,
+					"duration", duration,
 					"stack", string(debug.Stack()))
 				err = fmt.Errorf("panic: %v", r)
+				return
+			}
+			if err != nil {
+				log.Error("webhook processing failed",
+					"duration", duration,
+					"error", err)
+			} else {
+				log.Info("webhook processed", "duration", duration)
 			}
 		}()
 		return h(c)
 	})
+}
+
+func endpointName(endpoint any) string {
+	s := fmt.Sprint(endpoint)
+	if len(s) > 0 && s[0] == '\a' {
+		return s[1:]
+	}
+	return s
+}
+
+func updateAttrs(c tele.Context) []any {
+	var attrs []any
+	if sender := c.Sender(); sender != nil {
+		attrs = append(attrs, "sender_id", sender.ID)
+	}
+	if chat := c.Chat(); chat != nil {
+		attrs = append(attrs, "chat_id", chat.ID, "chat_type", string(chat.Type))
+	}
+	return attrs
 }
 
 func (b *svc) registerHandlers() {
