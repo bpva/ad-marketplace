@@ -65,7 +65,7 @@ func main() {
 
 	go dbgserver.Run(cfg.HTTP.PrivatePort, log)
 
-	telebotClient, err := telebot.New(cfg.Telegram.BotToken)
+	telebotClient, err := telebot.New(cfg.Telegram.BotToken, log)
 	if err != nil {
 		log.Error("failed to create telebot client", "error", err)
 		os.Exit(1)
