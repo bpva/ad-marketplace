@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"sync"
 
 	"github.com/google/uuid"
@@ -109,25 +110,40 @@ func New(
 	return s
 }
 
+func (b *svc) handle(endpoint any, h tele.HandlerFunc) {
+	b.client.Handle(endpoint, func(c tele.Context) (err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				b.log.Error("bot handler panic",
+					"panic", r,
+					"update_id", c.Update().ID,
+					"stack", string(debug.Stack()))
+				err = fmt.Errorf("panic: %v", r)
+			}
+		}()
+		return h(c)
+	})
+}
+
 func (b *svc) registerHandlers() {
-	b.client.Handle("/start", func(c tele.Context) error {
+	b.handle("/start", func(c tele.Context) error {
 		menu := &tele.ReplyMarkup{}
 		btn := menu.WebApp("Launch Marketplace", &tele.WebApp{URL: b.cfg.MiniAppURL})
 		menu.Inline(menu.Row(btn))
 		return c.Send("Welcome to ADxCHANGE!", menu)
 	})
 
-	b.client.Handle("/add_promo", b.handleAddPromo)
-	b.client.Handle(tele.OnText, b.handleIncomingMessage)
-	b.client.Handle(tele.OnPhoto, b.handleIncomingMessage)
-	b.client.Handle(tele.OnVideo, b.handleIncomingMessage)
-	b.client.Handle(tele.OnDocument, b.handleIncomingMessage)
-	b.client.Handle(tele.OnAnimation, b.handleIncomingMessage)
-	b.client.Handle(tele.OnAudio, b.handleIncomingMessage)
-	b.client.Handle(tele.OnVoice, b.handleIncomingMessage)
-	b.client.Handle(tele.OnVideoNote, b.handleIncomingMessage)
-	b.client.Handle(tele.OnSticker, b.handleIncomingMessage)
-	b.client.Handle(tele.OnMyChatMember, b.handleMyChatMember)
+	b.handle("/add_promo", b.handleAddPromo)
+	b.handle(tele.OnText, b.handleIncomingMessage)
+	b.handle(tele.OnPhoto, b.handleIncomingMessage)
+	b.handle(tele.OnVideo, b.handleIncomingMessage)
+	b.handle(tele.OnDocument, b.handleIncomingMessage)
+	b.handle(tele.OnAnimation, b.handleIncomingMessage)
+	b.handle(tele.OnAudio, b.handleIncomingMessage)
+	b.handle(tele.OnVoice, b.handleIncomingMessage)
+	b.handle(tele.OnVideoNote, b.handleIncomingMessage)
+	b.handle(tele.OnSticker, b.handleIncomingMessage)
+	b.handle(tele.OnMyChatMember, b.handleMyChatMember)
 }
 
 func (b *svc) ProcessUpdate(data []byte) error {
