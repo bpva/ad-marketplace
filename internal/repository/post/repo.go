@@ -41,10 +41,18 @@ func (r *repo) Create(
 	}
 
 	rows, err := r.db.Query(ctx, `
-		INSERT INTO posts (id, user_id, media_group_id, text, entities, media_type, media_file_id, has_media_spoiler, show_caption_above_media)
+		INSERT INTO posts (
+			id, user_id, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media
+		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		RETURNING id, user_id, media_group_id, text, entities, media_type, media_file_id, has_media_spoiler, show_caption_above_media, created_at, deleted_at
-	`, id, userID, mediaGroupID, text, entities, mediaType, mediaFileID, hasMediaSpoiler, showCaptionAboveMedia)
+		RETURNING
+			id, user_id, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media, created_at, deleted_at
+	`, id, userID, mediaGroupID, text, entities,
+		mediaType, mediaFileID, hasMediaSpoiler, showCaptionAboveMedia)
 	if err != nil {
 		return nil, fmt.Errorf("creating post: %w", err)
 	}
@@ -59,7 +67,10 @@ func (r *repo) Create(
 
 func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, user_id, media_group_id, text, entities, media_type, media_file_id, has_media_spoiler, show_caption_above_media, created_at, deleted_at
+		SELECT
+			id, user_id, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media, created_at, deleted_at
 		FROM posts
 		WHERE user_id = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
