@@ -119,7 +119,9 @@ func (b *svc) processMessage(msg *tele.Message) (saved, confusing bool) {
 // HandleUpdate processes a raw update for integration testing.
 func (b *svc) HandleUpdate(upd tele.Update) {
 	if upd.MyChatMember != nil {
-		b.HandleChatMemberUpdate(upd.MyChatMember)
+		if err := b.HandleChatMemberUpdate(upd.MyChatMember); err != nil {
+			b.log.Error("failed to handle chat member update", "error", err)
+		}
 		return
 	}
 	if upd.Message == nil || upd.Message.Sender == nil {
