@@ -138,6 +138,17 @@ export async function fetchPostMediaBlob(postID: string): Promise<string> {
   return URL.createObjectURL(await res.blob());
 }
 
+export async function fetchChannelPhotoBlob(
+  channelId: number,
+  size: "small" | "big" = "small",
+): Promise<string> {
+  const res = await fetch(`${API_URL}/api/v1/channels/${channelId}/photo?size=${size}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error(`Channel photo fetch failed: ${res.status}`);
+  return URL.createObjectURL(await res.blob());
+}
+
 export type TonRates = components["schemas"]["TonRatesResponse"];
 
 export async function fetchTonRates(): Promise<TonRates> {

@@ -18,3 +18,4 @@ _footnotes_
 - [ ] save media to s3
 - [ ] add metrics and alerts
 - [ ] proper category enumeration
+- [ ] store channel pp in s3

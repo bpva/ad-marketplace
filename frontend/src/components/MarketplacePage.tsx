@@ -451,7 +451,7 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
       <div className="flex items-center gap-3">
         <ChannelAvatar
           channelId={channel.id ?? 0}
-          photoUrl={channel.photo_small_url}
+          hasPhoto={!!channel.photo_small_url}
           className="w-10 h-10 flex-shrink-0"
         />
         <div className="min-w-0">
