@@ -130,6 +130,10 @@ export async function fetchTemplates(): Promise<TemplatesResponse> {
   return request<TemplatesResponse>("/api/v1/posts");
 }
 
+export async function sendTemplatePreview(postID: string): Promise<void> {
+  await request(`/api/v1/posts/${postID}/preview`, { method: "POST" });
+}
+
 export async function fetchPostMediaBlob(postID: string): Promise<string> {
   const res = await fetch(`${API_URL}/api/v1/posts/${postID}/media`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},

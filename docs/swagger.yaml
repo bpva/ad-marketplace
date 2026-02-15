@@ -692,7 +692,7 @@ paths:
         name: TgChannelID
         required: true
         type: integer
-      - description: Category slugs (max 3)
+      - description: Categories
         in: body
         name: request
         required: true
@@ -931,6 +931,38 @@ paths:
       security:
       - BearerAuth: []
       summary: List templates
+      tags:
+      - posts
+  /posts/{postID}/preview:
+    post:
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send template preview to chat
       tags:
       - posts
   /ton-rates:

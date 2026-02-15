@@ -476,7 +476,7 @@ export interface paths {
         };
         cookie?: never;
       };
-      /** @description Category slugs (max 3) */
+      /** @description Categories */
       requestBody: {
         content: {
           "application/json": components["schemas"]["UpdateCategoriesRequest"];
@@ -945,6 +945,79 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/posts/{postID}/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Send template preview to chat */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          /** @description Post ID */
+          postID: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Unauthorized */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Forbidden */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Not Found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
