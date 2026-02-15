@@ -37,7 +37,12 @@ func (a *App) HandleGetChannelPhoto() http.HandlerFunc {
 		w.Header().Set("Content-Type", "image/jpeg")
 		w.Header().Set("Cache-Control", "public, max-age=86400")
 		w.WriteHeader(http.StatusOK)
-		w.Write(data)
+		_, err = w.Write(data)
+		if err != nil {
+			log.Error("Failed to write channel photo",
+				"error", err,
+			)
+		}
 	}
 }
 
