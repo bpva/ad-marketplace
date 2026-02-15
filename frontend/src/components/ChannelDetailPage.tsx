@@ -15,16 +15,11 @@ import {
 } from "@/lib/api";
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
 import { getFormatDisplay } from "@/lib/adFormats";
+import { formatCompact } from "@/lib/format";
 
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
   onBack: () => void;
-}
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-  return n.toString();
 }
 
 function formatPrice(nanoTon: number | undefined) {
