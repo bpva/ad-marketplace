@@ -15,22 +15,12 @@ import {
 } from "@/lib/api";
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
 import { getFormatDisplay } from "@/lib/adFormats";
+import { formatCompact } from "@/lib/format";
+import { TonPrice } from "@/components/TonPrice";
 
 interface ChannelDetailPageProps {
   channel: ChannelWithRole;
   onBack: () => void;
-}
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-  return n.toString();
-}
-
-function formatPrice(nanoTon: number | undefined) {
-  if (nanoTon === undefined || nanoTon === 0) return "0";
-  const val = nanoTon / 1e9;
-  return val % 1 === 0 ? val.toString() : parseFloat(val.toPrecision(10)).toString();
 }
 
 export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
@@ -183,7 +173,7 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
                       <p className="text-sm text-muted-foreground">
                         {format.feed_hours}h feed + {format.top_hours}h top
                       </p>
-                      <p className="font-medium">{formatPrice(format.price_nano_ton)} TON</p>
+                      <TonPrice nanoTon={format.price_nano_ton ?? 0} className="text-sm" />
                     </div>
                     {isOwner && (
                       <div className="flex-shrink-0">

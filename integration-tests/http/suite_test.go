@@ -31,6 +31,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
 	"github.com/bpva/ad-marketplace/internal/service/stats"
+	"github.com/bpva/ad-marketplace/internal/service/tonrates"
 	user_service "github.com/bpva/ad-marketplace/internal/service/user"
 	"github.com/bpva/ad-marketplace/internal/storage"
 	"github.com/bpva/ad-marketplace/migrations"
@@ -191,8 +192,9 @@ func setupTestServer(testDB db) *httptest.Server {
 	)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
+	tonRatesSvc := tonrates.New(log)
 
-	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc)
+	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc, tonRatesSvc)
 	return httptest.NewServer(a.Handler())
 }
 

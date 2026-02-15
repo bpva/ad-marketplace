@@ -2,12 +2,7 @@ import { ChevronRight, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChannelWithRole } from "@/lib/api";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-  return n.toString();
-}
+import { formatCompact } from "@/lib/format";
 
 interface ChannelListProps {
   channels: ChannelWithRole[];

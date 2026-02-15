@@ -675,6 +675,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/ton-rates": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rates"
+                ],
+                "summary": "Get TON exchange rates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/TonRatesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/name": {
             "patch": {
                 "security": [
@@ -1280,6 +1305,23 @@ const docTemplate = `{
                 "ThemeDark",
                 "ThemeAuto"
             ]
+        },
+        "TonRatesResponse": {
+            "type": "object",
+            "properties": {
+                "eur": {
+                    "type": "number"
+                },
+                "gbp": {
+                    "type": "number"
+                },
+                "rub": {
+                    "type": "number"
+                },
+                "usd": {
+                    "type": "number"
+                }
+            }
         },
         "UpdateListingRequest": {
             "type": "object",
