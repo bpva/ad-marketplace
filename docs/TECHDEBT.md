@@ -6,6 +6,7 @@ _footnotes_
 - [ ] preferred currency setting
 - [ ] "stats fetcher" user onboarding
 - [ ] l10n: bot, ui
+- [ ] add custom tags and merge concept with categories
 
 # Tech
 
@@ -15,3 +16,4 @@ _footnotes_
 - [ ] true async stats fetching
 - [ ] save media to s3
 - [ ] add metrics and alerts
+- [ ] proper category enumeration
