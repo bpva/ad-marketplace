@@ -35,6 +35,7 @@ type MVChannel struct {
 	StoryReactionsByEmotion map[string]int    `db:"story_reactions_by_emotion"`
 	RecentPosts             []byte            `db:"recent_posts"`
 	AdFormats               []ChannelAdFormat `db:"ad_formats"`
+	Categories              []Category        `db:"categories"`
 	AvgDailyViews1d         *int              `db:"avg_daily_views_1d"`
 	AvgDailyViews7d         *int              `db:"avg_daily_views_7d"`
 	AvgDailyViews30d        *int              `db:"avg_daily_views_30d"`

@@ -355,6 +355,45 @@ func (a *App) HandleAddAdFormat() http.HandlerFunc {
 	}
 }
 
+// HandleUpdateCategories updates channel categories
+//
+//	@Summary		Update channel categories
+//	@Tags			channels
+//	@Accept			json
+//	@Security		BearerAuth
+//	@Param		TgChannelID	path	int	true	"Telegram channel ID"
+//	@Param	request	body	dto.UpdateCategoriesRequest	true	"Categories"
+//	@Success		204
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		401	{object}	dto.ErrorResponse
+//	@Failure		403	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Router			/channels/{TgChannelID}/categories [patch]
+func (a *App) HandleUpdateCategories() http.HandlerFunc {
+	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/categories"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		TgChannelID, err := strconv.ParseInt(chi.URLParam(r, "TgChannelID"), 10, 64)
+		if err != nil {
+			respond.Err(w, log, dto.ErrInvalidChannelID)
+			return
+		}
+
+		var req dto.UpdateCategoriesRequest
+		if err := bind.JSON(r, &req); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		if err := a.channel.UpdateCategories(r.Context(), TgChannelID, req.Categories); err != nil {
+			respond.Err(w, log, err)
+			return
+		}
+
+		respond.NoContent(w)
+	}
+}
+
 // HandleRemoveAdFormat removes an ad format from the channel
 //
 //	@Summary		Remove channel ad format

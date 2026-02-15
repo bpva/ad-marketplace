@@ -66,6 +66,7 @@ func (s *Seeder) truncate(ctx context.Context) error {
 			channel_historical_stats,
 			channel_info,
 			channel_ad_formats,
+			channel_categories,
 			channel_roles,
 			user_settings,
 			channels,
