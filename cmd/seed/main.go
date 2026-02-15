@@ -46,7 +46,7 @@ func main() {
 
 	if err := seeds.New(pool, log).Run(ctx); err != nil {
 		log.Error("seeding failed", "error", err)
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic
 	}
 
 	fmt.Println("seeding complete")
