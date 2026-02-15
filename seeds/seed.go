@@ -41,6 +41,11 @@ func (s *Seeder) Run(ctx context.Context) error {
 	}
 	s.log.Info("channels seeded", "count", len(channels))
 
+	if err := s.seedPosts(ctx, users); err != nil {
+		return fmt.Errorf("seed posts: %w", err)
+	}
+	s.log.Info("posts seeded")
+
 	if err := s.seedStats(ctx, channels); err != nil {
 		return fmt.Errorf("seed stats: %w", err)
 	}
@@ -57,6 +62,7 @@ func (s *Seeder) Run(ctx context.Context) error {
 func (s *Seeder) truncate(ctx context.Context) error {
 	_, err := s.db.Exec(ctx, `
 		TRUNCATE
+			posts,
 			channel_historical_stats,
 			channel_info,
 			channel_ad_formats,
