@@ -328,6 +328,17 @@ definitions:
     - ThemeLight
     - ThemeDark
     - ThemeAuto
+  TonRatesResponse:
+    properties:
+      eur:
+        type: number
+      gbp:
+        type: number
+      rub:
+        type: number
+      usd:
+        type: number
+    type: object
   UpdateListingRequest:
     properties:
       is_listed:
@@ -781,6 +792,22 @@ paths:
       summary: List marketplace channels
       tags:
       - marketplace
+  /ton-rates:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/TonRatesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get TON exchange rates
+      tags:
+      - rates
   /user/name:
     patch:
       consumes:

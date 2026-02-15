@@ -115,25 +115,18 @@ export async function updateChannelListing(channelId: number, isListed: boolean)
   });
 }
 
-export interface MarketplaceChannel {
-  id: number;
-  title: string;
-  username?: string;
-  photo_small_url?: string;
-  subscribers?: number;
-  avg_views?: number;
-  ad_format_count: number;
-  min_price_nano_ton?: number;
-}
+export type MarketplaceChannel = components["schemas"]["MarketplaceChannel"];
+export type MarketplaceChannelsResponse = components["schemas"]["MarketplaceChannelsResponse"];
+export type MarketplaceAdFormat = components["schemas"]["AdFormat"];
+export type MarketplaceFilter = components["schemas"]["MarketplaceFilter"];
+export type ChannelSortBy = components["schemas"]["ChannelSortBy"];
+export type SortOrder = components["schemas"]["SortOrder"];
 
-export interface MarketplaceChannelsResponse {
-  channels: MarketplaceChannel[];
-  total: number;
-}
+export type TonRates = components["schemas"]["TonRatesResponse"];
 
-export type MarketplaceFilter = { name: string; value?: unknown };
-export type ChannelSortBy = "subscribers" | "views";
-export type SortOrder = "asc" | "desc";
+export async function fetchTonRates(): Promise<TonRates> {
+  return request<TonRates>("/api/v1/ton-rates");
+}
 
 export async function fetchMarketplaceChannels(params: {
   filters?: MarketplaceFilter[];
