@@ -7,6 +7,7 @@ _footnotes_
 - [ ] "stats fetcher" user onboarding
 - [ ] l10n: bot, ui
 - [ ] add custom tags and merge concept with categories
+- [ ] on publisher dashboard show things to do (add categoty, add stats sniffer etc)
 
 # Tech
 
