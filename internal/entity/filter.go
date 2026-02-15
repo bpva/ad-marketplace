@@ -34,7 +34,17 @@ func (f Filter) ToSql() (string, []any, error) { //nolint:revive
 	case "has_ad_formats":
 		return "ad_formats IS NOT NULL", nil, nil
 	case "categories":
-		slugs, _ := f.Value.([]string)
+		var slugs []string
+		switch v := f.Value.(type) {
+		case []string:
+			slugs = v
+		case []any:
+			for _, item := range v {
+				if s, ok := item.(string); ok {
+					slugs = append(slugs, s)
+				}
+			}
+		}
 		if len(slugs) == 0 {
 			return "TRUE", nil, nil
 		}
