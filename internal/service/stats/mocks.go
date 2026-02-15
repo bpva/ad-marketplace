@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	dto "github.com/bpva/ad-marketplace/internal/dto"
+	entity "github.com/bpva/ad-marketplace/internal/entity"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,46 +43,31 @@ func (m *MockMTProtoClient) EXPECT() *MockMTProtoClientMockRecorder {
 }
 
 // GetBroadcastStats mocks base method.
-func (m *MockMTProtoClient) GetBroadcastStats(ctx context.Context, channelID, accessHash int64, statsDC int) (*dto.BroadcastStatsResult, error) {
+func (m *MockMTProtoClient) GetBroadcastStats(ctx context.Context, channelID int64, statsDC int) (*entity.BroadcastStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBroadcastStats", ctx, channelID, accessHash, statsDC)
-	ret0, _ := ret[0].(*dto.BroadcastStatsResult)
+	ret := m.ctrl.Call(m, "GetBroadcastStats", ctx, channelID, statsDC)
+	ret0, _ := ret[0].(*entity.BroadcastStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBroadcastStats indicates an expected call of GetBroadcastStats.
-func (mr *MockMTProtoClientMockRecorder) GetBroadcastStats(ctx, channelID, accessHash, statsDC any) *gomock.Call {
+func (mr *MockMTProtoClientMockRecorder) GetBroadcastStats(ctx, channelID, statsDC any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBroadcastStats", reflect.TypeOf((*MockMTProtoClient)(nil).GetBroadcastStats), ctx, channelID, accessHash, statsDC)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBroadcastStats", reflect.TypeOf((*MockMTProtoClient)(nil).GetBroadcastStats), ctx, channelID, statsDC)
 }
 
 // GetChannelFull mocks base method.
-func (m *MockMTProtoClient) GetChannelFull(ctx context.Context, channelID, accessHash int64) (*dto.ChannelFullInfo, error) {
+func (m *MockMTProtoClient) GetChannelFull(ctx context.Context, channelID int64) (*dto.ChannelFullInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChannelFull", ctx, channelID, accessHash)
+	ret := m.ctrl.Call(m, "GetChannelFull", ctx, channelID)
 	ret0, _ := ret[0].(*dto.ChannelFullInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChannelFull indicates an expected call of GetChannelFull.
-func (mr *MockMTProtoClientMockRecorder) GetChannelFull(ctx, channelID, accessHash any) *gomock.Call {
+func (mr *MockMTProtoClientMockRecorder) GetChannelFull(ctx, channelID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelFull", reflect.TypeOf((*MockMTProtoClient)(nil).GetChannelFull), ctx, channelID, accessHash)
-}
-
-// ResolveChannel mocks base method.
-func (m *MockMTProtoClient) ResolveChannel(ctx context.Context, channelID int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResolveChannel", ctx, channelID)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ResolveChannel indicates an expected call of ResolveChannel.
-func (mr *MockMTProtoClientMockRecorder) ResolveChannel(ctx, channelID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveChannel", reflect.TypeOf((*MockMTProtoClient)(nil).ResolveChannel), ctx, channelID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelFull", reflect.TypeOf((*MockMTProtoClient)(nil).GetChannelFull), ctx, channelID)
 }

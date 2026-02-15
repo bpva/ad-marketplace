@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -18,15 +17,6 @@ import (
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
 )
-
-type StatsService interface {
-	GetInfo(ctx context.Context, tgChannelID int64) (*dto.ChannelInfoResponse, error)
-	GetHistory(
-		ctx context.Context,
-		tgChannelID int64,
-		from, to time.Time,
-	) (*dto.ChannelHistoricalStatsResponse, error)
-}
 
 type BotService interface {
 	ProcessUpdate(data []byte) error
@@ -51,6 +41,10 @@ type ChannelService interface {
 	AddAdFormat(ctx context.Context, TgChannelID int64, req dto.AddAdFormatRequest) error
 	RemoveAdFormat(ctx context.Context, TgChannelID int64, formatID uuid.UUID) error
 	GetChannelPhoto(ctx context.Context, tgChannelID int64, size string) ([]byte, error)
+	GetMarketplaceChannels(
+		ctx context.Context,
+		req dto.MarketplaceChannelsRequest,
+	) (*dto.MarketplaceChannelsResponse, error)
 }
 
 type UserService interface {
@@ -65,7 +59,6 @@ type App struct {
 	auth    AuthService
 	channel ChannelService
 	user    UserService
-	stats   StatsService
 	srv     *http.Server
 }
 
@@ -76,7 +69,6 @@ func New(
 	authSvc AuthService,
 	channelSvc ChannelService,
 	userSvc UserService,
-	statsSvc StatsService,
 ) *App {
 	a := &App{
 		log:     log,
@@ -84,7 +76,6 @@ func New(
 		auth:    authSvc,
 		channel: channelSvc,
 		user:    userSvc,
-		stats:   statsSvc,
 	}
 
 	r := chi.NewRouter()
@@ -124,6 +115,10 @@ func New(
 				r.Patch("/settings", a.HandleUpdateSettings())
 			})
 
+			r.Route("/mp", func(r chi.Router) {
+				r.Post("/channels", a.HandleGetMarketplaceChannels())
+			})
+
 			r.Route("/channels", func(r chi.Router) {
 				r.Get("/", a.HandleListChannels())
 				r.Get("/{TgChannelID}", a.HandleGetChannel())
@@ -135,8 +130,6 @@ func New(
 				r.Get("/{TgChannelID}/ad-formats", a.HandleGetAdFormats())
 				r.Post("/{TgChannelID}/ad-formats", a.HandleAddAdFormat())
 				r.Delete("/{TgChannelID}/ad-formats/{formatID}", a.HandleRemoveAdFormat())
-				r.Get("/{TgChannelID}/info", a.HandleGetChannelInfo())
-				r.Get("/{TgChannelID}/stats", a.HandleGetChannelStats())
 			})
 		})
 	})

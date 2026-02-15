@@ -27,18 +27,27 @@ func (c *gateway) parseBroadcastStats(
 	}
 
 	graphs := map[string]json.RawMessage{
-		"growth":                     g(stats.GrowthGraph, "growth_graph"),
-		"followers":                  g(stats.FollowersGraph, "followers_graph"),
-		"mute":                       g(stats.MuteGraph, "mute_graph"),
-		"interactions":               g(stats.InteractionsGraph, "interactions_graph"),
-		"iv_interactions":            g(stats.IvInteractionsGraph, "iv_interactions_graph"),
-		"views_by_source":            g(stats.ViewsBySourceGraph, "views_by_source_graph"),
-		"followers_by_source":        g(stats.NewFollowersBySourceGraph, "new_followers_by_source_graph"),
-		"story_interactions":         g(stats.StoryInteractionsGraph, "story_interactions_graph"),
-		"languages":                  g(stats.LanguagesGraph, "languages_graph"),
-		"top_hours":                  g(stats.TopHoursGraph, "top_hours_graph"),
-		"reactions_by_emotion":       g(stats.ReactionsByEmotionGraph, "reactions_by_emotion_graph"),
-		"story_reactions_by_emotion": g(stats.StoryReactionsByEmotionGraph, "story_reactions_by_emotion_graph"),
+		"growth":          g(stats.GrowthGraph, "growth_graph"),
+		"followers":       g(stats.FollowersGraph, "followers_graph"),
+		"mute":            g(stats.MuteGraph, "mute_graph"),
+		"interactions":    g(stats.InteractionsGraph, "interactions_graph"),
+		"iv_interactions": g(stats.IvInteractionsGraph, "iv_interactions_graph"),
+		"views_by_source": g(stats.ViewsBySourceGraph, "views_by_source_graph"),
+		"followers_by_source": g(
+			stats.NewFollowersBySourceGraph,
+			"new_followers_by_source_graph",
+		),
+		"story_interactions": g(stats.StoryInteractionsGraph, "story_interactions_graph"),
+		"languages":          g(stats.LanguagesGraph, "languages_graph"),
+		"top_hours":          g(stats.TopHoursGraph, "top_hours_graph"),
+		"reactions_by_emotion": g(
+			stats.ReactionsByEmotionGraph,
+			"reactions_by_emotion_graph",
+		),
+		"story_reactions_by_emotion": g(
+			stats.StoryReactionsByEmotionGraph,
+			"story_reactions_by_emotion_graph",
+		),
 	}
 
 	// dump graphs in data.json

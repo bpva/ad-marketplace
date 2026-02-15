@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-
 	_ = godotenv.Load()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()

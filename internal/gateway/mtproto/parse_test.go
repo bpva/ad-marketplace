@@ -77,40 +77,64 @@ func TestDailyStats(t *testing.T) {
 
 	daily := make(map[time.Time]*entity.ChannelHistoricalDayData)
 
-	g.mergeSingleSeries(daily, graphs["growth"], func(d *entity.ChannelHistoricalDayData, v float64) {
-		value := roundToInt64(v)
-		d.Subscribers = &value
-	})
-	g.mergeSingleSeries(daily, graphs["followers"], func(d *entity.ChannelHistoricalDayData, v float64) {
-		value := roundToInt64(v)
-		d.NewFollowers = &value
-	})
+	g.mergeSingleSeries(
+		daily,
+		graphs["growth"],
+		func(d *entity.ChannelHistoricalDayData, v float64) {
+			value := roundToInt64(v)
+			d.Subscribers = &value
+		},
+	)
+	g.mergeSingleSeries(
+		daily,
+		graphs["followers"],
+		func(d *entity.ChannelHistoricalDayData, v float64) {
+			value := roundToInt64(v)
+			d.NewFollowers = &value
+		},
+	)
 	g.mergeSingleSeries(daily, graphs["mute"], func(d *entity.ChannelHistoricalDayData, v float64) {
 		value := v
 		d.MutePct = &value
 	})
-	g.mergeSingleSeries(daily, graphs["interactions"], func(d *entity.ChannelHistoricalDayData, v float64) {
-		value := roundToInt64(v)
-		d.Interactions = &value
-	})
-	g.mergeMultiSeries(daily, graphs["views_by_source"], func(d *entity.ChannelHistoricalDayData, key string, v float64) {
-		if d.ViewsBySource == nil {
-			d.ViewsBySource = make(map[string]int64)
-		}
-		d.ViewsBySource[key] = roundToInt64(v)
-	})
-	g.mergeMultiSeries(daily, graphs["followers_by_source"], func(d *entity.ChannelHistoricalDayData, key string, v float64) {
-		if d.FollowersBySource == nil {
-			d.FollowersBySource = make(map[string]int64)
-		}
-		d.FollowersBySource[key] = roundToInt64(v)
-	})
-	g.mergeMultiSeries(daily, graphs["story_interactions"], func(d *entity.ChannelHistoricalDayData, key string, v float64) {
-		if d.StoryInteractions == nil {
-			d.StoryInteractions = make(map[string]int64)
-		}
-		d.StoryInteractions[key] = roundToInt64(v)
-	})
+	g.mergeSingleSeries(
+		daily,
+		graphs["interactions"],
+		func(d *entity.ChannelHistoricalDayData, v float64) {
+			value := roundToInt64(v)
+			d.Interactions = &value
+		},
+	)
+	g.mergeMultiSeries(
+		daily,
+		graphs["views_by_source"],
+		func(d *entity.ChannelHistoricalDayData, key string, v float64) {
+			if d.ViewsBySource == nil {
+				d.ViewsBySource = make(map[string]int64)
+			}
+			d.ViewsBySource[key] = roundToInt64(v)
+		},
+	)
+	g.mergeMultiSeries(
+		daily,
+		graphs["followers_by_source"],
+		func(d *entity.ChannelHistoricalDayData, key string, v float64) {
+			if d.FollowersBySource == nil {
+				d.FollowersBySource = make(map[string]int64)
+			}
+			d.FollowersBySource[key] = roundToInt64(v)
+		},
+	)
+	g.mergeMultiSeries(
+		daily,
+		graphs["story_interactions"],
+		func(d *entity.ChannelHistoricalDayData, key string, v float64) {
+			if d.StoryInteractions == nil {
+				d.StoryInteractions = make(map[string]int64)
+			}
+			d.StoryInteractions[key] = roundToInt64(v)
+		},
+	)
 
 	result := dailyToSlice(daily)
 
