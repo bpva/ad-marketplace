@@ -49,6 +49,7 @@ type ChannelRepository interface {
 	GetCategoriesByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.Category, error)
 	GetInfo(ctx context.Context, channelID uuid.UUID) (*entity.ChannelInfo, error)
 	HasRecentStats(ctx context.Context, channelID uuid.UUID) (bool, error)
+	GetOwnerWalletAddress(ctx context.Context, channelID uuid.UUID) (*string, error)
 	RefreshMV(ctx context.Context) error
 }
 
@@ -109,8 +110,14 @@ func (s *svc) GetUserChannels(ctx context.Context) (*dto.ChannelsResponse, error
 		if err != nil {
 			return nil, fmt.Errorf("get role: %w", err)
 		}
+		resp := s.channelToResponse(ctx, &channels[i])
+		walletAddr, err := s.channelRepo.GetOwnerWalletAddress(ctx, channels[i].ID)
+		if err != nil && !errors.Is(err, dto.ErrNotFound) {
+			return nil, fmt.Errorf("get owner wallet address: %w", err)
+		}
+		resp.PayoutAddress = walletAddr
 		result = append(result, dto.ChannelWithRoleResponse{
-			Channel: s.channelToResponse(ctx, &channels[i]),
+			Channel: resp,
 			Role:    role.Role,
 		})
 	}
@@ -127,6 +134,11 @@ func (s *svc) GetChannel(
 	}
 
 	resp := s.channelToResponse(ctx, channel)
+	walletAddr, err := s.channelRepo.GetOwnerWalletAddress(ctx, channel.ID)
+	if err != nil && !errors.Is(err, dto.ErrNotFound) {
+		return nil, fmt.Errorf("get owner wallet address: %w", err)
+	}
+	resp.PayoutAddress = walletAddr
 	return &resp, nil
 }
 
@@ -494,6 +506,16 @@ func (s *svc) UpdateListing(ctx context.Context, tgChannelID int64, isListed boo
 	channel, err := s.getChannelEntityAsOwner(ctx, tgChannelID)
 	if err != nil {
 		return err
+	}
+
+	if isListed {
+		walletAddr, err := s.channelRepo.GetOwnerWalletAddress(ctx, channel.ID)
+		if err != nil {
+			return fmt.Errorf("update listing: %w", err)
+		}
+		if walletAddr == nil {
+			return fmt.Errorf("update listing: %w", dto.ErrNoPayoutMethod)
+		}
 	}
 
 	if err := s.channelRepo.UpdateListing(ctx, channel.ID, isListed); err != nil {
