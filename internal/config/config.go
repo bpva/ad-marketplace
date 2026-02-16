@@ -11,6 +11,7 @@ type Config struct {
 	HTTP     HTTP     `yaml:"http"`
 	Postgres Postgres `yaml:"postgres"`
 	Telegram Telegram `yaml:"telegram"`
+	TON      TON      `yaml:"ton"`
 	JWT      JWT      `yaml:"jwt"`
 	Logger   Logger   `yaml:"logger"`
 }
@@ -45,6 +46,12 @@ type Telegram struct {
 
 	RetryDelay time.Duration `yaml:"retry_delay" env:"TG_RETRY_DELAY" env-default:"10s"`
 	MaxRetries int           `yaml:"max_retries" env:"TG_MAX_RETRIES" env-default:"5"`
+}
+
+type TON struct {
+	Provider string `yaml:"provider" env:"TON_PROVIDER" env-default:"toncenter"`
+	Network  string `yaml:"network" env:"TON_NETWORK" env-default:"testnet"`
+	APIKey   string `yaml:"api_key" env:"TON_API_KEY"`
 }
 
 type JWT struct {

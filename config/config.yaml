@@ -9,3 +9,7 @@ logger:
 Telegram:
   retry_delay: 10s
   max_retries: 5
+
+ton:
+  provider: toncenter
+  network: testnet

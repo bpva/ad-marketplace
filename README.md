@@ -21,6 +21,7 @@ cp .env.copy .env
 
 - `BOT_TOKEN` from [@BotFather](https://t.me/BotFather)
 - `TG_API_ID` and `TG_API_HASH` from [my.telegram.org](https://my.telegram.org) (for Telegram channel analytics features)
+- `TON_API_KEY` for TON provider access (MVP uses testnet; defaults: `TON_PROVIDER=toncenter`, `TON_NETWORK=testnet`)
 - `JWT_SECRET` (any random string for local)
 - `TG_PHONE`, `TG_PASSWORD` (if 2FA enabled)
 then
@@ -58,7 +59,8 @@ cp .env.copy .env
 - `ENV=prod`
 - `FRONTEND_URL=https://<your-domain>` (reverse proxy to :1313)
 - `VITE_API_URL=https://<your-api-url>` (reverse proxy to :8090)
-- `BOT_TOKEN`, `TG_API_ID`, `TG_API_HASH`, `JWT_SECRET`, `TG_PHONE`, `TG_PASSWORD`
+- `BOT_TOKEN`, `TG_API_ID`, `TG_API_HASH`, `JWT_SECRET`, `TG_PHONE`, `TG_PASSWORD`, `TON_API_KEY`
+- Keep `TON_NETWORK=testnet` for now (as used in current MVP rollout)
 3. repeat steps from local run with tg-login
 ```bash
 make up
