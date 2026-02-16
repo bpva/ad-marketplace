@@ -285,7 +285,9 @@ func TestCreateDeal_Success(t *testing.T) {
 		TopHours:                2,
 		PriceNanoTON:            5000000000,
 	}
-	copiedPosts := []entity.Post{{ID: uuid.Must(uuid.NewV7()), Type: entity.PostTypeAd, ExternalID: dealID}}
+	copiedPosts := []entity.Post{
+		{ID: uuid.Must(uuid.NewV7()), Type: entity.PostTypeAd, ExternalID: dealID},
+	}
 
 	channelRepo.EXPECT().GetByTgChannelID(ctx, params.TgChannelID).Return(defaultChannel(), nil)
 	channelRepo.EXPECT().GetAdFormatsByChannelID(ctx, channelID).Return(defaultAdFormats(), nil)
@@ -346,7 +348,9 @@ func TestApprove_NoRole(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusPendingReview}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
 
 	err := s.Approve(ctx, dealID)
 	require.Error(t, err)
@@ -357,9 +361,15 @@ func TestApprove_WrongStatus(t *testing.T) {
 	s, dealRepo, channelRepo, _, _, _ := newTestService(t)
 	ctx := ctxWithUser(userID, 123456)
 
-	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusChangesRequested}
+	deal := &entity.Deal{
+		ID:        dealID,
+		ChannelID: channelID,
+		Status:    entity.DealStatusChangesRequested,
+	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 
 	err := s.Approve(ctx, dealID)
 	require.Error(t, err)
@@ -372,8 +382,12 @@ func TestApprove_Success(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusPendingReview}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusApproved, (*string)(nil)).Return(nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusApproved, (*string)(nil)).
+		Return(nil)
 
 	err := s.Approve(ctx, dealID)
 	require.NoError(t, err)
@@ -387,7 +401,9 @@ func TestReject_WrongStatus(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusApproved}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 
 	err := s.Reject(ctx, dealID, nil)
 	require.Error(t, err)
@@ -401,7 +417,9 @@ func TestReject_Success(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusPendingReview}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeManager}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeManager}, nil)
 	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusRejected, &reason).Return(nil)
 
 	err := s.Reject(ctx, dealID, &reason)
@@ -416,7 +434,9 @@ func TestRequestChanges_WrongStatus(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusPendingPayment}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 
 	err := s.RequestChanges(ctx, dealID, "fix text")
 	require.Error(t, err)
@@ -430,8 +450,12 @@ func TestRequestChanges_Success(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, Status: entity.DealStatusPendingReview}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusChangesRequested, &note).Return(nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusChangesRequested, &note).
+		Return(nil)
 
 	err := s.RequestChanges(ctx, dealID, note)
 	require.NoError(t, err)
@@ -451,7 +475,11 @@ func TestSubmitRevision_NotAdvertiser(t *testing.T) {
 	otherUser := uuid.Must(uuid.NewV7())
 	ctx := ctxWithUser(otherUser, 999)
 
-	deal := &entity.Deal{ID: dealID, AdvertiserID: userID, Status: entity.DealStatusChangesRequested}
+	deal := &entity.Deal{
+		ID:           dealID,
+		AdvertiserID: userID,
+		Status:       entity.DealStatusChangesRequested,
+	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
 
 	_, err := s.SubmitRevision(ctx, dealID, nil)
@@ -475,7 +503,11 @@ func TestSubmitRevision_Success(t *testing.T) {
 	s, dealRepo, _, postRepo, _, tx := newTestService(t)
 	ctx := ctxWithUser(userID, 123456)
 
-	deal := &entity.Deal{ID: dealID, AdvertiserID: userID, Status: entity.DealStatusChangesRequested}
+	deal := &entity.Deal{
+		ID:           dealID,
+		AdvertiserID: userID,
+		Status:       entity.DealStatusChangesRequested,
+	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
 
 	v1 := 1
@@ -483,7 +515,9 @@ func TestSubmitRevision_Success(t *testing.T) {
 	postRepo.EXPECT().GetLatestAd(ctx, dealID).Return(latestPosts, nil)
 
 	newPosts := []entity.Post{{Text: strPtr("new text")}}
-	createdPosts := []entity.Post{{ID: uuid.Must(uuid.NewV7()), Type: entity.PostTypeAd, ExternalID: dealID}}
+	createdPosts := []entity.Post{
+		{ID: uuid.Must(uuid.NewV7()), Type: entity.PostTypeAd, ExternalID: dealID},
+	}
 
 	tx.EXPECT().WithTx(ctx, gomock.Any()).DoAndReturn(
 		func(ctx context.Context, f func(context.Context) error) error {
@@ -491,7 +525,9 @@ func TestSubmitRevision_Success(t *testing.T) {
 		},
 	)
 	postRepo.EXPECT().AddAdVersion(ctx, dealID, 2, newPosts).Return(createdPosts, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusPendingReview, (*string)(nil)).Return(nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusPendingReview, (*string)(nil)).
+		Return(nil)
 
 	posts, err := s.SubmitRevision(ctx, dealID, newPosts)
 	require.NoError(t, err)
@@ -562,7 +598,9 @@ func TestCancel_Success_PendingPayment(t *testing.T) {
 		Status: entity.DealStatusPendingPayment, ScheduledAt: time.Now().Add(24 * time.Hour),
 	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).Return(nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).
+		Return(nil)
 
 	err := s.Cancel(ctx, dealID)
 	require.NoError(t, err)
@@ -577,7 +615,9 @@ func TestCancel_Success_PendingReview(t *testing.T) {
 		Status: entity.DealStatusPendingReview, ScheduledAt: time.Now().Add(24 * time.Hour),
 	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).Return(nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).
+		Return(nil)
 
 	err := s.Cancel(ctx, dealID)
 	require.NoError(t, err)
@@ -592,7 +632,9 @@ func TestCancel_Success_ChangesRequested(t *testing.T) {
 		Status: entity.DealStatusChangesRequested, ScheduledAt: time.Now().Add(24 * time.Hour),
 	}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	dealRepo.EXPECT().UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).Return(nil)
+	dealRepo.EXPECT().
+		UpdateStatus(ctx, dealID, entity.DealStatusCancelled, (*string)(nil)).
+		Return(nil)
 
 	err := s.Cancel(ctx, dealID)
 	require.NoError(t, err)
@@ -632,7 +674,9 @@ func TestGetDeal_AsPublisher(t *testing.T) {
 	posts := []entity.Post{{ID: uuid.Must(uuid.NewV7())}}
 
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, publisherID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, publisherID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 	postRepo.EXPECT().GetLatestAd(ctx, dealID).Return(posts, nil)
 
 	d, p, err := s.GetDeal(ctx, dealID)
@@ -648,7 +692,9 @@ func TestGetDeal_Unauthorized(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, AdvertiserID: userID}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, otherUser).Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, otherUser).
+		Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
 
 	_, _, err := s.GetDeal(ctx, dealID)
 	require.Error(t, err)
@@ -662,7 +708,9 @@ func TestListPublisherDeals_NoRole(t *testing.T) {
 	ctx := ctxWithUser(userID, 123456)
 
 	channelRepo.EXPECT().GetByTgChannelID(ctx, int64(-1001234567890)).Return(defaultChannel(), nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
 
 	_, _, err := s.ListPublisherDeals(ctx, -1001234567890, 10, 0)
 	require.Error(t, err)
@@ -675,7 +723,9 @@ func TestListPublisherDeals_Success(t *testing.T) {
 
 	deals := []entity.Deal{{ID: dealID}}
 	channelRepo.EXPECT().GetByTgChannelID(ctx, int64(-1001234567890)).Return(defaultChannel(), nil)
-	channelRepo.EXPECT().GetRole(ctx, channelID, userID).Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
+	channelRepo.EXPECT().
+		GetRole(ctx, channelID, userID).
+		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 	dealRepo.EXPECT().GetByChannelID(ctx, channelID, 10, 0).Return(deals, 1, nil)
 
 	result, total, err := s.ListPublisherDeals(ctx, -1001234567890, 10, 0)

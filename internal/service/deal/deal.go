@@ -20,22 +20,42 @@ import (
 type DealRepository interface {
 	Create(ctx context.Context, deal *entity.Deal) (*entity.Deal, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Deal, error)
-	GetByChannelID(ctx context.Context, channelID uuid.UUID, limit, offset int) ([]entity.Deal, int, error)
-	GetByAdvertiserID(ctx context.Context, advertiserID uuid.UUID, limit, offset int) ([]entity.Deal, int, error)
+	GetByChannelID(
+		ctx context.Context,
+		channelID uuid.UUID,
+		limit, offset int,
+	) ([]entity.Deal, int, error)
+	GetByAdvertiserID(
+		ctx context.Context,
+		advertiserID uuid.UUID,
+		limit, offset int,
+	) ([]entity.Deal, int, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status entity.DealStatus, note *string) error
 }
 
 type ChannelRepository interface {
 	GetByTgChannelID(ctx context.Context, tgChannelID int64) (*entity.Channel, error)
 	GetRole(ctx context.Context, channelID, userID uuid.UUID) (*entity.ChannelRole, error)
-	GetAdFormatsByChannelID(ctx context.Context, channelID uuid.UUID) ([]entity.ChannelAdFormat, error)
+	GetAdFormatsByChannelID(
+		ctx context.Context,
+		channelID uuid.UUID,
+	) ([]entity.ChannelAdFormat, error)
 	GetOwnerWalletAddress(ctx context.Context, channelID uuid.UUID) (*string, error)
 }
 
 type PostRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error)
-	CopyAsAd(ctx context.Context, templatePostID, dealID uuid.UUID, version int) ([]entity.Post, error)
-	AddAdVersion(ctx context.Context, dealID uuid.UUID, version int, posts []entity.Post) ([]entity.Post, error)
+	CopyAsAd(
+		ctx context.Context,
+		templatePostID, dealID uuid.UUID,
+		version int,
+	) ([]entity.Post, error)
+	AddAdVersion(
+		ctx context.Context,
+		dealID uuid.UUID,
+		version int,
+		posts []entity.Post,
+	) ([]entity.Post, error)
 	GetLatestAd(ctx context.Context, dealID uuid.UUID) ([]entity.Post, error)
 }
 
@@ -48,8 +68,17 @@ type Transactor interface {
 }
 
 var validTransitions = map[entity.DealStatus][]entity.DealStatus{
-	entity.DealStatusPendingPayment:   {entity.DealStatusPendingReview, entity.DealStatusHoldFailed, entity.DealStatusCancelled},
-	entity.DealStatusPendingReview:    {entity.DealStatusApproved, entity.DealStatusRejected, entity.DealStatusChangesRequested, entity.DealStatusCancelled},
+	entity.DealStatusPendingPayment: {
+		entity.DealStatusPendingReview,
+		entity.DealStatusHoldFailed,
+		entity.DealStatusCancelled,
+	},
+	entity.DealStatusPendingReview: {
+		entity.DealStatusApproved,
+		entity.DealStatusRejected,
+		entity.DealStatusChangesRequested,
+		entity.DealStatusCancelled,
+	},
 	entity.DealStatusChangesRequested: {entity.DealStatusPendingReview, entity.DealStatusCancelled},
 	entity.DealStatusApproved:         {entity.DealStatusPosted},
 	entity.DealStatusPosted:           {entity.DealStatusCompleted, entity.DealStatusDispute},
@@ -98,7 +127,10 @@ func New(
 	}
 }
 
-func (s *svc) CreateDeal(ctx context.Context, params CreateDealParams) (*entity.Deal, []entity.Post, error) {
+func (s *svc) CreateDeal(
+	ctx context.Context,
+	params CreateDealParams,
+) (*entity.Deal, []entity.Post, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, nil, fmt.Errorf("create deal: %w", dto.ErrForbidden)
@@ -230,7 +262,10 @@ func (s *svc) GetDeal(ctx context.Context, dealID uuid.UUID) (*entity.Deal, []en
 	return deal, posts, nil
 }
 
-func (s *svc) ListAdvertiserDeals(ctx context.Context, limit, offset int) ([]entity.Deal, int, error) {
+func (s *svc) ListAdvertiserDeals(
+	ctx context.Context,
+	limit, offset int,
+) ([]entity.Deal, int, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, 0, fmt.Errorf("list advertiser deals: %w", dto.ErrForbidden)
@@ -244,7 +279,11 @@ func (s *svc) ListAdvertiserDeals(ctx context.Context, limit, offset int) ([]ent
 	return deals, total, nil
 }
 
-func (s *svc) ListPublisherDeals(ctx context.Context, tgChannelID int64, limit, offset int) ([]entity.Deal, int, error) {
+func (s *svc) ListPublisherDeals(
+	ctx context.Context,
+	tgChannelID int64,
+	limit, offset int,
+) ([]entity.Deal, int, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, 0, fmt.Errorf("list publisher deals: %w", dto.ErrForbidden)
@@ -317,7 +356,12 @@ func (s *svc) RequestChanges(ctx context.Context, dealID uuid.UUID, note string)
 		return fmt.Errorf("request changes: %w", dto.ErrInvalidTransition)
 	}
 
-	if err := s.dealRepo.UpdateStatus(ctx, dealID, entity.DealStatusChangesRequested, &note); err != nil {
+	if err := s.dealRepo.UpdateStatus(
+		ctx,
+		dealID,
+		entity.DealStatusChangesRequested,
+		&note,
+	); err != nil {
 		return fmt.Errorf("request changes: %w", err)
 	}
 
@@ -325,7 +369,11 @@ func (s *svc) RequestChanges(ctx context.Context, dealID uuid.UUID, note string)
 	return nil
 }
 
-func (s *svc) SubmitRevision(ctx context.Context, dealID uuid.UUID, newPosts []entity.Post) ([]entity.Post, error) {
+func (s *svc) SubmitRevision(
+	ctx context.Context,
+	dealID uuid.UUID,
+	newPosts []entity.Post,
+) ([]entity.Post, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("submit revision: %w", dto.ErrForbidden)
@@ -391,8 +439,12 @@ func (s *svc) Cancel(ctx context.Context, dealID uuid.UUID) error {
 	}
 
 	if time.Now().After(deal.ScheduledAt) {
-		return fmt.Errorf("cancel deal: %w",
-			dto.ErrValidation.WithDetails(map[string]any{"scheduled_at": "posting time has already arrived"}))
+		return fmt.Errorf(
+			"cancel deal: %w",
+			dto.ErrValidation.WithDetails(
+				map[string]any{"scheduled_at": "posting time has already arrived"},
+			),
+		)
 	}
 
 	if err := s.dealRepo.UpdateStatus(ctx, dealID, entity.DealStatusCancelled, nil); err != nil {
