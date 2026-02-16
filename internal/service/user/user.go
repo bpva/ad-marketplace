@@ -16,6 +16,7 @@ import (
 type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 	UpdateName(ctx context.Context, id uuid.UUID, name string) error
+	UpdateWalletAddress(ctx context.Context, id uuid.UUID, address *string) error
 }
 
 type SettingsRepository interface {
@@ -74,6 +75,34 @@ func (s *svc) UpdateName(ctx context.Context, name string) error {
 	}
 
 	s.log.Info("user name updated", "user_id", user.ID)
+	return nil
+}
+
+func (s *svc) LinkWallet(ctx context.Context, address string) error {
+	user, ok := dto.UserFromContext(ctx)
+	if !ok {
+		return fmt.Errorf("link wallet: %w", dto.ErrForbidden)
+	}
+
+	if err := s.userRepo.UpdateWalletAddress(ctx, user.ID, &address); err != nil {
+		return fmt.Errorf("link wallet: %w", err)
+	}
+
+	s.log.Info("wallet linked", "user_id", user.ID)
+	return nil
+}
+
+func (s *svc) UnlinkWallet(ctx context.Context) error {
+	user, ok := dto.UserFromContext(ctx)
+	if !ok {
+		return fmt.Errorf("unlink wallet: %w", dto.ErrForbidden)
+	}
+
+	if err := s.userRepo.UpdateWalletAddress(ctx, user.ID, nil); err != nil {
+		return fmt.Errorf("unlink wallet: %w", err)
+	}
+
+	s.log.Info("wallet unlinked", "user_id", user.ID)
 	return nil
 }
 

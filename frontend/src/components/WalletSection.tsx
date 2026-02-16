@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { Wallet, ExternalLink, X } from "lucide-react";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { Button } from "@/components/ui/button";
+import { linkWallet, unlinkWallet } from "@/lib/api";
 
 function truncateAddress(address: string): string {
   if (address.length <= 12) return address;
@@ -10,13 +12,25 @@ function truncateAddress(address: string): string {
 export function WalletSection() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
+  const prevAddress = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    const address = wallet?.account?.address;
+    if (address === prevAddress.current) return;
+    prevAddress.current = address;
+
+    if (address) {
+      linkWallet(address).catch(() => {});
+    }
+  }, [wallet?.account?.address]);
 
   const handleConnect = () => {
     tonConnectUI.openModal();
   };
 
-  const handleDisconnect = () => {
-    tonConnectUI.disconnect();
+  const handleDisconnect = async () => {
+    await tonConnectUI.disconnect();
+    unlinkWallet().catch(() => {});
   };
 
   const address = wallet?.account?.address;

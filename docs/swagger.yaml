@@ -202,6 +202,13 @@ definitions:
       percentage:
         type: number
     type: object
+  LinkWalletRequest:
+    properties:
+      address:
+        type: string
+    required:
+    - address
+    type: object
   ManagerResponse:
     properties:
       created_at:
@@ -361,6 +368,8 @@ definitions:
         type: integer
       theme:
         $ref: '#/definitions/Theme'
+      wallet_address:
+        type: string
     type: object
   SortOrder:
     enum:
@@ -1051,6 +1060,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user settings
+      tags:
+      - user
+  /user/wallet:
+    delete:
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlink TON wallet
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Wallet address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/LinkWalletRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Link TON wallet
       tags:
       - user
 securityDefinitions:

@@ -76,6 +76,19 @@ export async function updateSettings(settings: UpdateSettingsRequest): Promise<v
   });
 }
 
+export async function linkWallet(address: string): Promise<void> {
+  await request("/api/v1/user/wallet", {
+    method: "PUT",
+    body: JSON.stringify({ address }),
+  });
+}
+
+export async function unlinkWallet(): Promise<void> {
+  await request("/api/v1/user/wallet", {
+    method: "DELETE",
+  });
+}
+
 export type ChannelsResponse = components["schemas"]["ChannelsResponse"];
 export type ChannelWithRole = components["schemas"]["ChannelWithRoleResponse"];
 export type Channel = components["schemas"]["ChannelResponse"];

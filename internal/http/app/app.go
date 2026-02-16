@@ -52,6 +52,8 @@ type UserService interface {
 	GetProfile(ctx context.Context) (*dto.ProfileResponse, error)
 	UpdateName(ctx context.Context, name string) error
 	UpdateSettings(ctx context.Context, req dto.UpdateSettingsRequest) error
+	LinkWallet(ctx context.Context, address string) error
+	UnlinkWallet(ctx context.Context) error
 }
 
 type PostService interface {
@@ -132,6 +134,8 @@ func New(
 				r.Get("/profile", a.HandleGetProfile())
 				r.Patch("/name", a.HandleUpdateName())
 				r.Patch("/settings", a.HandleUpdateSettings())
+				r.Put("/wallet", a.HandleLinkWallet())
+				r.Delete("/wallet", a.HandleUnlinkWallet())
 			})
 
 			r.Route("/mp", func(r chi.Router) {

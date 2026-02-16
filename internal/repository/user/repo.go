@@ -28,7 +28,7 @@ func New(db db) *repo {
 
 func (r *repo) GetByTgID(ctx context.Context, tgID int64) (*entity.User, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_id, name, created_at, deleted_at
+		SELECT id, telegram_id, name, wallet_address, created_at, deleted_at
 		FROM users
 		WHERE telegram_id = $1 AND deleted_at IS NULL
 	`, tgID)
@@ -56,7 +56,7 @@ func (r *repo) Create(ctx context.Context, tgID int64, name string) (*entity.Use
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO users (id, telegram_id, name)
 		VALUES ($1, $2, $3)
-		RETURNING id, telegram_id, name, created_at, deleted_at
+		RETURNING id, telegram_id, name, wallet_address, created_at, deleted_at
 	`, id, tgID, name)
 	if err != nil {
 		return nil, fmt.Errorf("creating user: %w", err)
@@ -72,7 +72,7 @@ func (r *repo) Create(ctx context.Context, tgID int64, name string) (*entity.Use
 
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, telegram_id, name, created_at, deleted_at
+		SELECT id, telegram_id, name, wallet_address, created_at, deleted_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`, id)
@@ -95,6 +95,14 @@ func (r *repo) UpdateName(ctx context.Context, id uuid.UUID, name string) error 
 	_, err := r.db.Exec(ctx, `UPDATE users SET name = $1 WHERE id = $2`, name, id)
 	if err != nil {
 		return fmt.Errorf("updating user name: %w", err)
+	}
+	return nil
+}
+
+func (r *repo) UpdateWalletAddress(ctx context.Context, id uuid.UUID, address *string) error {
+	_, err := r.db.Exec(ctx, `UPDATE users SET wallet_address = $1 WHERE id = $2`, address, id)
+	if err != nil {
+		return fmt.Errorf("updating wallet address: %w", err)
 	}
 	return nil
 }
