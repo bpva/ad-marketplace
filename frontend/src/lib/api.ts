@@ -12,6 +12,15 @@ export function getToken(): string | null {
   return token;
 }
 
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+  ) {
+    super(`API error: ${status} (${code})`);
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -28,7 +37,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+    let code = "unknown";
+    try {
+      const body = await res.json();
+      if (body.error_code) code = body.error_code;
+    } catch {}
+    throw new ApiError(res.status, code);
   }
 
   if (res.status === 204) {

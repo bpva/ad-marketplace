@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Plus, Users, X, ChevronDown, Tag } from "lucide-react";
+import { ArrowLeft, Plus, Users, X, ChevronDown, Tag, Wallet } from "lucide-react";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,6 +8,7 @@ import { cn, notify } from "@/lib/utils";
 import {
   type ChannelWithRole,
   type AdFormat,
+  ApiError,
   fetchAdFormats,
   updateChannelListing,
   deleteAdFormat,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/api";
 import { AddAdFormatSheet } from "@/components/AddAdFormatSheet";
 import { getFormatDisplay } from "@/lib/adFormats";
-import { formatCompact } from "@/lib/format";
+import { formatCompact, truncateAddress } from "@/lib/format";
 import { TonPrice } from "@/components/TonPrice";
 import { ALL_CATEGORIES } from "@/lib/categories";
 
@@ -60,8 +61,12 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
       await updateChannelListing(channelId, checked);
       setIsListed(checked);
       notify(checked ? "Channel listed" : "Channel unlisted");
-    } catch {
-      notify("Failed to update listing");
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "no_payout_method") {
+        notify("Connect a wallet in Settings first");
+      } else {
+        notify("Failed to update listing");
+      }
     } finally {
       setSaving(false);
     }
@@ -156,6 +161,26 @@ export function ChannelDetailPage({ channel, onBack }: ChannelDetailPageProps) {
             </div>
           </div>
         )}
+
+        <div className="bg-card rounded-lg border border-border p-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <Label className="font-medium">Payout</Label>
+              </div>
+              {channel.channel?.payout_address ? (
+                <p className="text-sm font-mono text-muted-foreground">
+                  {truncateAddress(channel.channel.payout_address)}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No wallet connected — connect in Settings
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
 
         {isOwner && (
           <CategoryEditor
