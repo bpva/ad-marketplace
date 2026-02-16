@@ -3,11 +3,7 @@ import { Wallet, ExternalLink, X } from "lucide-react";
 import { useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { Button } from "@/components/ui/button";
 import { linkWallet, unlinkWallet } from "@/lib/api";
-
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
+import { truncateAddress } from "@/lib/format";
 
 export function WalletSection() {
   const [tonConnectUI] = useTonConnectUI();

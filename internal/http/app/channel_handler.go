@@ -256,6 +256,7 @@ func (a *App) HandleRemoveManager() http.HandlerFunc {
 //	@Failure		401	{object}	dto.ErrorResponse
 //	@Failure		403	{object}	dto.ErrorResponse
 //	@Failure		404	{object}	dto.ErrorResponse
+//	@Failure		422	{object}	dto.ErrorResponse
 //	@Router			/channels/{TgChannelID}/listing [patch]
 func (a *App) HandleUpdateListing() http.HandlerFunc {
 	log := a.log.With(logx.Handler("/api/v1/channels/{TgChannelID}/listing"))

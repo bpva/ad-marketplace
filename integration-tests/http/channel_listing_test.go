@@ -58,6 +58,7 @@ func TestHandleUpdateListing(t *testing.T) {
 			setup: func(t *testing.T) (string, int64, string) {
 				owner, err := testTools.CreateUser(ctx, 7001002, "Owner")
 				require.NoError(t, err)
+				require.NoError(t, testTools.SetWalletAddress(ctx, owner.ID, "EQDtest1234567890"))
 
 				ch, err := testTools.CreateChannel(ctx, -1007001002001, "Unlisted Channel", nil)
 				require.NoError(t, err)
@@ -81,6 +82,30 @@ func TestHandleUpdateListing(t *testing.T) {
 				require.NoError(t, err)
 				assert.True(t, ch.IsListed)
 			},
+		},
+		{
+			name: "owner without wallet cannot list",
+			setup: func(t *testing.T) (string, int64, string) {
+				owner, err := testTools.CreateUser(ctx, 7001009, "No Wallet Owner")
+				require.NoError(t, err)
+
+				ch, err := testTools.CreateChannel(ctx, -1007001009001, "No Wallet Channel", nil)
+				require.NoError(t, err)
+				err = testTools.UpdateChannelListing(ctx, ch.ID, false)
+				require.NoError(t, err)
+				_, err = testTools.CreateChannelRole(
+					ctx,
+					ch.ID,
+					owner.ID,
+					entity.ChannelRoleTypeOwner,
+				)
+				require.NoError(t, err)
+
+				token, err := testTools.GenerateToken(owner)
+				require.NoError(t, err)
+				return "Bearer " + token, ch.TgChannelID, `{"is_listed": true}`
+			},
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			name: "manager tries to update listing",
@@ -230,4 +255,37 @@ func TestChannelResponseIncludesIsListed(t *testing.T) {
 
 	assert.Contains(t, result, "is_listed")
 	assert.True(t, result["is_listed"].(bool))
+}
+
+func TestChannelResponseIncludesPayoutAddress(t *testing.T) {
+	ctx := context.Background()
+
+	owner, err := testTools.CreateUser(ctx, 7003001, "Wallet Owner")
+	require.NoError(t, err)
+	require.NoError(t, testTools.SetWalletAddress(ctx, owner.ID, "EQDpayout_test_address"))
+
+	ch, err := testTools.CreateChannel(ctx, -1007003001001, "Payout Channel", nil)
+	require.NoError(t, err)
+	_, err = testTools.CreateChannelRole(ctx, ch.ID, owner.ID, entity.ChannelRoleTypeOwner)
+	require.NoError(t, err)
+
+	token, err := testTools.GenerateToken(owner)
+	require.NoError(t, err)
+
+	url := fmt.Sprintf("%s/api/v1/channels/%d", testServer.URL, ch.TgChannelID)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+	require.NoError(t, json.Unmarshal(body, &result))
+
+	assert.Equal(t, "EQDpayout_test_address", result["payout_address"])
 }

@@ -604,6 +604,15 @@ export interface paths {
             "*/*": components["schemas"]["ErrorResponse"];
           };
         };
+        /** @description Unprocessable Entity */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "*/*": components["schemas"]["ErrorResponse"];
+          };
+        };
       };
     };
     trace?: never;
@@ -1377,6 +1386,7 @@ export interface components {
       has_stats?: boolean;
       id?: number;
       is_listed?: boolean;
+      payout_address?: string;
       photo_big_url?: string;
       photo_small_url?: string;
       subscribers?: number;

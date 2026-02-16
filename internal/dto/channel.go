@@ -27,6 +27,7 @@ type ChannelResponse struct {
 	AdFormats     []AdFormatResponse `json:"ad_formats"`
 	Categories    []CategoryResponse `json:"categories"`
 	HasStats      bool               `json:"has_stats"`
+	PayoutAddress *string            `json:"payout_address,omitempty"`
 }
 
 type ChannelWithRoleResponse struct {

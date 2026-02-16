@@ -274,6 +274,13 @@ func (t *Tools) GetPostsByUserID(
 	return posts, rows.Err()
 }
 
+func (t *Tools) SetWalletAddress(ctx context.Context, userID uuid.UUID, address string) error {
+	_, err := t.pool.Exec(ctx, `
+		UPDATE users SET wallet_address = $2 WHERE id = $1
+	`, userID, address)
+	return err
+}
+
 func (t *Tools) UpdateChannelListing(
 	ctx context.Context,
 	channelID uuid.UUID,

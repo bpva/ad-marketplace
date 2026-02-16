@@ -397,6 +397,28 @@ func (r *repo) GetCategoriesByChannelID(
 	return categories, nil
 }
 
+func (r *repo) GetOwnerWalletAddress(ctx context.Context, channelID uuid.UUID) (*string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT u.wallet_address
+		FROM channel_roles cr
+		JOIN users u ON u.id = cr.user_id
+		WHERE cr.channel_id = $1 AND cr.role = 'owner'
+	`, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("getting owner wallet address: %w", err)
+	}
+
+	addr, err := pgx.CollectOneRow(rows, pgx.RowTo[*string])
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("getting owner wallet address: %w", dto.ErrNotFound)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting owner wallet address: %w", err)
+	}
+
+	return addr, nil
+}
+
 func (r *repo) DeleteAdFormat(ctx context.Context, formatID uuid.UUID) error {
 	tag, err := r.db.Exec(ctx, `
 		DELETE FROM channel_ad_formats WHERE id = $1

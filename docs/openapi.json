@@ -612,6 +612,16 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1480,6 +1490,9 @@
                     },
                     "is_listed": {
                         "type": "boolean"
+                    },
+                    "payout_address": {
+                        "type": "string"
                     },
                     "photo_big_url": {
                         "type": "string"

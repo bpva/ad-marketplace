@@ -490,6 +490,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1234,6 +1240,9 @@ const docTemplate = `{
                 },
                 "is_listed": {
                     "type": "boolean"
+                },
+                "payout_address": {
+                    "type": "string"
                 },
                 "photo_big_url": {
                     "type": "string"
