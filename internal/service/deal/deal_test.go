@@ -644,25 +644,27 @@ func TestCancel_Success_ChangesRequested(t *testing.T) {
 
 func TestGetDeal_NoContext(t *testing.T) {
 	s, _, _, _, _, _ := newTestService(t)
-	_, _, err := s.GetDeal(context.Background(), dealID)
+	_, _, _, err := s.GetDeal(context.Background(), dealID)
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, dto.ErrForbidden))
 }
 
 func TestGetDeal_AsAdvertiser(t *testing.T) {
-	s, dealRepo, _, postRepo, _, _ := newTestService(t)
+	s, dealRepo, channelRepo, postRepo, _, _ := newTestService(t)
 	ctx := ctxWithUser(userID, 123456)
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, AdvertiserID: userID}
 	posts := []entity.Post{{ID: uuid.Must(uuid.NewV7())}}
 
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
+	channelRepo.EXPECT().GetByID(ctx, channelID).Return(defaultChannel(), nil)
 	postRepo.EXPECT().GetLatestAd(ctx, dealID).Return(posts, nil)
 
-	d, p, err := s.GetDeal(ctx, dealID)
+	d, p, tgChID, err := s.GetDeal(ctx, dealID)
 	require.NoError(t, err)
 	assert.Equal(t, dealID, d.ID)
 	assert.Len(t, p, 1)
+	assert.Equal(t, int64(-1001234567890), tgChID)
 }
 
 func TestGetDeal_AsPublisher(t *testing.T) {
@@ -674,15 +676,17 @@ func TestGetDeal_AsPublisher(t *testing.T) {
 	posts := []entity.Post{{ID: uuid.Must(uuid.NewV7())}}
 
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
+	channelRepo.EXPECT().GetByID(ctx, channelID).Return(defaultChannel(), nil)
 	channelRepo.EXPECT().
 		GetRole(ctx, channelID, publisherID).
 		Return(&entity.ChannelRole{Role: entity.ChannelRoleTypeOwner}, nil)
 	postRepo.EXPECT().GetLatestAd(ctx, dealID).Return(posts, nil)
 
-	d, p, err := s.GetDeal(ctx, dealID)
+	d, p, tgChID, err := s.GetDeal(ctx, dealID)
 	require.NoError(t, err)
 	assert.Equal(t, dealID, d.ID)
 	assert.Len(t, p, 1)
+	assert.Equal(t, int64(-1001234567890), tgChID)
 }
 
 func TestGetDeal_Unauthorized(t *testing.T) {
@@ -692,11 +696,12 @@ func TestGetDeal_Unauthorized(t *testing.T) {
 
 	deal := &entity.Deal{ID: dealID, ChannelID: channelID, AdvertiserID: userID}
 	dealRepo.EXPECT().GetByID(ctx, dealID).Return(deal, nil)
+	channelRepo.EXPECT().GetByID(ctx, channelID).Return(defaultChannel(), nil)
 	channelRepo.EXPECT().
 		GetRole(ctx, channelID, otherUser).
 		Return(nil, fmt.Errorf("get role: %w", dto.ErrNotFound))
 
-	_, _, err := s.GetDeal(ctx, dealID)
+	_, _, _, err := s.GetDeal(ctx, dealID)
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, dto.ErrForbidden))
 }
@@ -721,7 +726,7 @@ func TestListPublisherDeals_Success(t *testing.T) {
 	s, dealRepo, channelRepo, _, _, _ := newTestService(t)
 	ctx := ctxWithUser(userID, 123456)
 
-	deals := []entity.Deal{{ID: dealID}}
+	deals := []entity.Deal{{ID: dealID, ChannelID: channelID}}
 	channelRepo.EXPECT().GetByTgChannelID(ctx, int64(-1001234567890)).Return(defaultChannel(), nil)
 	channelRepo.EXPECT().
 		GetRole(ctx, channelID, userID).
@@ -730,7 +735,9 @@ func TestListPublisherDeals_Success(t *testing.T) {
 
 	result, total, err := s.ListPublisherDeals(ctx, -1001234567890, 10, 0)
 	require.NoError(t, err)
-	assert.Len(t, result, 1)
+	require.Len(t, result, 1)
+	assert.Equal(t, int64(-1001234567890), result[0].TgChannelID)
+	assert.Equal(t, dealID, result[0].ID)
 	assert.Equal(t, 1, total)
 }
 
@@ -744,15 +751,18 @@ func TestListAdvertiserDeals_NoContext(t *testing.T) {
 }
 
 func TestListAdvertiserDeals_Success(t *testing.T) {
-	s, dealRepo, _, _, _, _ := newTestService(t)
+	s, dealRepo, channelRepo, _, _, _ := newTestService(t)
 	ctx := ctxWithUser(userID, 123456)
 
-	deals := []entity.Deal{{ID: dealID}}
+	deals := []entity.Deal{{ID: dealID, ChannelID: channelID}}
 	dealRepo.EXPECT().GetByAdvertiserID(ctx, userID, 10, 0).Return(deals, 1, nil)
+	channelRepo.EXPECT().GetByID(ctx, channelID).Return(defaultChannel(), nil)
 
 	result, total, err := s.ListAdvertiserDeals(ctx, 10, 0)
 	require.NoError(t, err)
-	assert.Len(t, result, 1)
+	require.Len(t, result, 1)
+	assert.Equal(t, int64(-1001234567890), result[0].TgChannelID)
+	assert.Equal(t, dealID, result[0].ID)
 	assert.Equal(t, 1, total)
 }
 

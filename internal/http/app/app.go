@@ -16,6 +16,7 @@ import (
 	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/http/middleware"
+	"github.com/bpva/ad-marketplace/internal/service/deal"
 )
 
 type BotService interface {
@@ -66,6 +67,24 @@ type TonRatesService interface {
 	GetRates(ctx context.Context) (*dto.TonRatesResponse, error)
 }
 
+type DealService interface {
+	CreateDeal(
+		ctx context.Context,
+		params deal.CreateDealParams,
+	) (*entity.Deal, []entity.Post, error)
+	GetDeal(ctx context.Context, dealID uuid.UUID) (*entity.Deal, []entity.Post, int64, error)
+	ListAdvertiserDeals(ctx context.Context, limit, offset int) ([]dto.DealListItem, int, error)
+	ListPublisherDeals(
+		ctx context.Context,
+		tgChannelID int64,
+		limit, offset int,
+	) ([]dto.DealListItem, int, error)
+	Approve(ctx context.Context, dealID uuid.UUID) error
+	Reject(ctx context.Context, dealID uuid.UUID, reason *string) error
+	RequestChanges(ctx context.Context, dealID uuid.UUID, note string) error
+	Cancel(ctx context.Context, dealID uuid.UUID) error
+}
+
 type App struct {
 	log      *slog.Logger
 	bot      BotService
@@ -74,6 +93,7 @@ type App struct {
 	user     UserService
 	post     PostService
 	tonRates TonRatesService
+	deal     DealService
 	srv      *http.Server
 }
 
@@ -86,6 +106,7 @@ func New(
 	userSvc UserService,
 	postSvc PostService,
 	tonRatesSvc TonRatesService,
+	dealSvc DealService,
 ) *App {
 	a := &App{
 		log:      log,
@@ -95,6 +116,7 @@ func New(
 		user:     userSvc,
 		post:     postSvc,
 		tonRates: tonRatesSvc,
+		deal:     dealSvc,
 	}
 
 	r := chi.NewRouter()
@@ -157,6 +179,16 @@ func New(
 				r.Get("/{TgChannelID}/ad-formats", a.HandleGetAdFormats())
 				r.Post("/{TgChannelID}/ad-formats", a.HandleAddAdFormat())
 				r.Delete("/{TgChannelID}/ad-formats/{formatID}", a.HandleRemoveAdFormat())
+			})
+
+			r.Route("/deals", func(r chi.Router) {
+				r.Post("/", a.HandleCreateDeal())
+				r.Get("/", a.HandleListDeals())
+				r.Get("/{dealID}", a.HandleGetDeal())
+				r.Post("/{dealID}/approve", a.HandleApproveDeal())
+				r.Post("/{dealID}/reject", a.HandleRejectDeal())
+				r.Post("/{dealID}/request-changes", a.HandleRequestChanges())
+				r.Post("/{dealID}/cancel", a.HandleCancelDeal())
 			})
 		})
 	})

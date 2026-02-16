@@ -35,6 +35,7 @@ type DealRepository interface {
 
 type ChannelRepository interface {
 	GetByTgChannelID(ctx context.Context, tgChannelID int64) (*entity.Channel, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error)
 	GetRole(ctx context.Context, channelID, userID uuid.UUID) (*entity.ChannelRole, error)
 	GetAdFormatsByChannelID(
 		ctx context.Context,
@@ -233,39 +234,47 @@ func (s *svc) CreateDeal(
 	return created, posts, nil
 }
 
-func (s *svc) GetDeal(ctx context.Context, dealID uuid.UUID) (*entity.Deal, []entity.Post, error) {
+func (s *svc) GetDeal(
+	ctx context.Context,
+	dealID uuid.UUID,
+) (*entity.Deal, []entity.Post, int64, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
-		return nil, nil, fmt.Errorf("get deal: %w", dto.ErrForbidden)
+		return nil, nil, 0, fmt.Errorf("get deal: %w", dto.ErrForbidden)
 	}
 
 	deal, err := s.dealRepo.GetByID(ctx, dealID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("get deal: %w", err)
+		return nil, nil, 0, fmt.Errorf("get deal: %w", err)
+	}
+
+	channel, err := s.channelRepo.GetByID(ctx, deal.ChannelID)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("get channel: %w", err)
 	}
 
 	if deal.AdvertiserID != user.ID {
 		_, err := s.channelRepo.GetRole(ctx, deal.ChannelID, user.ID)
 		if errors.Is(err, dto.ErrNotFound) {
-			return nil, nil, fmt.Errorf("get deal: %w", dto.ErrForbidden)
+			return nil, nil, 0, fmt.Errorf("get deal: %w", dto.ErrForbidden)
 		}
 		if err != nil {
-			return nil, nil, fmt.Errorf("get role: %w", err)
+			return nil, nil, 0, fmt.Errorf("get role: %w", err)
 		}
 	}
 
 	posts, err := s.postRepo.GetLatestAd(ctx, dealID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("get latest ad: %w", err)
+		return nil, nil, 0, fmt.Errorf("get latest ad: %w", err)
 	}
 
-	return deal, posts, nil
+	return deal, posts, channel.TgChannelID, nil
 }
 
 func (s *svc) ListAdvertiserDeals(
 	ctx context.Context,
 	limit, offset int,
-) ([]entity.Deal, int, error) {
+) ([]dto.DealListItem, int, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, 0, fmt.Errorf("list advertiser deals: %w", dto.ErrForbidden)
@@ -276,14 +285,32 @@ func (s *svc) ListAdvertiserDeals(
 		return nil, 0, fmt.Errorf("list advertiser deals: %w", err)
 	}
 
-	return deals, total, nil
+	items := make([]dto.DealListItem, len(deals))
+	channelCache := make(map[uuid.UUID]int64)
+	for i := range deals {
+		tgChannelID, ok := channelCache[deals[i].ChannelID]
+		if !ok {
+			ch, err := s.channelRepo.GetByID(ctx, deals[i].ChannelID)
+			if err != nil {
+				return nil, 0, fmt.Errorf("get channel: %w", err)
+			}
+			tgChannelID = ch.TgChannelID
+			channelCache[deals[i].ChannelID] = tgChannelID
+		}
+		items[i] = dto.DealListItem{
+			Deal:        deals[i],
+			TgChannelID: tgChannelID,
+		}
+	}
+
+	return items, total, nil
 }
 
 func (s *svc) ListPublisherDeals(
 	ctx context.Context,
 	tgChannelID int64,
 	limit, offset int,
-) ([]entity.Deal, int, error) {
+) ([]dto.DealListItem, int, error) {
 	user, ok := dto.UserFromContext(ctx)
 	if !ok {
 		return nil, 0, fmt.Errorf("list publisher deals: %w", dto.ErrForbidden)
@@ -307,7 +334,15 @@ func (s *svc) ListPublisherDeals(
 		return nil, 0, fmt.Errorf("list publisher deals: %w", err)
 	}
 
-	return deals, total, nil
+	items := make([]dto.DealListItem, len(deals))
+	for i := range deals {
+		items[i] = dto.DealListItem{
+			Deal:        deals[i],
+			TgChannelID: tgChannelID,
+		}
+	}
+
+	return items, total, nil
 }
 
 func (s *svc) Approve(ctx context.Context, dealID uuid.UUID) error {

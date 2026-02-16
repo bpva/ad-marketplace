@@ -31,6 +31,8 @@ var (
 	ErrTooManyCategories    = new(http.StatusBadRequest, "too_many_categories")
 	ErrInvalidCategory      = new(http.StatusBadRequest, "invalid_category")
 	ErrInvalidTransition    = new(http.StatusBadRequest, "invalid_transition")
+	ErrInvalidDealID        = new(http.StatusBadRequest, "invalid_deal_id")
+	ErrInvalidRole          = new(http.StatusBadRequest, "invalid_role")
 
 	// 401 Unauthorized
 	ErrUnauthorized = new(http.StatusUnauthorized, "unauthorized")
