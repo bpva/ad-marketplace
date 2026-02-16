@@ -7,12 +7,14 @@ RUN go mod download
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/worker ./cmd/worker
 
 FROM alpine:3.23
 
 WORKDIR /app
 
 COPY --from=builder /app/server .
+COPY --from=builder /app/worker .
 COPY config/config.yaml ./config/
 COPY .session.json ./.session.json
 
