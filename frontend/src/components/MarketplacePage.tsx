@@ -21,6 +21,7 @@ import { Pie, PieChart, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis } fro
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import { useMarketplace } from "@/hooks/useMarketplace";
 import { ChannelAvatar } from "@/components/ChannelAvatar";
+import { CreateDealPage } from "@/components/CreateDealPage";
 import type { MarketplaceChannel, MarketplaceAdFormat } from "@/lib/api";
 import { formatCompact } from "@/lib/format";
 import { TonPrice } from "@/components/TonPrice";
@@ -46,6 +47,11 @@ export function MarketplacePage() {
     setSelectedCategories,
   } = useMarketplace();
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const [selectedChannel, setSelectedChannel] = useState<MarketplaceChannel | null>(null);
+
+  if (selectedChannel) {
+    return <CreateDealPage channel={selectedChannel} onBack={() => setSelectedChannel(null)} />;
+  }
 
   return (
     <div className="flex-1 flex flex-col p-4">
@@ -104,7 +110,11 @@ export function MarketplacePage() {
         ) : (
           <div className="space-y-3">
             {channels.map((ch) => (
-              <MarketplaceCard key={ch.id} channel={ch} />
+              <MarketplaceCard
+                key={ch.id}
+                channel={ch}
+                onAdvertise={() => setSelectedChannel(ch)}
+              />
             ))}
           </div>
         )}
@@ -432,7 +442,13 @@ function topReactions(reactions?: Record<string, number>, limit = 3): [string, n
     .slice(0, limit);
 }
 
-function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
+function MarketplaceCard({
+  channel,
+  onAdvertise,
+}: {
+  channel: MarketplaceChannel;
+  onAdvertise?: () => void;
+}) {
   const formats = channel.ad_formats ?? [];
   const prices = formats.map((f) => f.price_nano_ton).filter((p): p is number => p != null);
   const cheapest = prices.length ? Math.min(...prices) : null;
@@ -586,16 +602,17 @@ function MarketplaceCard({ channel }: { channel: MarketplaceChannel }) {
             ))}
           </div>
         )}
-        {cheapest != null && <PlaceAdButton nanoTon={cheapest} />}
+        {cheapest != null && <PlaceAdButton nanoTon={cheapest} onClick={onAdvertise} />}
       </div>
     </div>
   );
 }
 
-function PlaceAdButton({ nanoTon }: { nanoTon: number }) {
+function PlaceAdButton({ nanoTon, onClick }: { nanoTon: number; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="ml-auto flex-shrink-0 flex flex-col items-end rounded-lg border border-primary/40 dark:bg-primary/5 px-2.5 py-1.5 transition-colors active:bg-primary/10"
     >
       <span className="flex items-center gap-0.5 text-sm font-semibold leading-snug text-primary">

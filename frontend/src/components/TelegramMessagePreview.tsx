@@ -80,7 +80,7 @@ function ChannelHeader({ onBack }: { onBack: () => void }) {
   );
 }
 
-function ChannelPost({ template }: { template: TemplateResponse }) {
+export function ChannelPost({ template }: { template: TemplateResponse }) {
   const hasMedia = template.media && template.media.length > 0;
   const showCaptionAbove = hasMedia && template.media!.some((m) => m.show_caption_above_media);
 

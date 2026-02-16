@@ -193,6 +193,20 @@ export async function updateCategories(channelId: number, categories: string[]):
   });
 }
 
+export type CreateDealRequest = components["schemas"]["CreateDealRequest"];
+export type DealResponse = components["schemas"]["DealResponse"];
+export type DealsResponse = components["schemas"]["DealsResponse"];
+export type DealStatus = components["schemas"]["DealStatus"];
+export type RejectRequest = components["schemas"]["RejectRequest"];
+export type RequestChangesRequest = components["schemas"]["RequestChangesRequest"];
+
+export async function createDeal(req: CreateDealRequest): Promise<DealResponse> {
+  return request<DealResponse>("/api/v1/deals", {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
+}
+
 export async function fetchMarketplaceChannels(params: {
   filters?: MarketplaceFilter[];
   sort_by?: ChannelSortBy;
