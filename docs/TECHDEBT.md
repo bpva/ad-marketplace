@@ -8,6 +8,7 @@ _footnotes_
 - [ ] l10n: bot, ui
 - [ ] add custom tags and merge concept with categories
 - [ ] on publisher dashboard show things to do (add categoty, add stats sniffer etc)
+- [ ] group templates into campaigns
 
 # Tech
 

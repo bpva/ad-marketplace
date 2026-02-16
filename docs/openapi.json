@@ -1869,6 +1869,9 @@
                             "$ref": "#/components/schemas/PostMediaItem"
                         }
                     },
+                    "name": {
+                        "type": "string"
+                    },
                     "text": {
                         "type": "string"
                     }

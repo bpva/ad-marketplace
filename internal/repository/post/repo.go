@@ -27,6 +27,7 @@ func New(db db) *repo {
 func (r *repo) Create(
 	ctx context.Context,
 	userID uuid.UUID,
+	name *string,
 	mediaGroupID *string,
 	text *string,
 	entities []byte,
@@ -42,16 +43,16 @@ func (r *repo) Create(
 
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO posts (
-			id, user_id, media_group_id, text, entities,
+			id, user_id, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING
-			id, user_id, media_group_id, text, entities,
+			id, user_id, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
-	`, id, userID, mediaGroupID, text, entities,
+	`, id, userID, name, mediaGroupID, text, entities,
 		mediaType, mediaFileID, hasMediaSpoiler, showCaptionAboveMedia)
 	if err != nil {
 		return nil, fmt.Errorf("creating post: %w", err)
@@ -68,7 +69,7 @@ func (r *repo) Create(
 func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, media_group_id, text, entities,
+			id, user_id, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts
@@ -90,7 +91,7 @@ func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, media_group_id, text, entities,
+			id, user_id, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts
@@ -111,7 +112,7 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) 
 func (r *repo) GetByMediaGroupID(ctx context.Context, mediaGroupID string) ([]entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, media_group_id, text, entities,
+			id, user_id, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts

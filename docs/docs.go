@@ -1619,6 +1619,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/PostMediaItem"
                     }
                 },
+                "name": {
+                    "type": "string"
+                },
                 "text": {
                     "type": "string"
                 }

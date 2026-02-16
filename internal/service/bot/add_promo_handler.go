@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	tele "gopkg.in/telebot.v4"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
@@ -20,8 +22,12 @@ type pendingGroup struct {
 }
 
 func (b *svc) handleAddPromo(c tele.Context) error {
-	b.awaitingPost.Store(c.Sender().ID, true)
-	return c.Send("Send me a post and I'll save it for your campaigns.")
+	name := strings.TrimSpace(strings.TrimPrefix(c.Message().Text, "/add_promo"))
+	if name == "" {
+		name = petname.Generate(2, " ")
+	}
+	b.awaitingPost.Store(c.Sender().ID, name)
+	return c.Send(fmt.Sprintf("Send me a post and I'll save it under name \"%s\".", name))
 }
 
 func (b *svc) handleIncomingMessage(c tele.Context) error {
@@ -51,9 +57,11 @@ func (b *svc) processMessage(msg *tele.Message) (saved, confusing bool) {
 	mediaType, mediaFileID := extractMedia(msg)
 	isMedia := mediaType != nil
 
-	if _, ok := b.awaitingPost.Load(msg.Sender.ID); !ok {
+	val, ok := b.awaitingPost.Load(msg.Sender.ID)
+	if !ok {
 		return false, !isMedia
 	}
+	name := val.(string)
 
 	var text *string
 	var entities []byte
@@ -100,6 +108,7 @@ func (b *svc) processMessage(msg *tele.Message) (saved, confusing bool) {
 	_, err = b.postRepo.Create(
 		ctx,
 		user.ID,
+		&name,
 		mediaGroupID,
 		text,
 		entities,
@@ -130,7 +139,11 @@ func (b *svc) HandleUpdate(upd tele.Update) {
 	msg := upd.Message
 
 	if strings.HasPrefix(msg.Text, "/add_promo") {
-		b.awaitingPost.Store(msg.Sender.ID, true)
+		name := strings.TrimSpace(strings.TrimPrefix(msg.Text, "/add_promo"))
+		if name == "" {
+			name = petname.Generate(2, " ")
+		}
+		b.awaitingPost.Store(msg.Sender.ID, name)
 		return
 	}
 

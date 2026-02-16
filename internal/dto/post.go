@@ -16,6 +16,7 @@ type PostMediaItem struct {
 
 type TemplateResponse struct {
 	ID        string          `json:"id"`
+	Name      *string         `json:"name,omitempty"`
 	Text      *string         `json:"text,omitempty"`
 	Entities  json.RawMessage `json:"entities,omitempty"`
 	Media     []PostMediaItem `json:"media,omitempty"`

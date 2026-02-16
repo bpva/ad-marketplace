@@ -317,6 +317,7 @@ func groupPosts(posts []entity.Post) []dto.TemplateResponse {
 
 		tmpl := dto.TemplateResponse{
 			ID:        p.ID.String(),
+			Name:      p.Name,
 			Text:      p.Text,
 			CreatedAt: p.CreatedAt,
 		}

@@ -230,10 +230,10 @@ func (t *Tools) CreatePost(
 	err = t.pool.QueryRow(ctx, `
 		INSERT INTO posts (id, user_id, media_group_id, text, entities, media_type, media_file_id)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, user_id, media_group_id, text, entities, media_type, media_file_id,
+		RETURNING id, user_id, name, media_group_id, text, entities, media_type, media_file_id,
 			has_media_spoiler, show_caption_above_media, created_at, deleted_at
 	`, id, userID, mediaGroupID, text, entities, mediaType, mediaFileID).Scan(
-		&p.ID, &p.UserID, &p.MediaGroupID, &p.Text, &p.Entities,
+		&p.ID, &p.UserID, &p.Name, &p.MediaGroupID, &p.Text, &p.Entities,
 		&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
 		&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
 	)
@@ -248,7 +248,7 @@ func (t *Tools) GetPostsByUserID(
 	userID uuid.UUID,
 ) ([]entity.Post, error) {
 	rows, err := t.pool.Query(ctx, `
-		SELECT id, user_id, media_group_id, text, entities, media_type, media_file_id,
+		SELECT id, user_id, name, media_group_id, text, entities, media_type, media_file_id,
 			has_media_spoiler, show_caption_above_media, created_at, deleted_at
 		FROM posts
 		WHERE user_id = $1 AND deleted_at IS NULL
@@ -263,7 +263,7 @@ func (t *Tools) GetPostsByUserID(
 	for rows.Next() {
 		var p entity.Post
 		if err := rows.Scan(
-			&p.ID, &p.UserID, &p.MediaGroupID, &p.Text, &p.Entities,
+			&p.ID, &p.UserID, &p.Name, &p.MediaGroupID, &p.Text, &p.Entities,
 			&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
 			&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
 		); err != nil {
