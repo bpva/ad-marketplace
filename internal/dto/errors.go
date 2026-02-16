@@ -40,6 +40,9 @@ var (
 	// 404 Not Found
 	ErrNotFound = new(http.StatusNotFound, "not_found")
 
+	// 422 Unprocessable Entity
+	ErrNoPayoutMethod = new(http.StatusUnprocessableEntity, "no_payout_method")
+
 	// 409 Conflict
 	ErrAdFormatExists = new(http.StatusConflict, "ad_format_exists")
 
