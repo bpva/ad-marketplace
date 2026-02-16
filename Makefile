@@ -10,7 +10,7 @@ GOFUMPT_VERSION := v0.7.0
 GOLANGCI_LINT_VERSION := v2.1.6
 SWAG_VERSION := v1.16.6
 
-.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs build-frontend seed
+.PHONY: up down wipe dev-logs logs-back logs-front lint deploy generate test-integration deps fmt fmt-go fmt-gofumpt fmt-lines fmt-fe swagger gen-types docs build-frontend seed tg-login
 
 # Bootstrap
 up:
@@ -87,3 +87,6 @@ test-integration:
 
 seed:
 	go run ./cmd/seed
+
+tg-login:
+	docker run --rm -i --env-file .env -v $(PWD):/app -w /app golang:1.25.6-alpine3.23 sh -lc "go run ./cmd/tglogin"
