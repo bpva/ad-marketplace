@@ -157,6 +157,21 @@ func (mr *MockChannelRepositoryMockRecorder) GetAdFormatsByChannelID(ctx, channe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAdFormatsByChannelID", reflect.TypeOf((*MockChannelRepository)(nil).GetAdFormatsByChannelID), ctx, channelID)
 }
 
+// GetByID mocks base method.
+func (m *MockChannelRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Channel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
+	ret0, _ := ret[0].(*entity.Channel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockChannelRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockChannelRepository)(nil).GetByID), ctx, id)
+}
+
 // GetByTgChannelID mocks base method.
 func (m *MockChannelRepository) GetByTgChannelID(ctx context.Context, tgChannelID int64) (*entity.Channel, error) {
 	m.ctrl.T.Helper()

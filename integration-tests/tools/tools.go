@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/bpva/ad-marketplace/internal/dto"
@@ -339,6 +340,48 @@ func (t *Tools) CreateAdFormat(
 		return nil, err
 	}
 	return &af, nil
+}
+
+func (t *Tools) CreateDeal(
+	ctx context.Context,
+	channelID, advertiserID uuid.UUID,
+	status entity.DealStatus,
+	scheduledAt time.Time,
+	formatType entity.AdFormatType,
+	isNative bool,
+	feedHours, topHours int,
+	priceNanoTON int64,
+) (*entity.Deal, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := t.pool.Query(ctx, `
+		INSERT INTO deals (
+			id, channel_id, advertiser_id, status, scheduled_at,
+			format_type, is_native, feed_hours, top_hours, price_nano_ton
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING
+			id, channel_id, advertiser_id, status, scheduled_at,
+			publisher_note, escrow_wallet_address, advertiser_wallet_address,
+			payout_wallet_address, format_type, is_native, feed_hours,
+			top_hours, price_nano_ton, posted_message_ids,
+			paid_at, payment_tx_hash, posted_at, release_tx_hash,
+			refund_tx_hash, created_at, updated_at
+	`, id, channelID, advertiserID, status, scheduledAt,
+		formatType, isNative, feedHours, topHours, priceNanoTON)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.Deal])
+	if err != nil {
+		return nil, err
+	}
+
+	return &d, nil
 }
 
 func (t *Tools) GetAdFormatsByChannelID(
