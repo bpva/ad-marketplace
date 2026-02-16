@@ -656,6 +656,426 @@
                 }
             }
         },
+        "/deals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "List deals",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "advertiser",
+                        "description": "Role",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Channel ID",
+                        "name": "channel_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DealsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Create deal",
+                "parameters": [
+                    {
+                        "description": "Deal details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateDealRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/DealResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/deals/{dealID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Get deal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deal ID",
+                        "name": "dealID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DealResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/deals/{dealID}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Approve deal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deal ID",
+                        "name": "dealID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/deals/{dealID}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Cancel deal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deal ID",
+                        "name": "dealID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/deals/{dealID}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Reject deal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deal ID",
+                        "name": "dealID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rejection reason",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/RejectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/deals/{dealID}/request-changes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deals"
+                ],
+                "summary": "Request changes on deal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deal ID",
+                        "name": "dealID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RequestChangesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "security": [
@@ -1299,6 +1719,126 @@
                 }
             }
         },
+        "CreateDealRequest": {
+            "type": "object",
+            "required": [
+                "channel_id",
+                "feed_hours",
+                "format_type",
+                "price_nano_ton",
+                "scheduled_at",
+                "template_post_id",
+                "top_hours"
+            ],
+            "properties": {
+                "channel_id": {
+                    "type": "integer"
+                },
+                "feed_hours": {
+                    "type": "integer"
+                },
+                "format_type": {
+                    "$ref": "#/definitions/AdFormatType"
+                },
+                "is_native": {
+                    "type": "boolean"
+                },
+                "price_nano_ton": {
+                    "type": "integer"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "template_post_id": {
+                    "type": "string"
+                },
+                "top_hours": {
+                    "type": "integer"
+                }
+            }
+        },
+        "DealResponse": {
+            "type": "object",
+            "properties": {
+                "ad": {
+                    "$ref": "#/definitions/TemplateResponse"
+                },
+                "channel_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "feed_hours": {
+                    "type": "integer"
+                },
+                "format_type": {
+                    "$ref": "#/definitions/AdFormatType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_native": {
+                    "type": "boolean"
+                },
+                "price_nano_ton": {
+                    "type": "integer"
+                },
+                "publisher_note": {
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/DealStatus"
+                },
+                "top_hours": {
+                    "type": "integer"
+                }
+            }
+        },
+        "DealStatus": {
+            "type": "string",
+            "enum": [
+                "pending_payment",
+                "hold_failed",
+                "pending_review",
+                "changes_requested",
+                "approved",
+                "rejected",
+                "cancelled",
+                "posted",
+                "completed",
+                "dispute"
+            ],
+            "x-enum-varnames": [
+                "DealStatusPendingPayment",
+                "DealStatusHoldFailed",
+                "DealStatusPendingReview",
+                "DealStatusChangesRequested",
+                "DealStatusApproved",
+                "DealStatusRejected",
+                "DealStatusCancelled",
+                "DealStatusPosted",
+                "DealStatusCompleted",
+                "DealStatusDispute"
+            ]
+        },
+        "DealsResponse": {
+            "type": "object",
+            "properties": {
+                "deals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DealResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1575,6 +2115,25 @@
                     "$ref": "#/definitions/Theme"
                 },
                 "wallet_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "RejectRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "RequestChangesRequest": {
+            "type": "object",
+            "required": [
+                "note"
+            ],
+            "properties": {
+                "note": {
                     "type": "string"
                 }
             }
