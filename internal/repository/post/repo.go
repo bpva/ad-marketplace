@@ -140,3 +140,123 @@ func (r *repo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (r *repo) CopyAsAd(
+	ctx context.Context, templatePostID, dealID uuid.UUID, version int,
+) ([]entity.Post, error) {
+	source, err := r.GetByID(ctx, templatePostID)
+	if err != nil {
+		return nil, fmt.Errorf("copying as ad: %w", err)
+	}
+
+	var sources []entity.Post
+	if source.MediaGroupID != nil {
+		sources, err = r.GetByMediaGroupID(ctx, *source.MediaGroupID)
+		if err != nil {
+			return nil, fmt.Errorf("copying as ad: %w", err)
+		}
+	} else {
+		sources = []entity.Post{*source}
+	}
+
+	var newMediaGroupID *string
+	if source.MediaGroupID != nil {
+		mgID := uuid.Must(uuid.NewV7()).String()
+		newMediaGroupID = &mgID
+	}
+
+	var result []entity.Post
+	for i, s := range sources {
+		var name *string
+		if i == 0 {
+			name = s.Name
+		}
+		p, err := r.Create(ctx, entity.PostTypeAd, dealID, &version, name,
+			newMediaGroupID, s.Text, s.Entities, s.MediaType, s.MediaFileID,
+			s.HasMediaSpoiler, s.ShowCaptionAboveMedia)
+		if err != nil {
+			return nil, fmt.Errorf("copying as ad: %w", err)
+		}
+		result = append(result, *p)
+	}
+
+	return result, nil
+}
+
+func (r *repo) AddAdVersion(
+	ctx context.Context, dealID uuid.UUID, version int, posts []entity.Post,
+) ([]entity.Post, error) {
+	var newMediaGroupID *string
+	if len(posts) > 1 {
+		mgID := uuid.Must(uuid.NewV7()).String()
+		newMediaGroupID = &mgID
+	}
+
+	var result []entity.Post
+	for _, s := range posts {
+		p, err := r.Create(ctx, entity.PostTypeAd, dealID, &version, s.Name,
+			newMediaGroupID, s.Text, s.Entities, s.MediaType, s.MediaFileID,
+			s.HasMediaSpoiler, s.ShowCaptionAboveMedia)
+		if err != nil {
+			return nil, fmt.Errorf("adding ad version: %w", err)
+		}
+		result = append(result, *p)
+	}
+
+	return result, nil
+}
+
+func (r *repo) GetAdVersions(ctx context.Context, dealID uuid.UUID) (map[int][]entity.Post, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			id, type, external_id, version, name, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media, created_at, deleted_at
+		FROM posts
+		WHERE type = 'ad' AND external_id = $1 AND deleted_at IS NULL
+		ORDER BY version ASC, created_at ASC
+	`, dealID)
+	if err != nil {
+		return nil, fmt.Errorf("getting ad versions: %w", err)
+	}
+
+	posts, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Post])
+	if err != nil {
+		return nil, fmt.Errorf("getting ad versions: %w", err)
+	}
+
+	versions := make(map[int][]entity.Post)
+	for _, p := range posts {
+		if p.Version != nil {
+			versions[*p.Version] = append(versions[*p.Version], p)
+		}
+	}
+
+	return versions, nil
+}
+
+func (r *repo) GetLatestAd(ctx context.Context, dealID uuid.UUID) ([]entity.Post, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			id, type, external_id, version, name, media_group_id, text, entities,
+			media_type, media_file_id, has_media_spoiler,
+			show_caption_above_media, created_at, deleted_at
+		FROM posts
+		WHERE type = 'ad' AND external_id = $1 AND deleted_at IS NULL
+			AND version = (
+				SELECT MAX(version) FROM posts
+				WHERE type = 'ad' AND external_id = $1 AND deleted_at IS NULL
+			)
+		ORDER BY created_at ASC
+	`, dealID)
+	if err != nil {
+		return nil, fmt.Errorf("getting latest ad: %w", err)
+	}
+
+	posts, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Post])
+	if err != nil {
+		return nil, fmt.Errorf("getting latest ad: %w", err)
+	}
+
+	return posts, nil
+}
