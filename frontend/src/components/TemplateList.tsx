@@ -94,7 +94,8 @@ function TemplateCard({ template, onClick }: { template: TemplateResponse; onCli
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm truncate">{textPreview}</p>
+        {template.name && <p className="text-sm font-medium truncate">{template.name}</p>}
+        <p className="text-sm text-muted-foreground truncate">{textPreview}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-muted-foreground">
             {template.created_at ? formatRelativeDate(template.created_at) : ""}

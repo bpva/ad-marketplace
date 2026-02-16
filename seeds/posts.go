@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
+	petname "github.com/dustinkirkland/golang-petname"
 )
 
 func (s *Seeder) seedPosts(ctx context.Context, users []seedUser) error {
@@ -61,9 +62,11 @@ func (s *Seeder) seedPosts(ctx context.Context, users []seedUser) error {
 
 	for _, d := range defs {
 		text := d.text
+		name := petname.Generate(2, " ")
 		_, err := posts.Create(
 			ctx,
 			users[d.userIdx].entity.ID,
+			&name,
 			nil,
 			&text,
 			d.entities,

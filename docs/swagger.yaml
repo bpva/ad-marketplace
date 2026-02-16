@@ -395,6 +395,8 @@ definitions:
         items:
           $ref: '#/definitions/PostMediaItem'
         type: array
+      name:
+        type: string
       text:
         type: string
     type: object

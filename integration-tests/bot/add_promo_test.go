@@ -41,6 +41,8 @@ func TestHandleAddPromo(t *testing.T) {
 				assert.Equal(t, "Check out our amazing product!", *posts[0].Text)
 				assert.Nil(t, posts[0].MediaType)
 				assert.Nil(t, posts[0].MediaFileID)
+				require.NotNil(t, posts[0].Name)
+				assert.NotEmpty(t, *posts[0].Name)
 			},
 		},
 		{
@@ -100,7 +102,44 @@ func TestHandleAddPromo(t *testing.T) {
 					assert.Equal(t, "album-123", *p.MediaGroupID)
 					require.NotNil(t, p.MediaType)
 					assert.Equal(t, entity.MediaTypePhoto, *p.MediaType)
+					require.NotNil(t, p.Name)
 				}
+				assert.Equal(t, *posts[0].Name, *posts[1].Name)
+				assert.Equal(t, *posts[0].Name, *posts[2].Name)
+			},
+		},
+		{
+			name: "explicit name from command",
+			updates: []tele.Update{
+				createCommandUpdate(111222333, "/add_promo my campaign"),
+				createTextUpdate(111222333, "Campaign post content"),
+			},
+			checkPosts: func(t *testing.T) {
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
+				require.NoError(t, err)
+
+				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				require.NoError(t, err)
+				require.Len(t, posts, 1)
+				require.NotNil(t, posts[0].Name)
+				assert.Equal(t, "my campaign", *posts[0].Name)
+			},
+		},
+		{
+			name: "auto-generated name when no argument",
+			updates: []tele.Update{
+				createCommandUpdate(111222333, "/add_promo"),
+				createTextUpdate(111222333, "Some post"),
+			},
+			checkPosts: func(t *testing.T) {
+				user, err := testTools.GetUserByTgID(ctx, 111222333)
+				require.NoError(t, err)
+
+				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				require.NoError(t, err)
+				require.Len(t, posts, 1)
+				require.NotNil(t, posts[0].Name)
+				assert.NotEmpty(t, *posts[0].Name)
 			},
 		},
 	}

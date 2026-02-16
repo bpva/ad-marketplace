@@ -1506,6 +1506,7 @@ export interface components {
       entities?: number[];
       id?: string;
       media?: components["schemas"]["PostMediaItem"][];
+      name?: string;
       text?: string;
     };
     TemplatesResponse: {

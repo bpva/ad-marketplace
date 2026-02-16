@@ -37,6 +37,7 @@ func (m *MediaType) Scan(src any) error {
 type Post struct {
 	ID                    uuid.UUID  `db:"id"`
 	UserID                uuid.UUID  `db:"user_id"`
+	Name                  *string    `db:"name"`
 	MediaGroupID          *string    `db:"media_group_id"`
 	Text                  *string    `db:"text"`
 	Entities              []byte     `db:"entities"`

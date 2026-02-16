@@ -62,6 +62,7 @@ type PostRepository interface {
 	Create(
 		ctx context.Context,
 		userID uuid.UUID,
+		name *string,
 		mediaGroupID *string,
 		text *string,
 		entities []byte,
