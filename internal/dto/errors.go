@@ -30,6 +30,7 @@ var (
 	ErrInvalidFormatID      = new(http.StatusBadRequest, "invalid_format_id")
 	ErrTooManyCategories    = new(http.StatusBadRequest, "too_many_categories")
 	ErrInvalidCategory      = new(http.StatusBadRequest, "invalid_category")
+	ErrInvalidTransition    = new(http.StatusBadRequest, "invalid_transition")
 
 	// 401 Unauthorized
 	ErrUnauthorized = new(http.StatusUnauthorized, "unauthorized")
@@ -41,10 +42,12 @@ var (
 	ErrNotFound = new(http.StatusNotFound, "not_found")
 
 	// 422 Unprocessable Entity
-	ErrNoPayoutMethod = new(http.StatusUnprocessableEntity, "no_payout_method")
+	ErrNoPayoutMethod   = new(http.StatusUnprocessableEntity, "no_payout_method")
+	ErrChannelNotListed = new(http.StatusUnprocessableEntity, "channel_not_listed")
 
 	// 409 Conflict
 	ErrAdFormatExists = new(http.StatusConflict, "ad_format_exists")
+	ErrPriceMismatch  = new(http.StatusConflict, "price_mismatch")
 
 	// 500 Internal Server Error
 	ErrInternalError = new(http.StatusInternalServerError, "internal_error")

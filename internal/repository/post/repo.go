@@ -2,12 +2,14 @@ package post
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/bpva/ad-marketplace/internal/dto"
 	"github.com/bpva/ad-marketplace/internal/entity"
 )
 
@@ -104,6 +106,9 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) 
 	}
 
 	p, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.Post])
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("getting post by id: %w", dto.ErrNotFound)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("getting post by id: %w", err)
 	}
