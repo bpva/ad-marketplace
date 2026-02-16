@@ -26,7 +26,9 @@ func New(db db) *repo {
 
 func (r *repo) Create(
 	ctx context.Context,
-	userID uuid.UUID,
+	postType entity.PostType,
+	externalID uuid.UUID,
+	version *int,
 	name *string,
 	mediaGroupID *string,
 	text *string,
@@ -43,16 +45,16 @@ func (r *repo) Create(
 
 	rows, err := r.db.Query(ctx, `
 		INSERT INTO posts (
-			id, user_id, name, media_group_id, text, entities,
+			id, type, external_id, version, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING
-			id, user_id, name, media_group_id, text, entities,
+			id, type, external_id, version, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
-	`, id, userID, name, mediaGroupID, text, entities,
+	`, id, postType, externalID, version, name, mediaGroupID, text, entities,
 		mediaType, mediaFileID, hasMediaSpoiler, showCaptionAboveMedia)
 	if err != nil {
 		return nil, fmt.Errorf("creating post: %w", err)
@@ -66,23 +68,23 @@ func (r *repo) Create(
 	return &p, nil
 }
 
-func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post, error) {
+func (r *repo) GetTemplatesByOwner(ctx context.Context, ownerID uuid.UUID) ([]entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, name, media_group_id, text, entities,
+			id, type, external_id, version, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts
-		WHERE user_id = $1 AND deleted_at IS NULL
+		WHERE type = 'template' AND external_id = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
-	`, userID)
+	`, ownerID)
 	if err != nil {
-		return nil, fmt.Errorf("getting posts by user id: %w", err)
+		return nil, fmt.Errorf("getting templates by owner: %w", err)
 	}
 
 	posts, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Post])
 	if err != nil {
-		return nil, fmt.Errorf("getting posts by user id: %w", err)
+		return nil, fmt.Errorf("getting templates by owner: %w", err)
 	}
 
 	return posts, nil
@@ -91,7 +93,7 @@ func (r *repo) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post
 func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, name, media_group_id, text, entities,
+			id, type, external_id, version, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts
@@ -112,7 +114,7 @@ func (r *repo) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) 
 func (r *repo) GetByMediaGroupID(ctx context.Context, mediaGroupID string) ([]entity.Post, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
-			id, user_id, name, media_group_id, text, entities,
+			id, type, external_id, version, name, media_group_id, text, entities,
 			media_type, media_file_id, has_media_spoiler,
 			show_caption_above_media, created_at, deleted_at
 		FROM posts

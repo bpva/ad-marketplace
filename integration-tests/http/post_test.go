@@ -49,7 +49,17 @@ func TestHandleListTemplates(t *testing.T) {
 
 				text := "Hello **world**"
 				entities := []byte(`[{"type":"bold","offset":6,"length":9}]`)
-				_, err = testTools.CreatePost(ctx, user.ID, nil, &text, entities, nil, nil)
+				_, err = testTools.CreatePost(
+					ctx,
+					entity.PostTypeTemplate,
+					user.ID,
+					nil,
+					nil,
+					&text,
+					entities,
+					nil,
+					nil,
+				)
 				require.NoError(t, err)
 
 				token, err := testTools.GenerateToken(user)
@@ -81,7 +91,9 @@ func TestHandleListTemplates(t *testing.T) {
 
 				_, err = testTools.CreatePost(
 					ctx,
+					entity.PostTypeTemplate,
 					user.ID,
+					nil,
 					&groupID,
 					&caption,
 					nil,
@@ -91,7 +103,9 @@ func TestHandleListTemplates(t *testing.T) {
 				require.NoError(t, err)
 				_, err = testTools.CreatePost(
 					ctx,
+					entity.PostTypeTemplate,
 					user.ID,
+					nil,
 					&groupID,
 					nil,
 					nil,
@@ -123,9 +137,29 @@ func TestHandleListTemplates(t *testing.T) {
 
 				text1 := "User 1 post"
 				text2 := "User 2 post"
-				_, err = testTools.CreatePost(ctx, user1.ID, nil, &text1, nil, nil, nil)
+				_, err = testTools.CreatePost(
+					ctx,
+					entity.PostTypeTemplate,
+					user1.ID,
+					nil,
+					nil,
+					&text1,
+					nil,
+					nil,
+					nil,
+				)
 				require.NoError(t, err)
-				_, err = testTools.CreatePost(ctx, user2.ID, nil, &text2, nil, nil, nil)
+				_, err = testTools.CreatePost(
+					ctx,
+					entity.PostTypeTemplate,
+					user2.ID,
+					nil,
+					nil,
+					&text2,
+					nil,
+					nil,
+					nil,
+				)
 				require.NoError(t, err)
 
 				token, err := testTools.GenerateToken(user1)
@@ -186,7 +220,17 @@ func TestHandleGetPostMedia(t *testing.T) {
 
 		photoType := entity.MediaTypePhoto
 		fileID := "test_file_id"
-		post, err := testTools.CreatePost(ctx, user.ID, nil, nil, nil, &photoType, &fileID)
+		post, err := testTools.CreatePost(
+			ctx,
+			entity.PostTypeTemplate,
+			user.ID,
+			nil,
+			nil,
+			nil,
+			nil,
+			&photoType,
+			&fileID,
+		)
 		require.NoError(t, err)
 
 		token, err := testTools.GenerateToken(user)
@@ -218,7 +262,17 @@ func TestHandleGetPostMedia(t *testing.T) {
 
 		photoType := entity.MediaTypePhoto
 		fileID := "test_file_id"
-		post, err := testTools.CreatePost(ctx, user1.ID, nil, nil, nil, &photoType, &fileID)
+		post, err := testTools.CreatePost(
+			ctx,
+			entity.PostTypeTemplate,
+			user1.ID,
+			nil,
+			nil,
+			nil,
+			nil,
+			&photoType,
+			&fileID,
+		)
 		require.NoError(t, err)
 
 		token, err := testTools.GenerateToken(user2)

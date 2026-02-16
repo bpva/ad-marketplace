@@ -34,9 +34,18 @@ func (m *MediaType) Scan(src any) error {
 	return nil
 }
 
+type PostType string
+
+const (
+	PostTypeTemplate PostType = "template"
+	PostTypeAd       PostType = "ad"
+)
+
 type Post struct {
 	ID                    uuid.UUID  `db:"id"`
-	UserID                uuid.UUID  `db:"user_id"`
+	Type                  PostType   `db:"type"`
+	ExternalID            uuid.UUID  `db:"external_id"`
+	Version               *int       `db:"version"`
 	Name                  *string    `db:"name"`
 	MediaGroupID          *string    `db:"media_group_id"`
 	Text                  *string    `db:"text"`

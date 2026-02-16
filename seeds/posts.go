@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bpva/ad-marketplace/internal/entity"
 	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	petname "github.com/dustinkirkland/golang-petname"
 )
@@ -65,7 +66,9 @@ func (s *Seeder) seedPosts(ctx context.Context, users []seedUser) error {
 		name := petname.Generate(2, " ")
 		_, err := posts.Create(
 			ctx,
+			entity.PostTypeTemplate,
 			users[d.userIdx].entity.ID,
+			nil,
 			&name,
 			nil,
 			&text,

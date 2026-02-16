@@ -107,7 +107,9 @@ func (b *svc) processMessage(msg *tele.Message) (saved, confusing bool) {
 
 	_, err = b.postRepo.Create(
 		ctx,
+		entity.PostTypeTemplate,
 		user.ID,
+		nil,
 		&name,
 		mediaGroupID,
 		text,

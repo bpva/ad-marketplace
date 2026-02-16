@@ -61,7 +61,9 @@ type StatsFetcher interface {
 type PostRepository interface {
 	Create(
 		ctx context.Context,
-		userID uuid.UUID,
+		postType entity.PostType,
+		externalID uuid.UUID,
+		version *int,
 		name *string,
 		mediaGroupID *string,
 		text *string,

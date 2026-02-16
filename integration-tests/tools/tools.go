@@ -214,7 +214,9 @@ func (t *Tools) GetUserByTgID(ctx context.Context, tgID int64) (*entity.User, er
 
 func (t *Tools) CreatePost(
 	ctx context.Context,
-	userID uuid.UUID,
+	postType entity.PostType,
+	externalID uuid.UUID,
+	version *int,
 	mediaGroupID *string,
 	text *string,
 	entities []byte,
@@ -228,12 +230,12 @@ func (t *Tools) CreatePost(
 
 	var p entity.Post
 	err = t.pool.QueryRow(ctx, `
-		INSERT INTO posts (id, user_id, media_group_id, text, entities, media_type, media_file_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, user_id, name, media_group_id, text, entities, media_type, media_file_id,
+		INSERT INTO posts (id, type, external_id, version, media_group_id, text, entities, media_type, media_file_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, type, external_id, version, name, media_group_id, text, entities, media_type, media_file_id,
 			has_media_spoiler, show_caption_above_media, created_at, deleted_at
-	`, id, userID, mediaGroupID, text, entities, mediaType, mediaFileID).Scan(
-		&p.ID, &p.UserID, &p.Name, &p.MediaGroupID, &p.Text, &p.Entities,
+	`, id, postType, externalID, version, mediaGroupID, text, entities, mediaType, mediaFileID).Scan(
+		&p.ID, &p.Type, &p.ExternalID, &p.Version, &p.Name, &p.MediaGroupID, &p.Text, &p.Entities,
 		&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
 		&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
 	)
@@ -243,17 +245,17 @@ func (t *Tools) CreatePost(
 	return &p, nil
 }
 
-func (t *Tools) GetPostsByUserID(
+func (t *Tools) GetTemplatesByOwner(
 	ctx context.Context,
-	userID uuid.UUID,
+	ownerID uuid.UUID,
 ) ([]entity.Post, error) {
 	rows, err := t.pool.Query(ctx, `
-		SELECT id, user_id, name, media_group_id, text, entities, media_type, media_file_id,
+		SELECT id, type, external_id, version, name, media_group_id, text, entities, media_type, media_file_id,
 			has_media_spoiler, show_caption_above_media, created_at, deleted_at
 		FROM posts
-		WHERE user_id = $1 AND deleted_at IS NULL
+		WHERE type = 'template' AND external_id = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
-	`, userID)
+	`, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -263,9 +265,20 @@ func (t *Tools) GetPostsByUserID(
 	for rows.Next() {
 		var p entity.Post
 		if err := rows.Scan(
-			&p.ID, &p.UserID, &p.Name, &p.MediaGroupID, &p.Text, &p.Entities,
-			&p.MediaType, &p.MediaFileID, &p.HasMediaSpoiler,
-			&p.ShowCaptionAboveMedia, &p.CreatedAt, &p.DeletedAt,
+			&p.ID,
+			&p.Type,
+			&p.ExternalID,
+			&p.Version,
+			&p.Name,
+			&p.MediaGroupID,
+			&p.Text,
+			&p.Entities,
+			&p.MediaType,
+			&p.MediaFileID,
+			&p.HasMediaSpoiler,
+			&p.ShowCaptionAboveMedia,
+			&p.CreatedAt,
+			&p.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
