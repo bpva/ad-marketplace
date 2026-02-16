@@ -24,12 +24,14 @@ import (
 	"github.com/bpva/ad-marketplace/internal/entity"
 	"github.com/bpva/ad-marketplace/internal/http/app"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	deal_repo "github.com/bpva/ad-marketplace/internal/repository/deal"
 	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	deal_service "github.com/bpva/ad-marketplace/internal/service/deal"
 	post_service "github.com/bpva/ad-marketplace/internal/service/post"
 	"github.com/bpva/ad-marketplace/internal/service/stats"
 	"github.com/bpva/ad-marketplace/internal/service/tonrates"
@@ -195,10 +197,13 @@ func setupTestServer(testDB db) *httptest.Server {
 	)
 	channelSvc := channel_service.New(channelRepo, userRepo, telebotMock, testDB, log)
 	userSvc := user_service.New(userRepo, settingsRepo, log)
-	postSvc := post_service.New(post_repo.New(testDB), telebotMock, log)
+	postRepo := post_repo.New(testDB)
+	postSvc := post_service.New(postRepo, telebotMock, log)
 	tonRatesSvc := tonrates.New(log)
+	dealRepo := deal_repo.New(testDB)
+	dealSvc := deal_service.New(dealRepo, channelRepo, postRepo, userRepo, testDB, log)
 
-	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc, postSvc, tonRatesSvc)
+	a := app.New(httpCfg, log, botSvc, authSvc, channelSvc, userSvc, postSvc, tonRatesSvc, dealSvc)
 	return httptest.NewServer(a.Handler())
 }
 

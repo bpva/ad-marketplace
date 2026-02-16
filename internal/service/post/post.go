@@ -15,7 +15,7 @@ import (
 )
 
 type PostRepository interface {
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Post, error)
+	GetTemplatesByOwner(ctx context.Context, ownerID uuid.UUID) ([]entity.Post, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error)
 	GetByMediaGroupID(ctx context.Context, mediaGroupID string) ([]entity.Post, error)
 }
@@ -47,7 +47,7 @@ func (s *svc) GetUserTemplates(ctx context.Context) (*dto.TemplatesResponse, err
 		return nil, fmt.Errorf("get user templates: %w", dto.ErrForbidden)
 	}
 
-	posts, err := s.postRepo.GetByUserID(ctx, user.ID)
+	posts, err := s.postRepo.GetTemplatesByOwner(ctx, user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get posts: %w", err)
 	}
@@ -67,7 +67,7 @@ func (s *svc) GetPostMedia(ctx context.Context, postID uuid.UUID) ([]byte, error
 		return nil, fmt.Errorf("get post: %w", err)
 	}
 
-	if post.UserID != user.ID {
+	if post.Type != entity.PostTypeTemplate || post.ExternalID != user.ID {
 		return nil, fmt.Errorf("get post media: %w", dto.ErrForbidden)
 	}
 
@@ -94,7 +94,7 @@ func (s *svc) SendPreview(ctx context.Context, postID uuid.UUID) error {
 		return fmt.Errorf("get post: %w", err)
 	}
 
-	if post.UserID != user.ID {
+	if post.Type != entity.PostTypeTemplate || post.ExternalID != user.ID {
 		return fmt.Errorf("send preview: %w", dto.ErrForbidden)
 	}
 

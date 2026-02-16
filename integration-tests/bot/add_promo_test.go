@@ -34,7 +34,7 @@ func TestHandleAddPromo(t *testing.T) {
 				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				require.Len(t, posts, 1)
 				require.NotNil(t, posts[0].Text)
@@ -55,7 +55,7 @@ func TestHandleAddPromo(t *testing.T) {
 				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				require.Len(t, posts, 1)
 				require.NotNil(t, posts[0].Text)
@@ -76,7 +76,7 @@ func TestHandleAddPromo(t *testing.T) {
 				if err != nil {
 					return
 				}
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				assert.Empty(t, posts)
 			},
@@ -93,7 +93,7 @@ func TestHandleAddPromo(t *testing.T) {
 				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				require.Len(t, posts, 3)
 
@@ -118,7 +118,7 @@ func TestHandleAddPromo(t *testing.T) {
 				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				require.Len(t, posts, 1)
 				require.NotNil(t, posts[0].Name)
@@ -135,7 +135,7 @@ func TestHandleAddPromo(t *testing.T) {
 				user, err := testTools.GetUserByTgID(ctx, 111222333)
 				require.NoError(t, err)
 
-				posts, err := testTools.GetPostsByUserID(ctx, user.ID)
+				posts, err := testTools.GetTemplatesByOwner(ctx, user.ID)
 				require.NoError(t, err)
 				require.Len(t, posts, 1)
 				require.NotNil(t, posts[0].Name)

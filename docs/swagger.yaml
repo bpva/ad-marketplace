@@ -181,6 +181,93 @@ definitions:
           $ref: '#/definitions/ChannelWithRoleResponse'
         type: array
     type: object
+  CreateDealRequest:
+    properties:
+      channel_id:
+        type: integer
+      feed_hours:
+        type: integer
+      format_type:
+        $ref: '#/definitions/AdFormatType'
+      is_native:
+        type: boolean
+      price_nano_ton:
+        type: integer
+      scheduled_at:
+        type: string
+      template_post_id:
+        type: string
+      top_hours:
+        type: integer
+    required:
+    - channel_id
+    - feed_hours
+    - format_type
+    - price_nano_ton
+    - scheduled_at
+    - template_post_id
+    - top_hours
+    type: object
+  DealResponse:
+    properties:
+      ad:
+        $ref: '#/definitions/TemplateResponse'
+      channel_id:
+        type: integer
+      created_at:
+        type: string
+      feed_hours:
+        type: integer
+      format_type:
+        $ref: '#/definitions/AdFormatType'
+      id:
+        type: string
+      is_native:
+        type: boolean
+      price_nano_ton:
+        type: integer
+      publisher_note:
+        type: string
+      scheduled_at:
+        type: string
+      status:
+        $ref: '#/definitions/DealStatus'
+      top_hours:
+        type: integer
+    type: object
+  DealStatus:
+    enum:
+    - pending_payment
+    - hold_failed
+    - pending_review
+    - changes_requested
+    - approved
+    - rejected
+    - cancelled
+    - posted
+    - completed
+    - dispute
+    type: string
+    x-enum-varnames:
+    - DealStatusPendingPayment
+    - DealStatusHoldFailed
+    - DealStatusPendingReview
+    - DealStatusChangesRequested
+    - DealStatusApproved
+    - DealStatusRejected
+    - DealStatusCancelled
+    - DealStatusPosted
+    - DealStatusCompleted
+    - DealStatusDispute
+  DealsResponse:
+    properties:
+      deals:
+        items:
+          $ref: '#/definitions/DealResponse'
+        type: array
+      total:
+        type: integer
+    type: object
   ErrorResponse:
     properties:
       details:
@@ -372,6 +459,18 @@ definitions:
         $ref: '#/definitions/Theme'
       wallet_address:
         type: string
+    type: object
+  RejectRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  RequestChangesRequest:
+    properties:
+      note:
+        type: string
+    required:
+    - note
     type: object
   SortOrder:
     enum:
@@ -883,6 +982,272 @@ paths:
       summary: Remove channel manager
       tags:
       - channels
+  /deals:
+    get:
+      parameters:
+      - default: advertiser
+        description: Role
+        in: query
+        name: role
+        type: string
+      - description: Channel ID
+        in: query
+        name: channel_id
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DealsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List deals
+      tags:
+      - deals
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Deal details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateDealRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DealResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create deal
+      tags:
+      - deals
+  /deals/{dealID}:
+    get:
+      parameters:
+      - description: Deal ID
+        in: path
+        name: dealID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DealResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get deal
+      tags:
+      - deals
+  /deals/{dealID}/approve:
+    post:
+      parameters:
+      - description: Deal ID
+        in: path
+        name: dealID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Approve deal
+      tags:
+      - deals
+  /deals/{dealID}/cancel:
+    post:
+      parameters:
+      - description: Deal ID
+        in: path
+        name: dealID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel deal
+      tags:
+      - deals
+  /deals/{dealID}/reject:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Deal ID
+        in: path
+        name: dealID
+        required: true
+        type: string
+      - description: Rejection reason
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/RejectRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reject deal
+      tags:
+      - deals
+  /deals/{dealID}/request-changes:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Deal ID
+        in: path
+        name: dealID
+        required: true
+        type: string
+      - description: Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/RequestChangesRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request changes on deal
+      tags:
+      - deals
   /me:
     get:
       produces:

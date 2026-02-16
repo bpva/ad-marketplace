@@ -14,12 +14,14 @@ import (
 	"github.com/bpva/ad-marketplace/internal/http/dbgserver"
 	"github.com/bpva/ad-marketplace/internal/logx"
 	channel_repo "github.com/bpva/ad-marketplace/internal/repository/channel"
+	deal_repo "github.com/bpva/ad-marketplace/internal/repository/deal"
 	post_repo "github.com/bpva/ad-marketplace/internal/repository/post"
 	settings_repo "github.com/bpva/ad-marketplace/internal/repository/settings"
 	user_repo "github.com/bpva/ad-marketplace/internal/repository/user"
 	"github.com/bpva/ad-marketplace/internal/service/auth"
 	"github.com/bpva/ad-marketplace/internal/service/bot"
 	channel_service "github.com/bpva/ad-marketplace/internal/service/channel"
+	deal_service "github.com/bpva/ad-marketplace/internal/service/deal"
 	post_service "github.com/bpva/ad-marketplace/internal/service/post"
 	"github.com/bpva/ad-marketplace/internal/service/stats"
 	"github.com/bpva/ad-marketplace/internal/service/tonrates"
@@ -103,8 +105,10 @@ func main() {
 	userSvc := user_service.New(userRepo, settingsRepo, log)
 	postSvc := post_service.New(postRepo, telebotClient, log)
 	tonRatesSvc := tonrates.New(log)
+	dealRepo := deal_repo.New(db)
+	dealSvc := deal_service.New(dealRepo, channelRepo, postRepo, userRepo, db, log)
 
-	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc, postSvc, tonRatesSvc)
+	a := app.New(cfg.HTTP, log, botSvc, authSvc, channelSvc, userSvc, postSvc, tonRatesSvc, dealSvc)
 
 	go func() {
 		if err := a.Serve(); err != nil {

@@ -2,7 +2,7 @@ _footnotes_
 
 # Product
 
-- [ ] badge on unlisted/without ad formats channels
+- [x] badge on unlisted/without ad formats channels
 - [ ] preferred currency setting
 - [ ] "stats fetcher" user onboarding
 - [ ] l10n: bot, ui
@@ -14,9 +14,12 @@ _footnotes_
 
 - [ ] refresh token
 - [ ] role-based route protection
-- [ ] static server v caching
+- [x] static server v caching
 - [ ] true async stats fetching
-- [ ] save media to s3
+- [ ] save media to s3 (minio)
 - [ ] add metrics and alerts
 - [ ] proper category enumeration
 - [ ] store channel pp in s3
+- [ ] tooling should be moved from cmd
+- [ ] guard state changes of deals
+- [ ] make outbox for cancellation/rejection
